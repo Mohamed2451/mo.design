@@ -23,7 +23,9 @@ export async function getPublicContent() {
     db.from('services').select('*').eq('is_published', true).order('sort_order')
   ]);
   if (s.error || p.error || v.error) throw new Error(s.error?.message || p.error?.message || v.error?.message);
-  return {settings:s.data || seed.settings,projects:p.data || [],services:v.data || []};
+  const reviews=await db.from('testimonials').select('*').eq('is_published',true).eq('is_verified',true).order('sort_order');
+  if(reviews.error)console.warn('Testimonials table not installed; run migration if needed:',reviews.error.message);
+  return {settings:s.data || seed.settings,projects:p.data || [],services:v.data || [],testimonials:reviews.data || []};
 }
 export async function sendInquiry(details) {
   if (!connected) return {mode:'email'};
@@ -51,5 +53,7 @@ export async function getAdminContent() {
     db.from('inquiries').select('*').order('created_at',{ascending:false}).limit(100)
   ]);
   for(const result of [s,p,v,m]) if(result.error) throw result.error;
-  return {settings:s.data,projects:p.data,services:v.data,messages:m.data};
+  const reviews=await db.from('testimonials').select('*').order('sort_order');
+  if(reviews.error)console.warn('Testimonials table not installed:',reviews.error.message);
+  return {settings:s.data,projects:p.data,services:v.data,testimonials:reviews.data||[],messages:m.data};
 }

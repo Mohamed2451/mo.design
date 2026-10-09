@@ -9,7 +9,7 @@ let editing = null; // {table,id}
 let busy = false;
 
 if(localStorage.getItem('portfolio_theme') === 'light') document.documentElement.classList.add('light');
-const labels = {overview:'نظرة عامة',settings:'معلومات الموقع',projects:'إدارة الأعمال',services:'إدارة الخدمات',messages:'رسائل العملاء',future:'التطوير المستقبلي'};
+const labels = {overview:'نظرة عامة',settings:'معلومات الموقع',projects:'إدارة الأعمال',services:'إدارة الخدمات',testimonials:'آراء العملاء',messages:'رسائل العملاء',future:'التطوير المستقبلي'};
 function toast(message){const el=$('#toast'); el.textContent=message; el.classList.add('show'); clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),4000);}
 function uiButton(label,action,id='',className='secondary') {return `<button type="button" class="admin-btn ${className}" data-action="${esc(action)}" data-id="${esc(id)}">${esc(label)}</button>`;}
 function field(name,label,value='',options={}){
@@ -27,10 +27,10 @@ function renderLogin(error=''){
   $('#adminApp').innerHTML=`<div class="admin-login-wrap"><div class="admin-panel"><a href="./index.html" class="brand"><span class="brand-mark"><img src="./assets/images/mo-logo-white.webp" alt="" data-admin-brand-logo /></span> Mo Design<span class="brand-period">.</span></a><h1 style="margin:33px 0 12px;font-size:28px">تسجيل دخول الإدارة</h1><p class="admin-note">هذه اللوحة للمالك والمشرفين المعتمدين فقط. أنشئ حساب المستخدم داخل Supabase وأضف معرفه لجدول admin_users.</p><form id="loginForm" class="admin-auth">${field('email','البريد الإلكتروني','',{type:'email',required:true})}${field('password','كلمة المرور','',{type:'password',required:true})}<button class="admin-btn" type="submit">تسجيل الدخول ↗</button></form><p class="admin-note" role="alert" style="color:#f8a3a3">${esc(error)}</p><a class="admin-note" href="./index.html">← الرجوع للموقع</a></div></div>`;
 }
 function baseShell(){
-  $('#adminApp').innerHTML=`<div class="admin-layout"><aside class="admin-sidebar"><a href="./index.html" class="brand"><span class="brand-mark"><img src="./assets/images/mo-logo-white.webp" alt="" data-admin-brand-logo /></span> Mo Design<span class="brand-period">.</span></a><div class="admin-top-mobile"><strong>لوحة الإدارة</strong></div><nav class="sidebar-nav" id="adminNav">${Object.entries(labels).map(([key,label])=>`<button type="button" data-tab="${key}" class="${tab===key?'active':''}"><span>${({overview:'◉',settings:'✳',projects:'▣',services:'◇',messages:'✉',future:'✦'})[key]}</span> ${label}</button>`).join('')}</nav><div class="sidebar-footer"><a href="./index.html" target="_blank" rel="noopener">معاينة الموقع ↗</a>${connected?'<button type="button" data-action="logout">تسجيل الخروج</button>':''}</div></aside><main class="admin-main" id="adminMain"></main></div>`;
+  $('#adminApp').innerHTML=`<div class="admin-layout"><aside class="admin-sidebar"><a href="./index.html" class="brand"><span class="brand-mark"><img src="./assets/images/mo-logo-white.webp" alt="" data-admin-brand-logo /></span> Mo Design<span class="brand-period">.</span></a><div class="admin-top-mobile"><strong>لوحة الإدارة</strong></div><nav class="sidebar-nav" id="adminNav">${Object.entries(labels).map(([key,label])=>`<button type="button" data-tab="${key}" class="${tab===key?'active':''}"><span>${({overview:'◉',settings:'✳',projects:'▣',services:'◇',testimonials:'❝',messages:'✉',future:'✦'})[key]}</span> ${label}</button>`).join('')}</nav><div class="sidebar-footer"><a href="./index.html" target="_blank" rel="noopener">معاينة الموقع ↗</a>${connected?'<button type="button" data-action="logout">تسجيل الخروج</button>':''}</div></aside><main class="admin-main" id="adminMain"></main></div>`;
 }
 function renderOverview(){
-  const counts=[['الأعمال',data.projects.length],['الخدمات',data.services.length],['الرسائل',data.messages?.length??'—']];
+  const counts=[['الأعمال',data.projects.length],['الخدمات',data.services.length],['الآراء',data.testimonials?.length||0],['الرسائل',data.messages?.length??'—']];
   return `<div class="admin-panel"><h2>أهلًا بيك 👋</h2><p class="admin-note">من هنا تقدر تغيّر اسمك ونصوص الموقع والخدمات والأعمال، وتتابع رسائل العملاء بعد توصيل قاعدة البيانات.</p><div class="process-grid" style="margin-top:25px">${counts.map(([k,v])=>`<div class="process-card" style="min-height:140px"><span class="process-n">${esc(k)}</span><h3 style="font:800 45px 'DM Sans';margin:16px 0">${esc(v)}</h3></div>`).join('')}</div></div><div class="admin-panel"><h2>قبل نشر موقعك</h2><p class="admin-note">١. أضف بريدك الإلكتروني وروابط ملفاتك الشخصية بدل الروابط العامة. ٢. استبدل بطاقات الأعمال التجريبية بأعمالك الأصلية. ٣. فعّل Supabase لوصول رسائل العملاء للوحة الإدارة عبر الإنترنت.</p>${!connected?uiButton('صدّر بيانات المعاينة (JSON)','export') : ''}</div>`;
 }
 function renderSettings(){
@@ -54,17 +54,23 @@ function renderSettings(){
 }
 function renderItems(table){
   const isProjects=table==='projects';
-  const arr=data[table];
-  const noun=isProjects?'مشروع':'خدمة';
-  const list=`<div class="admin-panel"><div class="admin-heading"><h2>${isProjects?'الأعمال المعروضة':'الخدمات المعروضة'}</h2>${uiButton(`+ إضافة ${noun}`,'add',table,'')}</div><div class="admin-rows">${arr.length?arr.map(row=>`<div class="admin-row"><div><h3>${esc(row.title_ar)}</h3><p>${esc(row.title_en)} · ${row.is_published?'منشور':'مسودة'} · #${esc(row.sort_order)}</p></div><div class="row-actions">${uiButton('تعديل','edit',`${table}|${row.id}`)}${uiButton('حذف','delete',`${table}|${row.id}`,'danger')}</div></div>`).join(''):`<p class="admin-empty">لا توجد عناصر بعد.</p>`}</div></div>`;
+  const isTestimonials=table==='testimonials';
+  const arr=data[table]||[];
+  const noun=isProjects?'مشروع':isTestimonials?'رأي عميل':'خدمة';
+  const list=`<div class="admin-panel"><div class="admin-heading"><h2>${isProjects?'الأعمال المعروضة':isTestimonials?'آراء العملاء':'الخدمات المعروضة'}</h2>${uiButton(`+ إضافة ${noun}`,'add',table,'')}</div><div class="admin-rows">${arr.length?arr.map(row=>`<div class="admin-row"><div><h3>${esc(isTestimonials?row.author_ar:row.title_ar)}</h3><p>${esc(isTestimonials?row.author_en:row.title_en)} · ${row.is_published?'منشور':'مسودة'} · #${esc(row.sort_order)}</p></div><div class="row-actions">${uiButton('تعديل','edit',`${table}|${row.id}`)}${uiButton('حذف','delete',`${table}|${row.id}`,'danger')}</div></div>`).join(''):`<p class="admin-empty">لا توجد عناصر بعد.</p>`}</div></div>`;
   if(!editing || editing.table!==table)return list;
   const item=arr.find(a=>a.id===editing.id) || {};
   const isNew=!item.id;
-  const main=`${field('title_ar','العنوان بالعربي',item.title_ar,{required:true})}${field('title_en','Title in English',item.title_en,{required:true})}
+  const main=isTestimonials ? `${field('author_ar','اسم العميل بالعربي',item.author_ar,{required:true})}${field('author_en','Client name',item.author_en,{required:true})}
+  ${field('job_ar','المسمى / نوع العمل',item.job_ar)}${field('job_en','Role / project type',item.job_en)}
+  ${field('quote_ar','نص التقييم الحقيقي بالعربي',item.quote_ar,{type:'textarea',full:true,required:true})}${field('quote_en','Verified quote in English',item.quote_en,{type:'textarea',full:true,required:true})}
+  ${field('rating','التقييم من 1 إلى 5 (0 لقالب المعاينة)',item.rating??0,{type:'number'})}
+  ${field('is_verified','هذه شهادة حقيقية وبموافقة صاحبها',item.is_verified,{type:'checkbox',full:true})}
+  ${field('sort_order','الترتيب',item.sort_order??arr.length+1,{type:'number'})}${field('is_published','منشور على الموقع',item.is_published??true,{type:'checkbox'})}` : `${field('title_ar','العنوان بالعربي',item.title_ar,{required:true})}${field('title_en','Title in English',item.title_en,{required:true})}
   ${isProjects?`${field('category_ar','التصنيف بالعربي',item.category_ar,{required:true})}${field('category_en','Category in English',item.category_en,{required:true})}
   ${field('summary_ar','شرح المشروع بالعربي',item.summary_ar,{type:'textarea',full:true})}${field('summary_en','Project summary in English',item.summary_en,{type:'textarea',full:true})}
   ${field('cover_style','ستايل الصورة التوضيحية',item.cover_style || 'aurora',{select:[['aurora','Aurora'],['type','Typography'],['orbit','Orbit'],['pop','Pop']]})}
-  ${field('image_url','رابط صورة المشروع (HTTPS) - اختياري',item.image_url,{type:'url',full:true})}
+  ${field('image_url','صورة المشروع (HTTPS أو مسار من assets/images)',item.image_url,{type:'text',full:true})}
   ${field('external_url','رابط مشاهدة المشروع (HTTPS) - اختياري',item.external_url,{type:'url',full:true})}
   ${field('featured','مميز',item.featured,{type:'checkbox'})}`:
   `${field('description_ar','وصف الخدمة بالعربي',item.description_ar,{type:'textarea',full:true})}${field('description_en','Service description in English',item.description_en,{type:'textarea',full:true})}
@@ -80,7 +86,7 @@ function renderFuture(){return `<div class="admin-panel"><h2>خطة تطوير �
 function renderPanel(){
   if(!data)return;
   const main=$('#adminMain'); if(!main) return;
-  const body=({overview:renderOverview,settings:renderSettings,projects:()=>renderItems('projects'),services:()=>renderItems('services'),messages:renderMessages,future:renderFuture})[tab]();
+  const body=({overview:renderOverview,settings:renderSettings,projects:()=>renderItems('projects'),services:()=>renderItems('services'),testimonials:()=>renderItems('testimonials'),messages:renderMessages,future:renderFuture})[tab]();
   main.innerHTML=`<header class="admin-heading"><div><div class="eyebrow">PORTFOLIO / CONTROL ROOM</div><h1>${esc(labels[tab])}</h1><p>إدارة موقعك الإبداعي من مكان واحد.</p></div><span class="admin-badge">${connected?`● LIVE · ${esc(currentUser?.email||'')}`:'◌ LOCAL DEMO'}</span></header>${!connected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
   document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
 }
@@ -91,6 +97,7 @@ function getFields(form,table){
     return {brand_ar:get('brand_ar'),brand_en:get('brand_en'),personal_name:get('personal_name'),role_ar:get('role_ar'),role_en:get('role_en'),headline_ar:get('headline_ar'),headline_en:get('headline_en'),subheadline_ar:get('subheadline_ar'),subheadline_en:get('subheadline_en'),bio_ar:get('bio_ar'),bio_en:get('bio_en'),contact_email:get('contact_email'),instagram_url:get('instagram_url'),behance_url:get('behance_url'),linkedin_url:get('linkedin_url'),whatsapp_url:get('whatsapp_url'),tiktok_url:get('tiktok_url'),facebook_url:get('facebook_url'),community_url:get('community_url'),availability:f.has('availability')};
   }
   const common={title_ar:get('title_ar'),title_en:get('title_en'),sort_order:Number(get('sort_order'))||0,is_published:f.has('is_published')};
+  if(table==='testimonials')return {...common,author_ar:get('author_ar'),author_en:get('author_en'),job_ar:get('job_ar'),job_en:get('job_en'),quote_ar:get('quote_ar'),quote_en:get('quote_en'),rating:Math.max(0,Math.min(5,Number(get('rating'))||0)),is_verified:f.has('is_verified')};
   if(table==='projects')return {...common,category_ar:get('category_ar'),category_en:get('category_en'),summary_ar:get('summary_ar'),summary_en:get('summary_en'),cover_style:get('cover_style'),image_url:get('image_url'),external_url:get('external_url'),featured:f.has('featured')};
   return {...common,description_ar:get('description_ar'),description_en:get('description_en'),icon:get('icon')};
 }
@@ -100,7 +107,8 @@ async function saveForm(form){
   const entry=getFields(form,table);
   const id=form.dataset.editId;
   if(table==='projects') {
-    for(const name of ['image_url','external_url']) if(entry[name] && (!/^https:\/\//i.test(entry[name]) || !safeUrl(entry[name]))) {toast('استخدم رابط HTTPS صالحًا للصورة أو المشروع.'); return;}
+    if(entry.image_url && !(/^https:\/\//i.test(entry.image_url) || /^\.\/assets\/images\/[\w.-]+$/i.test(entry.image_url))) {toast('استخدم رابط HTTPS أو صورة من مجلد assets/images.');return;}
+    if(entry.external_url && !/^https:\/\//i.test(entry.external_url)){toast('رابط المشروع يجب أن يبدأ بـ HTTPS');return;}
   }
   busy=true;
   try {
@@ -118,7 +126,7 @@ async function saveForm(form){
     } else {
       if(table==='settings')data.settings={...data.settings,...entry};
       else if(id){const index=data[table].findIndex(x=>x.id===id);if(index!==-1)data[table][index]={...data[table][index],...entry};}
-      else data[table].push({...entry,id:`demo-${Date.now()}`,slug:`project-${Date.now()}`});
+      else data[table].push({...entry,id:`local-${Date.now()}`,slug:`project-${Date.now()}`});
       saveDemo(data);
     }
     editing=null; renderPanel(); toast('تم حفظ التعديلات بنجاح ✓');

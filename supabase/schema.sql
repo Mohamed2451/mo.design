@@ -21,7 +21,7 @@ create table if not exists public.site_settings (
   bio_ar text not null default 'مصمم جرافيك ومونتير شغوف بدمج الإبداع البصري مع أحدث أدوات الذكاء الاصطناعي التوليدي. أساعد العلامات التجارية وأصحاب الأعمال على ابتكار هويات وحملات إعلانية بصرية تترك أثرًا وتهدف لزيادة التفاعل والمبيعات.',
   bio_en text not null default 'I’m a graphic designer and video editor passionate about blending visual creativity with generative AI. I help brands create distinctive identities and campaigns designed to make an impact.',
   contact_email text not null default '',
-  whatsapp_url text not null default 'https://wa.me/201015000036',
+  whatsapp_url text not null default 'https://wa.me/201097865616',
   community_url text not null default 'https://chat.whatsapp.com/HvJGMrahSBFBmCxRMxD2Z5',
   tiktok_url text not null default 'https://www.tiktok.com/@mohamedmahmoud30',
   facebook_url text not null default 'https://www.facebook.com/Mohame.Mahmoud11',
@@ -62,6 +62,18 @@ create table if not exists public.services (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.testimonials (
+  id uuid primary key default gen_random_uuid(),
+  author_ar text not null, author_en text not null,
+  job_ar text not null default '', job_en text not null default '',
+  quote_ar text not null, quote_en text not null,
+  rating integer not null default 0 check (rating between 0 and 5),
+  is_verified boolean not null default false,
+  is_published boolean not null default false,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.inquiries (
   id uuid primary key default gen_random_uuid(),
   sender_name text not null check (char_length(sender_name) between 2 and 120),
@@ -91,6 +103,7 @@ alter table public.site_settings enable row level security;
 alter table public.projects enable row level security;
 alter table public.services enable row level security;
 alter table public.inquiries enable row level security;
+alter table public.testimonials enable row level security;
 
 -- Admin membership is created ONLY in the SQL Editor (not by client users).
 revoke all on public.admin_users from anon,authenticated;
@@ -137,6 +150,20 @@ create policy "admin inserts services" on public.services
 create policy "admin updates services" on public.services
   for update to authenticated using (public.is_portfolio_admin()) with check (public.is_portfolio_admin());
 create policy "admin deletes services" on public.services
+  for delete to authenticated using (public.is_portfolio_admin());
+
+revoke all on public.testimonials from anon,authenticated;
+grant select on public.testimonials to anon,authenticated;
+grant insert,update,delete on public.testimonials to authenticated;
+create policy "public verified published testimonials" on public.testimonials
+  for select to anon,authenticated using (is_published = true and is_verified = true);
+create policy "admin sees all testimonials" on public.testimonials
+  for select to authenticated using (public.is_portfolio_admin());
+create policy "admin inserts testimonials" on public.testimonials
+  for insert to authenticated with check (public.is_portfolio_admin());
+create policy "admin updates testimonials" on public.testimonials
+  for update to authenticated using (public.is_portfolio_admin()) with check (public.is_portfolio_admin());
+create policy "admin deletes testimonials" on public.testimonials
   for delete to authenticated using (public.is_portfolio_admin());
 
 -- Visitors can ONLY submit the four input columns; they cannot see submissions,

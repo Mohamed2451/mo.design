@@ -57,8 +57,8 @@ function setBrandContent() {
     emailLink.setAttribute('aria-disabled','true');
     emailLink.classList.add('is-disabled');
   }
-  const wa = safeUrl(settings.whatsapp_url) || 'https://wa.me/201015000036';
-  ['heroWhatsApp','contactWhatsApp','floatingWhatsApp'].forEach(id=>{const a=$(`#${id}`);if(a)a.href=wa;});
+  const wa = safeUrl(settings.whatsapp_url) || 'https://wa.me/201097865616';
+  ['heroWhatsApp','contactWhatsApp','floatingWhatsApp','ctaWhatsApp'].forEach(id=>{const a=$(`#${id}`);if(a)a.href=wa;});
   const community = safeUrl(settings.community_url) || 'https://chat.whatsapp.com/HvJGMrahSBFBmCxRMxD2Z5';
   $('#communityLink').href = community;
   $('#copyrightText').textContent = `© ${new Date().getFullYear()} Mo Design / Mohamed Mahmoud. ${txt().rights}`;
@@ -109,9 +109,58 @@ function showProject(id) {
   if(!p) return;
   const link = safeUrl(p.external_url);
   const visit = link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" class="pill-btn primary-btn">${esc(txt().visit)} ↗</a>` : `<span class="admin-note">${esc(txt().no_link)}</span>`;
-  $('#dialogContents').innerHTML = `<div class="dialog-body">${graphicHTML(p)}<span class="dialog-tag">${esc(field(p,'category'))}</span><h2>${esc(field(p,'title'))}</h2><p>${esc(field(p,'summary'))}</p>${visit}</div>`;
+  $('#dialogContents').innerHTML = `<div class="dialog-body">${graphicHTML(p)}<span class="dialog-tag">${esc(field(p,'category'))}</span><h2>${esc(field(p,'title'))}</h2><p>${esc(field(p,'summary'))}</p><p class="concept-notice">${esc(String(p.id).startsWith('demo-') ? txt().feature_disclaimer : '')}</p>${visit}</div>`;
   $('#projectDialog').showModal();
 }
+let featureIndex = 0;
+function featuredItems() {
+  return model.projects.filter(p => p.is_published && p.featured).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+}
+function renderFeatured() {
+  const projects=featuredItems();
+  const count=projects.length;
+  const stage=$('#featureStage');
+  if(!count){$('#featured').hidden=true;$('#featureCards').innerHTML='';$('#featureCount').textContent='00 / 00';$('#featureDots').innerHTML='';return;}
+  $('#featured').hidden=false;
+  featureIndex=((featureIndex%count)+count)%count;
+  const dist=(a,b)=>((a-b+count)%count);
+  $('#featureCards').innerHTML=projects.map((p,i)=>{
+    const d=dist(i,featureIndex), reverse=dist(featureIndex,i);
+    const position=d===0?'active':reverse===1?'prev':d===1?'next':reverse===2?'far-prev':d===2?'far-next':'hidden';
+    const asset=safeUrl(p.image_url);
+    return `<article class="feature-slide" data-position="${position}" data-slide-index="${i}" ${position==='active'?'':'aria-hidden="true"'}>
+      <button type="button" class="feature-project-link" data-feature-project="${esc(p.id)}" tabindex="${position==='active'?'0':'-1'}" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">
+      ${asset ? `<img src="${esc(asset)}" alt="${esc(field(p,'title'))}" loading="${i<3?'eager':'lazy'}"/>` : `<div class="project-cover ${esc(p.cover_style||'aurora')}" style="height:100%"><div class="cover-graphic">✳</div></div>`}
+      <span class="feature-scrim" aria-hidden="true"></span><span class="feature-info"><span class="feature-tag">${esc(field(p,'category'))}</span><h3>${esc(field(p,'title'))}</h3><p>MO DESIGN · CONCEPT SERIES ${number(i+1)}</p></span>
+      </button></article>`;
+  }).join('');
+  $('#featureCount').textContent=`${number(featureIndex+1)} / ${number(count)}`;
+  $('#featureDots').innerHTML=projects.map((p,i)=>`<button type="button" class="feature-dot" data-feature-to="${i}" aria-label="${lang==='ar'?'الذهاب إلى مشروع':'Go to project'} ${i+1}" aria-current="${i===featureIndex}"></button>`).join('');
+  stage.querySelectorAll('.feature-slide').forEach(el=>{el.inert=el.dataset.position!=='active';});
+}
+function moveFeature(delta){const a=featuredItems();if(!a.length)return;featureIndex=(featureIndex+delta+a.length)%a.length;renderFeatured();}
+function renderReviews() {
+  const items=(model.testimonials||[]).filter(r=>r.is_published).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+  $('#testimonialsGrid').innerHTML=items.map((r,i)=>{
+    const verified=Boolean(r.is_verified);
+    const name=field(r,'author')|| (lang==='ar'?'مساحة لرأي عميل':'Client review space');
+    return `<article class="review-card reveal ${verified?'verified':''}"><div class="review-person"><div class="review-avatar" aria-hidden="true">${esc(name.trim().slice(0,1).toUpperCase())}</div><div><h3>${esc(name)}</h3><p>${esc(field(r,'job'))}</p></div><span class="review-badge">${esc(verified?txt().review_verified:txt().review_placeholder)}</span></div>
+    <div class="review-stars" aria-label="${verified&&Number(r.rating)>0?`${Number(r.rating)}/5`:''}">${verified && Number(r.rating)>0 ? '★'.repeat(Math.min(5,Math.max(1,Number(r.rating)))) : (verified?'✓ MO DESIGN':'✦  MO DESIGN  ✦')}</div><p class="review-quote">${esc(field(r,'quote'))}</p><div class="review-bottom"><span>${verified?'✓':'◎'} ${esc(verified?txt().review_verified:txt().review_placeholder)}</span><span>MO DESIGN / ${number(i+1)}</span></div></article>`;
+  }).join('') || `<p class="admin-empty">${esc(lang==='ar'?'قريبًا: تقييمات العملاء':'Client feedback coming soon')}</p>`;
+  $('#testimonials').classList.toggle('no-reviews',items.length===0);
+  const allVerified=items.length>0 && items.every(r=>r.is_verified);
+  $('.reviews-note').hidden=allVerified;
+  observeReveal();
+}
+$('#featurePrev').addEventListener('click',()=>moveFeature(-1));
+$('#featureNext').addEventListener('click',()=>moveFeature(1));
+$('#featureDots').addEventListener('click',e=>{const b=e.target.closest('[data-feature-to]');if(b){featureIndex=Number(b.dataset.featureTo);renderFeatured();}});
+$('#featureCards').addEventListener('click',e=>{const b=e.target.closest('[data-feature-project]');if(b)showProject(b.dataset.featureProject);});
+$('#featureStage').addEventListener('keydown',e=>{if(e.key==='ArrowRight'){e.preventDefault();moveFeature(1);}else if(e.key==='ArrowLeft'){e.preventDefault();moveFeature(-1);}});
+let touchX=0;
+$('#featureStage').addEventListener('touchstart',e=>{touchX=e.changedTouches[0]?.screenX||0;},{passive:true});
+$('#featureStage').addEventListener('touchend',e=>{const dx=(e.changedTouches[0]?.screenX||0)-touchX;if(Math.abs(dx)>55)moveFeature(dx<0?1:-1);},{passive:true});
+
 function renderSubjects() {
   $('#serviceSelect').innerHTML = txt().subject_options.map((v,i)=>`<option value="${esc(v)}" ${i===0?'disabled selected':''}>${esc(v)}</option>`).join('');
 }
@@ -123,7 +172,7 @@ function observeReveal() {
 const observer = new IntersectionObserver((entries,ob)=>entries.forEach(e=>{
   if(e.isIntersecting){e.target.classList.add('visible');ob.unobserve(e.target);}
 }),{threshold:.06,rootMargin:'0px 0px 20px 0px'});
-function render() {updateDocument();setBrandContent();renderProjects();renderServices();renderSubjects();observeReveal();}
+function render() {updateDocument();setBrandContent();renderProjects();renderFeatured();renderServices();renderReviews();renderSubjects();observeReveal();}
 
 $('#copyEmail').addEventListener('click',async ()=>{
   const email=String(model.settings?.contact_email||'').trim();
@@ -166,9 +215,9 @@ $('#contactForm').addEventListener('submit',async e=>{
   try {
     const result=await sendInquiry(vals);
     if(result.mode==='email'){
-      const phone = (model.settings.whatsapp_url || 'https://wa.me/201015000036').split('?')[0];
+      const phone = (model.settings.whatsapp_url || 'https://wa.me/201097865616').split('?')[0];
       const info = lang==='ar' ? `طلب مشروع من موقع Mo Design\nالاسم: ${vals.name}\nالبريد: ${vals.email}\nالخدمة: ${vals.service}\nالتفاصيل: ${vals.message}` : `Project enquiry from Mo Design\nName: ${vals.name}\nEmail: ${vals.email}\nService: ${vals.service}\nBrief: ${vals.message}`;
-      const url = `${safeUrl(phone) || 'https://wa.me/201015000036'}?text=${encodeURIComponent(info)}`;
+      const url = `${safeUrl(phone) || 'https://wa.me/201097865616'}?text=${encodeURIComponent(info)}`;
       // Existing user gesture, opens direct WhatsApp as a transparent fallback.
       const opened=window.open(url,'_blank','noopener,noreferrer');
       if(!opened) window.location.href=url;
