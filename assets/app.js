@@ -35,7 +35,7 @@ function updateDocument() {
       } else el.textContent = val;
     }
   });
-  document.title = `Mo Design — Mohamed Mahmoud | ${lang === 'ar' ? 'تصميم ومونتاج وذكاء اصطناعي' : 'Design, Motion & AI'}`;
+  document.title = `Mo Design — Mohamed Mahmoud | ${lang === 'ar' ? 'تصميم ومونتاج وذكاء اصطناعي' : 'Design, Editing & AI'}`;
   document.querySelector('meta[name="description"]').content = field(model.settings, 'subheadline');
 }
 function setBrandContent() {
@@ -68,8 +68,8 @@ function setBrandContent() {
   $('#copyrightText').textContent = `© ${new Date().getFullYear()} Mo Design / Mohamed Mahmoud. ${txt().rights}`;
   const countValues=[settings.stats_projects,settings.stats_years,settings.stats_satisfaction];
   $$('.stats-strip [data-count]').forEach((el,i)=>{ const newCount=Math.max(0,Number(countValues[i]??[100,3,100][i])||0);el.dataset.count=String(newCount);if(el.textContent==='0')el.textContent='0'; });
-  const verifiedStats = Boolean(settings.stats_verified);
-  $('.stats-strip').hidden = !verifiedStats;
+  const hasStats = countValues.some(v => Number(v) > 0);
+  $('.stats-strip').hidden = !hasStats;
   $('#demoHint').style.display = model.projects.some(p=>String(p.id).startsWith('demo-') && p.is_published) ? 'flex' : 'none';
   const socials = [
     ['Behance',settings.behance_url,'Bē'],['LinkedIn',settings.linkedin_url,'in'],
@@ -95,7 +95,7 @@ function renderFilters() {
   const published=model.projects.filter(p=>p.is_published);
   const core=[
     ['Social Media Ads','تصاميم السوشيال ميديا والإعلانات'],
-    ['Video Editing & Motion','مونتاج وموشن جرافيكس'],
+    ['Reels & Podcast Editing','مونتاج الريلز والبودكاست'],
     ['AI Visuals & Concepts','فنون وتوليد الذكاء الاصطناعي'],
     ['Branding & Identity','براندينج وهوية بصرية']
   ];
@@ -108,14 +108,14 @@ function renderFilters() {
 function renderProjects() {
   renderFilters();
   const items = model.projects.filter(p=>p.is_published && (activeCategory==='*'||(p.category_en || p.category_ar)===activeCategory)).sort((a,b)=>(a.sort_order || 0)-(b.sort_order || 0));
-  $('#worksCount').textContent = `${number(items.length)} PROJECTS`;
+  $('#worksCount').textContent = lang === 'ar' ? `${number(items.length)} مشروع` : `${number(items.length)} PROJECTS`;
   $('#projectGrid').innerHTML = items.length ? items.map((p,i)=>`<article class="project-card reveal"><a class="project-cover-button" href="${esc(caseUrl(p))}" style="display:block;width:100%" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">${graphicHTML(p)}</a><div class="project-meta"><div><h3>${esc(field(p,'title'))}</h3><p>${esc(field(p,'category'))}</p></div><span class="project-index">/${number(i+1)}</span></div></article>`).join('') : `<p class="admin-empty">${esc(txt().no_projects)}</p>`;
   observeReveal();
 }
 function renderServices() {
   const items = model.services.filter(s=>s.is_published).sort((a,b)=>(a.sort_order || 0)-(b.sort_order || 0));
   const icons = {diamond:'◇',sparkles:'✳',play:'▷',layout:'▦',target:'◎',brush:'✺'};
-  const serviceSlug = s => {const title=String(s.title_en||'').toLowerCase();if(/video|motion/.test(title))return 'video-motion';if(/ai|artificial/.test(title))return 'ai-creative';if(/brand|identity/.test(title))return 'branding';if(/social|advertis|ads/.test(title))return 'social-media';return '';};
+  const serviceSlug = s => {const id=String(s.id||'');const title=String(s.title_en||'').toLowerCase();if(id==='service-edit'||/reels|podcast|video/.test(title))return 'video-motion';if(id==='service-ai'||/ai|images|video concepts/.test(title))return 'ai-creative';if(id==='service-prompts'||/prompt/.test(title))return 'ai-creative';if(id==='service-brand'||/brand|identity/.test(title))return 'branding';if(id==='service-ads'||/social|advertis|ads/.test(title))return 'social-media';return '';};
   $('#servicesList').innerHTML = items.map((s,i)=>`<article class="service-item reveal"><span class="service-number">/${number(i+1)}</span><h3 class="service-title">${esc(field(s,'title'))}</h3><p class="service-desc">${esc(field(s,'description'))}</p><a href="${serviceSlug(s)?`./services/${serviceSlug(s)}/`:`#contact`}" class="service-mark" aria-label="${esc(txt().details)}: ${esc(field(s,'title'))}">${icons[s.icon] || '↗'}</a></article>`).join('');
   observeReveal();
 }
@@ -155,7 +155,7 @@ function renderFeatured() {
 }
 function moveFeature(delta){const a=featuredItems();if(!a.length)return;featureIndex=(featureIndex+delta+a.length)%a.length;renderFeatured();}
 function renderReviews() {
-  const items=(model.testimonials||[]).filter(r=>r.is_published && r.is_verified).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+  const items=(model.testimonials||[]).filter(r=>r.is_published).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
   $('#testimonialsGrid').innerHTML=items.map((r,i)=>{
     const verified=Boolean(r.is_verified);
     const name=field(r,'author')|| (lang==='ar'?'مساحة لرأي عميل':'Client review space');
@@ -164,8 +164,7 @@ function renderReviews() {
   }).join('') || `<p class="admin-empty">${esc(lang==='ar'?'قريبًا: تقييمات العملاء':'Client feedback coming soon')}</p>`;
   $('#testimonials').hidden = items.length===0;
   $('#testimonials').classList.toggle('no-reviews',items.length===0);
-  const allVerified=items.length>0 && items.every(r=>r.is_verified);
-  $('.reviews-note').hidden=allVerified;
+  $('.reviews-note').hidden = items.length === 0;
   observeReveal();
 }
 $('#featurePrev').addEventListener('click',()=>moveFeature(-1));
@@ -180,6 +179,63 @@ $('#featureStage').addEventListener('touchend',e=>{const dx=(e.changedTouches[0]
 function renderSubjects() {
   $('#serviceSelect').innerHTML = txt().subject_options.map((v,i)=>`<option value="${esc(v)}" ${i===0?'disabled selected':''}>${esc(v)}</option>`).join('');
 }
+
+function renderTools() {
+  const tools = lang === 'ar' ? [
+    {abbr:'Ps',name:'Adobe Photoshop',meta:'تصميم ومعالجة الصور'},
+    {abbr:'Ai',name:'Adobe Illustrator',meta:'رسم وتكوين الهوية'},
+    {abbr:'Pr',name:'Adobe Premiere Pro',meta:'مونتاج الريلز والفيديو'},
+    {abbr:'Dr',name:'DaVinci Resolve',meta:'مونتاج وتصحيح ألوان'},
+    {abbr:'Cc',name:'CapCut',meta:'إنتاج سريع للمحتوى القصير'},
+    {abbr:'Hx',name:'Hexfield',meta:'توليد صور وأفكار إبداعية'},
+    {abbr:'Fl',name:'Flow',meta:'إنشاء صور وفيديوهات بالذكاء الاصطناعي'}
+  ] : [
+    {abbr:'Ps',name:'Adobe Photoshop',meta:'Design & retouching'},
+    {abbr:'Ai',name:'Adobe Illustrator',meta:'Vector & identity work'},
+    {abbr:'Pr',name:'Adobe Premiere Pro',meta:'Reels & video editing'},
+    {abbr:'Dr',name:'DaVinci Resolve',meta:'Editing & color finishing'},
+    {abbr:'Cc',name:'CapCut',meta:'Fast short-form production'},
+    {abbr:'Hx',name:'Hexfield',meta:'AI image generation'},
+    {abbr:'Fl',name:'Flow',meta:'AI image & video creation'}
+  ];
+  const grid = $('#toolsGrid');
+  if(!grid) return;
+  grid.innerHTML = tools.map((tool, i) => `
+    <article class="tool-card tilt-card reveal" data-tool-index="${i+1}">
+      <div class="tool-badge" aria-hidden="true">${esc(tool.abbr)}</div>
+      <div class="tool-copy">
+        <h3>${esc(tool.name)}</h3>
+        <p>${esc(tool.meta)}</p>
+      </div>
+      <span class="tool-index">/${number(i+1)}</span>
+    </article>`).join('');
+}
+
+function applyInteractiveFX(){
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const nodes = $$('.project-card,.process-card,.review-card,.tool-card,.service-item,.feature-slide');
+  nodes.forEach(node=>{
+    if(node.dataset.fxBound) return;
+    node.dataset.fxBound='1';
+    node.classList.add('tilt-card');
+    node.addEventListener('pointermove',e=>{
+      const r=node.getBoundingClientRect();
+      const x=(e.clientX-r.left)/r.width;
+      const y=(e.clientY-r.top)/r.height;
+      const rx=(0.5-y)*8;
+      const ry=(x-0.5)*8;
+      node.style.setProperty('--mx',`${Math.round(x*100)}%`);
+      node.style.setProperty('--my',`${Math.round(y*100)}%`);
+      node.style.transform=`perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-4px)`;
+    });
+    node.addEventListener('pointerleave',()=>{
+      node.style.transform='';
+      node.style.removeProperty('--mx');
+      node.style.removeProperty('--my');
+    });
+  });
+}
+
 function observeReveal() {
   const nodes = $$('.reveal:not(.visible)');
   if(!('IntersectionObserver' in window)) {nodes.forEach(n=>n.classList.add('visible')); return;}
@@ -188,7 +244,7 @@ function observeReveal() {
 const observer = new IntersectionObserver((entries,ob)=>entries.forEach(e=>{
   if(e.isIntersecting){e.target.classList.add('visible');ob.unobserve(e.target);}
 }),{threshold:.06,rootMargin:'0px 0px 20px 0px'});
-function render() {updateDocument();setBrandContent();renderProjects();renderFeatured();renderServices();renderReviews();renderSubjects();observeReveal();}
+function render() {updateDocument();setBrandContent();renderProjects();renderFeatured();renderServices();renderTools();renderReviews();renderSubjects();observeReveal();applyInteractiveFX();}
 
 $('#copyEmail').addEventListener('click',async ()=>{
   const email=String(model.settings?.contact_email||'').trim();
