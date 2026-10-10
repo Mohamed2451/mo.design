@@ -1,0 +1,28 @@
+/* Mo Design V8 — precise text geometry and consistent visual hierarchy */
+.portrait-top-tag{top:42px!important;left:32px!important;right:auto!important;transform:rotate(-4deg)!important;display:inline-flex;align-items:center;justify-content:center;gap:10px;max-width:min(70%,240px);min-height:45px;padding:11px 15px!important;direction:rtl!important;text-align:center;font:800 14px/1.5 'IBM Plex Sans Arabic',sans-serif!important;letter-spacing:0!important;white-space:normal;box-sizing:border-box;background:#c9f789;color:#132116;border:1px solid rgba(3,34,12,.18);border-radius:12px;isolation:isolate}
+.portrait-top-tag span,.portrait-top-tag .portrait-tag-copy,.portrait-top-tag .portrait-tag-icon{position:static!important;inset:auto!important;display:block;min-width:0;transform:none!important;line-height:1.45!important;color:#142018!important}
+.portrait-top-tag .portrait-tag-copy{font-size:14px!important;font-weight:800!important;white-space:nowrap}
+.portrait-top-tag .portrait-tag-icon{font-size:21px!important;color:#142018!important;line-height:1!important}
+.portrait-logo-stamp{left:27px!important;bottom:112px!important;right:auto!important;transform:rotate(-7deg)!important;width:104px!important;height:104px!important;padding:12px 8px 9px!important;box-sizing:border-box;gap:1px;border:1px solid rgba(205,245,155,.44)!important;z-index:6;}
+.portrait-logo-stamp img{display:block!important;max-height:58px!important;width:66px!important;height:58px!important;min-height:0!important;object-fit:contain!important;margin:0!important;flex-shrink:0}
+.portrait-logo-stamp >span{position:static!important;margin:1px 0 0!important;font:800 9px/1.35 'DM Sans',sans-serif!important;letter-spacing:.08em;white-space:nowrap;color:#fff!important}
+:root.light .portrait-logo-stamp>span{color:#192117!important}
+.portrait-bottom-tag{bottom:28px!important;right:16px!important;max-width:58%;transform:rotate(4deg)!important;padding:12px 16px!important;gap:9px}
+.hero-art{overflow:visible}
+:root[lang="ar"] .hero-kicker{font-family:'IBM Plex Sans Arabic',sans-serif;letter-spacing:0;text-transform:none;line-height:1.9;font-weight:650}
+:root[lang="ar"] .hero-title,:root[lang="ar"] .section-title,:root[lang="ar"] .value-headline,:root[lang="ar"] .editorial-intro h2{letter-spacing:0!important}
+:root[lang="ar"] .hero-title{line-height:1.4}
+:root[lang="ar"] .editorial-intro p{direction:rtl;text-align:start}
+:root[lang="ar"] .review-person h3{font-family:'IBM Plex Sans Arabic',sans-serif}
+.testimonials-section{background:radial-gradient(ellipse at 10% 30%,rgba(63,126,68,.13),transparent 52%),linear-gradient(135deg,#081712,#0b1913 62%,#08120f)!important;border-block:1px solid rgba(196,242,145,.16);}
+.review-card{background:linear-gradient(145deg,rgba(20,46,32,.8),rgba(7,27,19,.94))!important;border-color:rgba(182,235,132,.18)!important}
+.review-badge{white-space:normal;text-align:center;max-width:120px}
+.footer-bottom{display:flex;flex-wrap:wrap;align-items:center;gap:16px 28px;justify-content:space-between}
+.footer-legal{display:flex;align-items:center;flex-wrap:wrap;gap:12px 24px}
+.footer-legal a{color:var(--text-soft);font-size:12px;text-decoration:none;transition:color .2s}
+.footer-legal a:hover,.footer-legal a:focus-visible{color:var(--accent);text-decoration:underline;text-underline-offset:4px}
+.legal-links{display:flex;flex-wrap:wrap;gap:15px;margin-top:18px;font-size:13px}.legal-links a{color:var(--text-soft)}.legal-links a:hover{color:var(--accent)}
+.case-content a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+@media(max-width:800px){.portrait-top-tag{top:32px!important;left:24px!important}.portrait-logo-stamp{left:18px!important;bottom:98px!important}.hero-art{overflow:visible}}
+@media(max-width:540px){.portrait-top-tag{top:25px!important;left:19px!important;gap:6px;max-width:75%;min-height:36px;padding:7px 10px!important;border-radius:8px;transform:rotate(-3deg)!important}.portrait-top-tag .portrait-tag-copy{font-size:10px!important}.portrait-top-tag .portrait-tag-icon{font-size:14px!important}.portrait-logo-stamp{width:70px!important;height:73px!important;left:16px!important;bottom:85px!important;gap:0!important;padding:6px 5px 5px!important}.portrait-logo-stamp img{width:48px!important;height:46px!important;max-height:46px!important}.portrait-logo-stamp >span{font-size:6px!important;margin:0!important}.portrait-bottom-tag{bottom:16px!important;right:8px!important;max-width:61%;padding:9px 10px!important}.footer-bottom{flex-direction:column;align-items:start}.footer-legal{gap:10px 17px}.footer-legal a{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.portrait-top-tag,.portrait-logo-stamp{animation:none;transition:none}}
