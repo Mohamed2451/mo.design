@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /mo.design/admin.html
+Sitemap: https://mohamed2451.github.io/mo.design/sitemap.xml

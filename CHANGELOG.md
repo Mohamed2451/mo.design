@@ -1,10 +1,14 @@
-# Mo Design — Release 4
+# CHANGELOG
 
-- New animated counters: 100+ completed projects, 3+ years experience, 100% client satisfaction (owner-requested figures; confirm before publishing).
-- WhatsApp links updated to +20 109 786 5616 (wa.me/201097865616).
-- Introduced Featured Projects interactive coverflow with arrows, dots, touch gestures, keyboard and project modal.
-- Eight locally hosted SVG portfolio concepts across Social Ads, Motion, AI Visuals, and Branding. These are fictional display concepts, not client commissions.
-- Added new testimonials section with explicitly marked preview cards; real reviews need permission and verification.
-- Added testimonials management tab to administration and RLS-backed table for connected Supabase.
-- Added a strong contact CTA and responsive visual refinements.
-- Tested desktop and 390px mobile layouts, theme and language toggles, filtering, and admin editing in preview mode.
+## V5 — 2026-10-10
+
+- Premium editorial design layer (`assets/v5.css`), original owner identity retained.
+- 12 original speculative projects (4 new visuals).
+- 12 static case study pages and 4 standalone service detail pages.
+- Portfolio linkable projects and a new campaign gallery / value reasons / FAQ.
+- Expanded client brief form, privacy confirmation, additional inquiry fields.
+- Admin: original project meta, image upload to Supabase Storage, editable achievements with verification, inquiry status and notes.
+- Testimonials are displayed publicly only when verified and published.
+- Sitemap, robots, privacy, 404, OG cover and GitHub Pages workflow updates.
+- 003_v5_portfolio.sql additive migration.
+- Docs and local testing report; production deployment not performed.

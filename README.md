@@ -1,81 +1,64 @@
-# Mo Design — Creative Portfolio (V4)
+# Mo Design V5 — Creative Portfolio + Client Enquiries
 
-موقع **Mo Design** الرسمي بتصميم عربي/إنجليزي، Dark / Light وواجهة متجاوبة، باسم **Mohamed Mahmoud**. المجالات: Social Media Ads، Video Editing & Motion، AI Visuals وBranding & Identity.
+**Owner:** Mohamed Mahmoud  
+**Production URL:** https://mohamed2451.github.io/mo.design/  
+**Source:** https://github.com/Mohamed2451/mo.design
 
-## ما الجديد في V4؟
+## What's new
 
-- عدادات متحركة بالصياغة التي طلبها صاحب الموقع: **+100 مشروع مكتمل، +3 سنوات خبرة، 100% رضا العملاء**. هذه بيانات قدّمها صاحب الموقع ويجب التحقق منها قبل الإعلان النهائي، ويمكن تغييرها في `index.html` (خصائص `data-count`) وملف الترجمة `assets/data.js`.
-- قسم **«مشاريع أعتز بيها»**: سلايدر ثلاثي البطاقات، أسهم، نقاط تنقل، أسهم لوحة المفاتيح، سحب باللمس، نافذة تفاصيل لكل مشروع. السلايدر يقرأ المشاريع `featured` المنشورة من نفس المصدر الذي يغذي شبكة الأعمال.
-- **8 Concept Posters أصلية** بصيغة SVG محلية، قابلة للاستبدال. تم تصميمها لعرض شكل المعرض فقط؛ **ليست أعمالًا لعملاء، ولا شهادات على تنفيذ خدمات فعلية**. لا تعتمد صورها على خدمات أو روابط خارجية.
-- قسم **آراء العملاء** بتصميم أخضر داكن وبطاقات مخصصة. قوالب المعاينة **غير موثّقة** وموسومة بذلك. عند ربط Supabase لا تظهر للعامة إلا الشهادات المنشورة والمعلّمة `is_verified=true` بعد إذن العميل.
-- قسم دعوة تواصل مميز، وإتقان الـ Hover، واستخدام صورة محمد وشعاره ذي الوضعين.
-- تغيير واتساب في **جميع الواجهة والبيانات وقاعدة البيانات الابتدائية** إلى: `https://wa.me/201097865616`.
-- إضافة تبويب «آراء العملاء» في لوحة الإدارة لإنشاء مراجعة وتعديلها وحذفها والتحكم في نشرها وتوثيقها.
+- Dark-first, Arabic-first visual direction preserving Mohamed's original portrait and white/black logos.
+- A new campaign-editorial section, more expressive projects grid, Why Mo Design and FAQ.
+- **12 original speculative concept posters** (8 V4 + 4 V5). None should be represented as commissioned work.
+- **12 shareable, static project case-study URLs**, designed for GitHub Pages, plus a dynamic details fallback (`project.html?slug=...`) for future CMS projects.
+- **4 service detail pages** with direct WhatsApp service CTAs.
+- A more structured contact brief (company, scope, timeline, optional URL), privacy notice and WhatsApp fallback.
+- Additional Supabase migration for portfolio project metadata, contact pipeline, optional project gallery URLs, media storage bucket and verified editable statistics.
+- Verified testimonials only. Unverified figures and testimonials are hidden publicly.
+- `sitemap.xml`, `robots.txt`, Open Graph preview image, canonical metadata, privacy/404 pages.
+- Preserved switchers: Arabic/English and Dark/Light, with responsive layouts.
 
-## الملفات
-
-- `index.html` — واجهة العرض.
-- `admin.html` — لوحة الإدارة (تجريبية بدون قاعدة بيانات، محمية بعد إعداد Supabase).
-- `assets/images/concept-*.svg` — تصورات تصميمية تجريبية أصلية قابلة للاستبدال.
-- `assets/images/mo-logo-white.webp`, `mo-logo-black.webp`, `mohamed-mahmoud.webp` — ملفات هوية المالك.
-- `assets/data.js` — بيانات الواجهة الافتراضية والمشروعات التجريبية وترجمة المحتوى.
-- `assets/app.js`, `assets/admin.js`, `assets/api.js`, `assets/styles.css` — منطق الواجهة ولوحة الإدارة والتصميم.
-- `supabase/schema.sql` — قاعدة البيانات الجديدة كاملة مع RLS.
-- `supabase/migrations/002_testimonials.sql` — **يُنفّذ فقط لمن سبق أن أنشأ قاعدة بيانات Mo Design من نسخة سابقة**.
-- `.github/workflows/deploy.yml` — النشر الآلي على GitHub Pages.
-- `config.js` — إعداد Supabase العام، بدون أي كلمة مرور أو مفتاح سري.
-
-## المعاينة محليًا
-
-من المجلد الذي يحتوي على `index.html`:
+## Quick start
 
 ```bash
 python -m http.server 8000
 ```
 
-افتح `http://localhost:8000` و`http://localhost:8000/admin.html`. لوحة الإدارة في وضع المعاينة تحفظ التعديلات في **localStorage في نفس المتصفح فقط**. لا ترفع إضافة أعمال جديدة من لوحة المعاينة وتتوقع وصولها للزوار على الإنترنت؛ عدّل `assets/data.js` وأعد نشر الملفات، أو صِل Supabase للإدارة الحقيقية.
+Open `http://localhost:8000/`. Modules are loaded over HTTP, not `file://`. The site remains a static frontend.
 
-## نشر GitHub Pages مجاني
+## Deploy to GitHub Pages
 
-1. أنشئ مستودعًا **Public** باسم `mo-design-portfolio` في GitHub.
-2. ارفع **محتويات مجلد المشروع** لجذر المستودع، مع المجلد المخفي `.github/workflows`.
-3. من `Settings → Pages` اختر `GitHub Actions`.
-4. بعد نجاح التشغيل في `Actions` يكون العنوان المعتاد `https://USERNAME.github.io/mo-design-portfolio/`.
+1. Commit **the contents of this folder**, including `.github/workflows/deploy.yml` and hidden files, to a **development branch** of `Mohamed2451/mo.design`.
+2. Test locally and review the branch/PR. Merge into `main` only when approved.
+3. Confirm repository **Settings → Pages → Build and deployment → GitHub Actions**.
+4. The workflow publishes homepage, dynamic detail, all generated case studies/service pages, admin, assets, SEO and privacy files.
 
-GitHub Pages يخدم الواجهة الثابتة مجانًا، لكنه **ليس قاعدة بيانات** ولا يوفر لوحة إدارة آمنة بدون خدمة خارجية.
+The production website has **not** been modified by this ZIP creation.
 
-## تفعيل الإدارة ورسائل العملاء عبر Supabase
+## Backend setup (important)
 
-1. أنشئ مشروعًا على Supabase؛ في مشروع جديد نفّذ `supabase/schema.sql` داخل SQL Editor. لو عندك قاعدة النسخة القديمة، نفّذ **فقط** `supabase/migrations/002_testimonials.sql`.
-2. من `Authentication → Users` أنشئ مستخدمًا إداريًا، وسجّل UUID له عبر SQL:
+`config.js` intentionally has blank placeholders. **Admin changes are demo-only and browser-local until Supabase is connected.**
 
-```sql
-insert into public.admin_users(user_id) values ('YOUR-ADMIN-USER-UUID');
-```
+For a new Supabase project:
+1. In SQL Editor, run `supabase/schema.sql` **once**.
+2. Run `supabase/migrations/003_v5_portfolio.sql` **once**.
+3. Under Authentication, create a real account for the owner and grant it membership: `insert into public.admin_users(user_id) values ('ACTUAL_UUID');`
+4. Put the **public** Supabase URL and publishable/anon key into `config.js`. Never use a service-role key.
+5. Visit `/admin.html` to sign in. Confirm CRUD and Storage RLS with a normal client and a separate unauthenticated browser.
+6. Add published projects through Admin and test contact persistence using a real submission; add anti-spam controls (verified CAPTCHA or Edge-function rate limiting) before a high-traffic launch.
 
-3. اكتب بيانات الاتصال **العامة فقط** داخل `config.js`:
+For an existing V4 Supabase instance: only apply migration 002 **if not previously run**, then run 003. Do not rerun initial schema blindly, since existing data and policies may conflict.
 
-```js
-window.PORTFOLIO_CONFIG = {
-  supabaseUrl: 'https://YOUR-PROJECT.supabase.co',
-  supabasePublishableKey: 'YOUR-PUBLIC-ANON-KEY'
-};
-```
+### Limits to disclose
 
-4. أعد النشر، وسجّل الدخول من `admin.html`. بعدها يمكن إدارة المشاريع والخدمات والآراء من حساب المشرف، واستقبال رسائل نموذج التواصل داخل جدول `inquiries`.
+- This build **does not configure or operate** an actual Supabase project. Storage uploads and inquiry saving are implemented against the migration but **not end-to-end tested** with live credentials.
+- The local admin is an explicitly labeled **demo** and not production-secured; it persists in localStorage of only that browser.
+- Static generated case pages describe provided spec content. New projects added through CMS use a dynamic `project.html?slug=...` route; these pages will need a future prerender/build step for individual metadata/OG images.
+- Video previews work with supplied **direct HTTPS MP4/WebM URLs** in dynamic project pages. The current static demo posters are **not videos**.
+- The V5 Storage feature uploads a cover image (8 MB max). A complete multi-file asset library with video storage, crop variants, drag sorting and safe deletion remains a subsequent phase.
+- Public inquiry insertion currently requires an additional verified anti-spam control/rate limiter before high traffic.
+- All achievement figures (+100 / +3 / 100%) are **hidden by default** until the owner confirms accuracy. They are editable in Admin after migration.
+- Testimonials are hidden publicly until published with the owner's documented permission and verification.
+- Courses, user/student accounts and paid content are planned but **not implemented**.
+- No claims of conversion rates, speed scores, production deploy tests or customer reviews are made without evidence.
 
-**هام:** لا تضع مفتاح `service_role` أو كلمات مرور داخل GitHub. تأكد من صلاحيات RLS، وأضف CAPTCHA أو rate limiting على رسائل الزوار قبل حملات التسويق الكبيرة، وسياسة خصوصية عند جمع بيانات المستخدمين.
-
-**تنبيه:** عند ربط Supabase في قاعدة بيانات جديدة، يبدأ جدول المشاريع فارغًا عمدًا، فلا نعرض النماذج المفاهيمية على أنها أعمال حقيقية. أضف أعمالك الفعلية بعد الربط. رفع الملفات مباشرة من لوحة الإدارة غير مدمج بعد: استخدم روابط صور HTTPS أو انسخ الملفات إلى `assets/images/` وحدّث مساراتها مع إعادة النشر.
-
-## الروابط المجهزة
-
-WhatsApp: https://wa.me/201097865616  
-Behance: https://www.behance.net/mode5  
-LinkedIn: https://www.linkedin.com/in/mohamed-mahmoud-97638a211/  
-Instagram: https://www.instagram.com/mo.design.official  
-TikTok: https://www.tiktok.com/@mohamedmahmoud30  
-Facebook: https://www.facebook.com/Mohame.Mahmoud11  
-AI Community: https://chat.whatsapp.com/HvJGMrahSBFBmCxRMxD2Z5
-
-لم يرد بريد تواصل حتى الآن، لذلك زر البريد والنسخ غير مفعّلين حتى تضيف عنوانك الصحيح. قبل النشر النهائي يُرجى مراجعة مؤشرات الأداء المذكورة وصور المشاريع والتقييمات وحقوق استخدام محتواها.
+See [`START_HERE_AR.md`](START_HERE_AR.md), [`QA_REPORT_AR.md`](QA_REPORT_AR.md), and [`DESIGN_DIRECTION_AR.md`](DESIGN_DIRECTION_AR.md).
