@@ -2,8 +2,8 @@ import { seed, readDemo, escapeHTML as esc, safeUrl, tField, ar, en } from './da
 import { connected, getPublicContent, sendInquiry } from './api.js';
 
 let model = readDemo();
-let lang = localStorage.getItem('portfolio_lang') === 'en' ? 'en' : 'ar';
-let theme = localStorage.getItem('portfolio_theme') === 'light' ? 'light' : 'dark';
+let lang = (()=>{try{return localStorage.getItem('portfolio_lang')==='en'?'en':'ar'}catch{return 'ar'}})();
+let theme = (()=>{try{return localStorage.getItem('portfolio_theme')==='light'?'light':'dark'}catch{return 'dark'}})();
 let activeCategory = '*';
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -26,13 +26,20 @@ function updateDocument() {
   $('#langToggle').setAttribute('aria-label', lang === 'ar' ? 'Switch to English' : 'التبديل للعربية');
   $('#themeToggle').textContent = theme === 'dark' ? '☼' : '☾';
   $('#themeToggle').setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+  const ticker = document.querySelector('.ticker-track');
+  if(ticker){
+    const words=lang==='ar'?['مو ديزاين','تصميم إعلانات','مونتاج فيديو','صور وفيديوهات بالذكاء الاصطناعي','برومبتات احترافية']:['MO DESIGN','GRAPHIC DESIGN','VIDEO EDITING','AI CREATIVE VISUALS','PROMPT DESIGN'];
+    ticker.innerHTML=[...words,...words].map(word=>`${esc(word)} <span aria-hidden="true">✳</span>`).join(' ');
+  }
+
   $$('[data-brand-logo]').forEach(img => {img.src = `./assets/images/mo-logo-${theme === 'dark' ? 'white' : 'black'}.webp`;});
   $$('[data-i18n]').forEach(el => {
     const val = txt()[el.dataset.i18n];
     if (val !== undefined) {
       if(['signature_title','why_title'].includes(el.dataset.i18n)){
         const lines=String(val).split('\n');el.innerHTML=`${esc(lines[0]||'')}<br><em>${esc(lines.slice(1).join(' ')||'')}</em>`;
-      } else el.textContent = val;
+      } else if(['about_title','contact_title'].includes(el.dataset.i18n)) el.innerHTML=String(val).split('\n').map(esc).join('<br>');
+      else el.textContent = val;
     }
   });
   document.title = `Mo Design — Mohamed Mahmoud | ${lang === 'ar' ? 'تصميم ومونتاج وذكاء اصطناعي' : 'Design, Editing & AI'}`;
@@ -108,14 +115,15 @@ function renderFilters() {
 function renderProjects() {
   renderFilters();
   const items = model.projects.filter(p=>p.is_published && (activeCategory==='*'||(p.category_en || p.category_ar)===activeCategory)).sort((a,b)=>(a.sort_order || 0)-(b.sort_order || 0));
-  $('#worksCount').textContent = lang === 'ar' ? `${number(items.length)} مشروع` : `${number(items.length)} PROJECTS`;
+  $('#worksCount').textContent = lang === 'ar' ? `${number(items.length)} عمل` : `${number(items.length)} projects`;
+  $('#projectGrid').setAttribute('aria-live','polite');
   $('#projectGrid').innerHTML = items.length ? items.map((p,i)=>`<article class="project-card reveal"><a class="project-cover-button" href="${esc(caseUrl(p))}" style="display:block;width:100%" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">${graphicHTML(p)}</a><div class="project-meta"><div><h3>${esc(field(p,'title'))}</h3><p>${esc(field(p,'category'))}</p></div><span class="project-index">/${number(i+1)}</span></div></article>`).join('') : `<p class="admin-empty">${esc(txt().no_projects)}</p>`;
   observeReveal();
 }
 function renderServices() {
   const items = model.services.filter(s=>s.is_published).sort((a,b)=>(a.sort_order || 0)-(b.sort_order || 0));
   const icons = {diamond:'◇',sparkles:'✳',play:'▷',layout:'▦',target:'◎',brush:'✺'};
-  const serviceSlug = s => {const id=String(s.id||'');const title=String(s.title_en||'').toLowerCase();if(id==='service-edit'||/reels|podcast|video/.test(title))return 'video-motion';if(id==='service-ai'||/ai|images|video concepts/.test(title))return 'ai-creative';if(id==='service-prompts'||/prompt/.test(title))return 'ai-creative';if(id==='service-brand'||/brand|identity/.test(title))return 'branding';if(id==='service-ads'||/social|advertis|ads/.test(title))return 'social-media';return '';};
+  const serviceSlug = s => {const id=String(s.id||'');const title=String(s.title_en||'').toLowerCase();if(id==='service-edit'||/reels|podcast|video/.test(title))return 'video-motion';if(id==='service-ai'||/ai|images|video concepts/.test(title))return 'ai-creative';if(id==='service-prompts'||/prompt/.test(title))return 'prompt-engineering';if(id==='service-brand'||/brand|identity/.test(title))return 'branding';if(id==='service-ads'||/social|advertis|ads/.test(title))return 'social-media';return '';};
   $('#servicesList').innerHTML = items.map((s,i)=>`<article class="service-item reveal"><span class="service-number">/${number(i+1)}</span><h3 class="service-title">${esc(field(s,'title'))}</h3><p class="service-desc">${esc(field(s,'description'))}</p><a href="${serviceSlug(s)?`./services/${serviceSlug(s)}/`:`#contact`}" class="service-mark" aria-label="${esc(txt().details)}: ${esc(field(s,'title'))}">${icons[s.icon] || '↗'}</a></article>`).join('');
   observeReveal();
 }
@@ -146,7 +154,7 @@ function renderFeatured() {
     return `<article class="feature-slide" data-position="${position}" data-slide-index="${i}" ${position==='active'?'':'aria-hidden="true"'}>
       <a class="feature-project-link" href="${esc(caseUrl(p))}" tabindex="${position==='active'?'0':'-1'}" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">
       ${asset ? `<img src="${esc(asset)}" alt="${esc(field(p,'title'))}" loading="${i<3?'eager':'lazy'}"/>` : `<div class="project-cover ${esc(p.cover_style||'aurora')}" style="height:100%"><div class="cover-graphic">✳</div></div>`}
-      <span class="feature-scrim" aria-hidden="true"></span><span class="feature-info"><span class="feature-tag">${esc(field(p,'category'))}</span><h3>${esc(field(p,'title'))}</h3><p>MO DESIGN · CONCEPT SERIES ${number(i+1)}</p></span>
+      <span class="feature-scrim" aria-hidden="true"></span><span class="feature-info"><span class="feature-tag">${esc(field(p,'category'))}</span><h3>${esc(field(p,'title'))}</h3><p>${lang==='ar'?'عمل تجريبي':'Spec concept'} · ${number(i+1)}</p></span>
       </a></article>`;
   }).join('');
   $('#featureCount').textContent=`${number(featureIndex+1)} / ${number(count)}`;
@@ -160,7 +168,7 @@ function renderReviews() {
     const verified=Boolean(r.is_verified);
     const name=field(r,'author')|| (lang==='ar'?'مساحة لرأي عميل':'Client review space');
     return `<article class="review-card reveal ${verified?'verified':''}"><div class="review-person"><div class="review-avatar" aria-hidden="true">${esc(name.trim().slice(0,1).toUpperCase())}</div><div><h3>${esc(name)}</h3><p>${esc(field(r,'job'))}</p></div><span class="review-badge">${esc(verified?txt().review_verified:txt().review_placeholder)}</span></div>
-    <div class="review-stars" aria-label="${verified&&Number(r.rating)>0?`${Number(r.rating)}/5`:''}">${verified && Number(r.rating)>0 ? '★'.repeat(Math.min(5,Math.max(1,Number(r.rating)))) : (verified?'✓ MO DESIGN':'✦  MO DESIGN  ✦')}</div><p class="review-quote">${esc(field(r,'quote'))}</p><div class="review-bottom"><span>${verified?'✓':'◎'} ${esc(verified?txt().review_verified:txt().review_placeholder)}</span><span>MO DESIGN / ${number(i+1)}</span></div></article>`;
+    <div class="review-stars" aria-label="${verified&&Number(r.rating)>0?`${Number(r.rating)}/5`:''}">${Number(r.rating)>0 ? '★'.repeat(Math.min(5,Math.max(1,Number(r.rating)))) : '✦  MO DESIGN  ✦'}</div><p class="review-quote">${esc(field(r,'quote'))}</p><div class="review-bottom"><span>${verified?'✓':'◎'} ${esc(verified?txt().review_verified:txt().review_placeholder)}</span><span>MO DESIGN / ${number(i+1)}</span></div></article>`;
   }).join('') || `<p class="admin-empty">${esc(lang==='ar'?'قريبًا: تقييمات العملاء':'Client feedback coming soon')}</p>`;
   $('#testimonials').hidden = items.length===0;
   $('#testimonials').classList.toggle('no-reviews',items.length===0);
@@ -181,44 +189,30 @@ function renderSubjects() {
 }
 
 function renderTools() {
-  const tools = lang === 'ar' ? [
-    {abbr:'Ps',name:'Adobe Photoshop',meta:'تصميم ومعالجة الصور'},
-    {abbr:'Ai',name:'Adobe Illustrator',meta:'رسم وتكوين الهوية'},
-    {abbr:'Pr',name:'Adobe Premiere Pro',meta:'مونتاج الريلز والفيديو'},
-    {abbr:'Dr',name:'DaVinci Resolve',meta:'مونتاج وتصحيح ألوان'},
-    {abbr:'Cc',name:'CapCut',meta:'إنتاج سريع للمحتوى القصير'},
-    {abbr:'Hx',name:'Hexfield',meta:'توليد صور وأفكار إبداعية'},
-    {abbr:'Fl',name:'Flow',meta:'إنشاء صور وفيديوهات بالذكاء الاصطناعي'}
-  ] : [
-    {abbr:'Ps',name:'Adobe Photoshop',meta:'Design & retouching'},
-    {abbr:'Ai',name:'Adobe Illustrator',meta:'Vector & identity work'},
-    {abbr:'Pr',name:'Adobe Premiere Pro',meta:'Reels & video editing'},
-    {abbr:'Dr',name:'DaVinci Resolve',meta:'Editing & color finishing'},
-    {abbr:'Cc',name:'CapCut',meta:'Fast short-form production'},
-    {abbr:'Hx',name:'Hexfield',meta:'AI image generation'},
-    {abbr:'Fl',name:'Flow',meta:'AI image & video creation'}
-  ];
-  const grid = $('#toolsGrid');
-  if(!grid) return;
-  grid.innerHTML = tools.map((tool, i) => `
-    <article class="tool-card tilt-card reveal" data-tool-index="${i+1}">
-      <div class="tool-badge" aria-hidden="true">${esc(tool.abbr)}</div>
-      <div class="tool-copy">
-        <h3>${esc(tool.name)}</h3>
-        <p>${esc(tool.meta)}</p>
-      </div>
-      <span class="tool-index">/${number(i+1)}</span>
-    </article>`).join('');
+ const defs=[
+   {id:'photoshop',name:'Adobe Photoshop',ar:'تصميم الإعلانات وتعديل الصور',en:'Design and photo retouching'},
+   {id:'illustrator',name:'Adobe Illustrator',ar:'الشعارات والهوية البصرية',en:'Logos and vector identities'},
+   {id:'premiere',name:'Adobe Premiere Pro',ar:'مونتاج الفيديوهات والريلز',en:'Video and reels editing'},
+   {id:'resolve',name:'DaVinci Resolve',ar:'مونتاج وتصحيح الألوان',en:'Editing and color grading'},
+   {id:'capcut',name:'CapCut',ar:'مونتاج المقاطع القصيرة',en:'Short-form editing'},
+   {id:'higgsfield',name:'Higgsfield',ar:'إنشاء فيديوهات وصور بالذكاء الاصطناعي',en:'AI image and video creation'},
+   {id:'flow',name:'Google Flow',ar:'صناعة فيديوهات بالذكاء الاصطناعي',en:'AI video creation'}
+ ];
+ const grid=$('#toolsGrid');if(!grid)return;
+ grid.innerHTML=defs.map((d,i)=>`<article class="tool-card reveal" tabindex="0">
+  <div class="tool-badge"><img loading="lazy" src="./assets/icons/${d.id}.svg" alt="${esc(d.name)}" width="56" height="56"></div>
+  <div class="tool-copy"><h3 dir="ltr">${esc(d.name)}</h3><p>${esc(lang==='ar'?d.ar:d.en)}</p></div><span class="tool-index">${number(i+1)}</span></article>`).join('');
 }
 
 function applyInteractiveFX(){
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const nodes = $$('.project-card,.process-card,.review-card,.tool-card,.service-item,.feature-slide');
+  const nodes = $$('.project-card,.process-card,.review-card,.tool-card,.service-item');
   nodes.forEach(node=>{
     if(node.dataset.fxBound) return;
     node.dataset.fxBound='1';
     node.classList.add('tilt-card');
     node.addEventListener('pointermove',e=>{
+      if(e.pointerType==='touch')return;
       const r=node.getBoundingClientRect();
       const x=(e.clientX-r.left)/r.width;
       const y=(e.clientY-r.top)/r.height;
@@ -263,8 +257,8 @@ const statObserver = ('IntersectionObserver' in window) ? new IntersectionObserv
 },{threshold:.3}) : null;
 $$('[data-count]').forEach(el=>statObserver ? statObserver.observe(el):el.textContent=el.dataset.count);
 
-$('#langToggle').addEventListener('click',()=>{lang=lang==='ar'?'en':'ar';localStorage.setItem('portfolio_lang',lang);render();});
-$('#themeToggle').addEventListener('click',()=>{theme=theme==='dark'?'light':'dark';localStorage.setItem('portfolio_theme',theme);render();});
+$('#langToggle').addEventListener('click',()=>{lang=lang==='ar'?'en':'ar';try{localStorage.setItem('portfolio_lang',lang)}catch{}render();});
+$('#themeToggle').addEventListener('click',()=>{theme=theme==='dark'?'light':'dark';try{localStorage.setItem('portfolio_theme',theme)}catch{}render();});
 $('#mobileMenuBtn').addEventListener('click',()=>{
   const isOpen = $('#mobileNav').classList.toggle('open');
   $('#mobileMenuBtn').setAttribute('aria-expanded',String(isOpen));

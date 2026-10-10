@@ -1,11 +1,11 @@
-export const STORAGE_KEY = 'mo_design_portfolio_demo_v5';
+export const STORAGE_KEY = 'mo_design_portfolio_demo_v7';
 
 export const seed = {
   settings: {
     id: 1,
     brand_ar: 'Mo Design', brand_en: 'Mo Design',
     personal_name: 'Mohamed Mahmoud',
-    role_ar: 'مصمم جرافيك ومحرر فيديو إعلاني | سوشيال ميديا • AI Visuals • Prompt Design',
+    role_ar: 'مصمم جرافيك ومونتير | تصميمات إعلانية • فيديوهات AI • برومبتات',
     role_en: 'Graphic Designer & Creative Video Editor | Social Media • AI Visuals • Prompt Design',
     headline_ar: 'الخيال يتصمّم.\nوالأفكار تتحرّك.',
     headline_en: 'MAKE IT BOLD.\nMAKE IT MOVE.',
@@ -64,14 +64,29 @@ export function readDemo() {
 export function saveDemo(data) { localStorage.setItem(STORAGE_KEY,JSON.stringify(data)); }
 
 export const ar = {
+ cta_kicker:'شغل يفرق',learn_big1:'اتعلّم',learn_big2:'ابتكر',
+ stats_note:'أرقام تعريفيّة قابلة للتحديث بعد مراجعة بيانات المشاريع.',
+  portfolio_kicker:'معرض أعمالي',
+  faq_kicker:'أسئلة مهمة',
+  tools_kicker:'أدواتي /',
+  method_kicker:'أسلوب شغلي / 03',
+  about_kicker:'وراء الكواليس / 002',
+  about_ribbon:'تصميم × مونتاج × ذكاء اصطناعي',
+  portrait_pill:'إبداع من غير حدود',
+  form_kicker:'خلّينا نشتغل سوا',
+  hero_side:'استوديو مو ديزاين',portrait_tag:'صانع أفكار بصرية',
+  editorial_tag_1:'01 / إخراج المنتج',
+  editorial_tag_2:'02 / اللون والحملة',
+  editorial_tag_3:'03 / تجارب بصرية',
+  signature_kicker:'حملة تجريبية مختارة',
   signature_title:'أكتر من مجرد تصميم.\nقصة بصرية كاملة.',signature_desc:'From a single product frame to a complete campaign system: one idea developed across design, editing and AI-powered execution.',signature_link:'شوف تفاصيل التجربة ↗',concept_label:'Presentation concepts showing the creative direction — easy to replace later with real portfolio work.',why_title:'مش مجرد شكل حلو.\nفكرة تتحس وتتفتكر.',why_1:'نفهم البراند أولًا',why_1d:'بنبدأ بهدف واضح وجمهور حقيقي، مش مجرد تصميم عشوائي.',why_2:'Design + Editing + AI',why_2d:'One creative system connecting visuals, editing, AI production and brand identity.',why_3:'جاهز للتطبيق',why_3d:'تسليم منظم بمقاسات ومنصات الاستخدام المطلوبة.',faq_title:'أسئلة قبل ما نبدأ؟',faq_desc:'كل مشروع مختلف، لكن البداية دايمًا واضحة.',faq_q1:'إزاي أبدأ مشروع معاك؟',faq_a1:'ابعت Brief مختصر أو تواصل على واتساب، وهنحدد المطلوب والخطوات.',faq_q2:'هل بتعمل فيديوهات بالذكاء الاصطناعي؟',faq_a2:'نعم، حسب الفكرة، بمزج أدوات التصميم والمونتاج والذكاء الاصطناعي.',faq_q3:'متى يتم التسليم؟',faq_a3:'المدة والمراجعات والتسليمات تتحدد حسب حجم المشروع واتفاقنا.',faq_q4:'هل نماذج Concept أعمال لعملاء؟',faq_a4:'لا، هي تجارب مفاهيمية مستقلة وليست حملات مدفوعة.',company_label:'البراند / الشركة (اختياري)',budget_label:'حجم المشروع (اختياري)',budget_default:'لم أحدد بعد',budget_flexible:'حسب عرض السعر',budget_small:'مشروع صغير',budget_medium:'مشروع متوسط',budget_large:'حملة متكاملة',timeline_label:'موعد التسليم (اختياري)',timeline_default:'مرن / حسب الاتفاق',timeline_urgent:'في أقرب وقت',timeline_2weeks:'خلال أسبوعين',timeline_month:'خلال شهر',reference_label:'رابط مرجعي (اختياري)',privacy_ack:'أوافق على استخدام بياناتي للرد على طلبي فقط.',privacy_link:'سياسة الخصوصية',privacy_footer:'الخصوصية',
   nav_work:'الأعمال',nav_services:'الخدمات',nav_about:'من أنا',nav_contact:'تواصل',talk:'ابدأ مشروعك',explore:'شوف أعمالي',scroll:'اكتشف اللي بعده',
   available:'متاح لمشاريع جديدة',unavailable:'غير متاح لمشاريع حاليًا',hero_card_title:'Creative Mind',hero_card_sub:'Design × Editing × AI',
-  selected:'مختارات تُظهر أسلوبي الإبداعي',selected_sub:'مجموعة أعمال تجريبية بصياغة أكثر حيوية وتفاعلية، توضّح أسلوبي في العرض والاتجاه الفني إلى حين إضافة الأعمال الفعلية.',
-  all_work:'كل الأعمال',all:'كل الأعمال',featured:'المميز',demo_notice:'المعرض الحالي مصمم ليُظهر أسلوب التقديم والهوية البصرية. يمكنك استبدال كل بطاقة لاحقًا بأعمالك الحقيقية من لوحة الإدارة.',
-  services_eyebrow:'إيه اللي أقدر أقدمه؟',services_title:'خدمات تبني حضورك البصري.',services_sub:'تصميم، مونتاج، برومبتات، ومحتوى بالذكاء الاصطناعي — كلها معمولة عشان تخدم هدف البراند وتشد الانتباه.',
-  about_eyebrow:'وراء الشغل',about_title:'أنا محمد محمود.\nودي طريقتي في الإبداع.',about_card_1:'فهم حقيقي للبراند',about_card_2:'تنفيذ منظم ومرن',about_card_3:'Human creativity + AI support',
-  process_label:'مراحل الشغل',step1:'نفهم الهدف والاتجاه',step1d:'نحدد هدف المشروع، طبيعة الجمهور، والمنصة المناسبة، ونبني فكرة واضحة قبل التنفيذ.',
+  selected:'شغل من نوع تاني.',selected_sub:'تصميمات، أفكار إعلانية، ومشاهد بصرية مختلفة. النماذج الحالية تجريبية لحد ما أضيف أعمالي الفعلية.',
+  all_work:'كل الأعمال',all:'كل الأعمال',featured:'المميز',demo_notice:'الأعمال الموجودة دلوقتي نماذج تجريبية للعرض، مش مشروعات اتنفذت لعملاء. الأعمال الحقيقية هتتحط مكانها قريب.',
+  services_eyebrow:'أقدر أساعدك في إيه؟',services_title:'من الفكرة لحد آخر تفصيلة.',services_sub:'تصميم، مونتاج، برومبتات، ومحتوى بالذكاء الاصطناعي — كلها معمولة عشان تخدم هدف البراند وتشد الانتباه.',
+  about_eyebrow:'وراء الشغل',about_title:'أنا محمد محمود.\nوكل فكرة ليها حكاية.',about_card_1:'فهم حقيقي للبراند',about_card_2:'تنفيذ منظم ومرن',about_card_3:'Human creativity + AI support',
+  process_label:'من أول فكرة لآخر تسليم',step1:'نفهم الهدف والاتجاه',step1d:'نحدد هدف المشروع، طبيعة الجمهور، والمنصة المناسبة، ونبني فكرة واضحة قبل التنفيذ.',
   step2:'نصمّم ونطوّر',step2d:'أشتغل على التصميم أو المونتاج أو البرومبتات مع تطوير مستمر ومراجعات منظمة لحد ما نوصل للنتيجة الأفضل.',step3:'نسلّم جاهز للنشر',step3d:'تستلم الملفات النهائية بشكل مرتب، بجودة عالية، وجاهزة للاستخدام على المنصات المطلوبة.',
   learn_eyebrow:'المعرفة للجميع',learn_title:'المعرفة الجاية أقرب.',learn_desc:'بخطط لمحتوى تعليمي وكورسات مجانية ومدفوعة عن التصميم والمونتاج والذكاء الاصطناعي. لسه مش متاحة.',learn_tag:'قريبًا — مجتمع وتعلّم',
   contact_eyebrow:'LET’S CREATE',contact_title:'عندك فكرة؟\nخلّيها مشروع.',contact_desc:'ابعت تفاصيل مشروعك من خلال النموذج أو راسلني مباشرة على واتساب، وخلّينا نحول الفكرة لشغل فعلي.',
@@ -79,15 +94,30 @@ export const ar = {
   subject_options:['اختار نوع الخدمة','تصاميم السوشيال ميديا والإعلانات','مونتاج الريلز والبودكاست','صور وفيديوهات بالذكاء الاصطناعي','هندسة البرومبتات وتطوير الأفكار','هوية بصرية كاملة','مشاركة أو استفسار آخر'],
   submit:'إرسال تفاصيل المشروع',submitting:'جارٍ الإرسال...',email_open:'لم يتم ربط قاعدة البيانات بعد. سيتم فتح واتساب لإرسال طلبك مباشرة.',sent:'رسالتك وصلت، شكرًا ليك!',send_error:'في مشكلة مؤقتة. تواصل معايا مباشرة على واتساب.',
   footer_line:'مصمّم بعناية. وجاهز يلفت الانتباه.',rights:'جميع الحقوق محفوظة.',admin:'لوحة الإدارة',view:'اكتشف',details:'تفاصيل العمل',close:'إغلاق',visit:'شاهد المشروع',no_link:'أضف رابط المشروع عند نشر عملك الحقيقي.',
-  email_me:'البريد الإلكتروني',demo_chip:'نموذج للعرض',no_projects:'مفيش أعمال منشورة في التصنيف ده.',connect:'تواصل عبر',made:'الإبداع له عنوان.',required:'راجع البيانات المطلوبة.',
-  stat1:'مشروع مكتمل',stat2:'سنوات خبرة',stat3:'رضا العملاء',copy_email:'انسخ البريد',copied:'تم نسخ البريد',email_missing:'البريد الإلكتروني لم يُضف بعد',whatsapp:'كلّمني واتساب',community:'انضم لمجتمع الذكاء الاصطناعي',
-  feature_eyebrow:'CURATED CONCEPTS',feature_title:'مشاريع أحب أقدّمها.',feature_sub:'نماذج بصرية مختارة توضّح طريقة العرض، الإخراج، وبناء الفكرة داخل الهوية الجديدة للموقع.',feature_all:'شوف كل الأعمال',feature_disclaimer:'المشاريع المعروضة تصورات تصميمية تجريبية وليست أعمالًا منفذة لعملاء.',reviews_eyebrow:'CLIENT VOICES',reviews_title:'التفاصيل اللي بتفرق.',reviews_sub:'أمثلة توضيحية لشكل آراء العملاء لحين إضافة التقييمات الحقيقية من أصحابها.',reviews_note:'يمكنك لاحقًا استبدال هذه الشهادات بآراء عملائك الحقيقية بسهولة من لوحة الإدارة.',review_placeholder:'نموذج توضيحي',review_verified:'تقييم موثّق',cta_title:'شغلك يستحق يبان.',cta_sub:'خلّينا نبني لمشروعك حضور بصري يلفت، يعلّق، ويعكس قيمته الحقيقية.',cta_button:'خلّينا نعمل حاجة عظيمة',  social_placeholder:'تابع أعمالي على حساباتي الرسمية',portfolio_note:'نماذج عرض توضّح الأسلوب البصري وطريقة تقديم الأعمال',about_caption:'الإنسان وراء الأفكار',hero_pic_note:'MOHAMED / CREATIVE DESIGNER',tools_eyebrow:'الأدوات والمنصات',tools_sub:'البرامج والمنصات التي أعتمد عليها في التصميم والمونتاج وصناعة الصور والفيديوهات بالذكاء الاصطناعي.',skip:'انتقل للمحتوى'
+  email_me:'البريد الإلكتروني',demo_chip:'فكرة تجريبية',no_projects:'مفيش أعمال منشورة في التصنيف ده.',connect:'تواصل عبر',made:'الإبداع له عنوان.',required:'راجع البيانات المطلوبة.',
+  stat1:'مشروع مكتمل',stat2:'سنين خبرة',stat3:'رضا العملاء',copy_email:'انسخ البريد',copied:'تم نسخ البريد',email_missing:'البريد الإلكتروني لم يُضف بعد',whatsapp:'كلّمني واتساب',community:'انضم لمجتمع الذكاء الاصطناعي',
+  feature_eyebrow:'أعمال مختارة',feature_title:'مشاريع أحب أقدّمها.',feature_sub:'مشاريع وأفكار بصرية مختلفة؛ كل واحدة ليها طابعها الخاص. الأعمال التجريبية متعلّم عليها بوضوح.',feature_all:'شوف كل الأعمال',feature_disclaimer:'دي أفكار وتجارب للعرض فقط، وليست مشروعات اتنفذت لعملاء.',reviews_eyebrow:'آراء وتجارب',reviews_title:'التفاصيل اللي بتفرق.',reviews_sub:'أمثلة توضيحية لشكل آراء العملاء لحين إضافة التقييمات الحقيقية من أصحابها.',reviews_note:'الآراء دي نماذج توضيحية بأسماء مستعارة، مش تجارب عملاء حقيقية. هتتبدل بآراء موثقة لما تتوفر.',review_placeholder:'مثال توضيحي',review_verified:'رأي عميل موثّق',cta_title:'شغلك يستحق يبان.',cta_sub:'خلّينا نبني لمشروعك حضور بصري يلفت، يعلّق، ويعكس قيمته الحقيقية.',cta_button:'خلّينا نعمل حاجة عظيمة',  social_placeholder:'تابع أعمالي على حساباتي الرسمية',portfolio_note:'نماذج عرض توضّح الأسلوب البصري وطريقة تقديم الأعمال',about_caption:'الإنسان وراء الأفكار',hero_pic_note:'MOHAMED / CREATIVE DESIGNER',tools_eyebrow:'الأدوات والمنصات',tools_sub:'الأدوات اللي بستخدمها كل يوم في التصميم والمونتاج وتوليد الصور والفيديوهات بالذكاء الاصطناعي.',skip:'انتقل للمحتوى'
 };
 export const en = {
+ cta_kicker:'MAKE SOMETHING MATTER',learn_big1:'LEARN',learn_big2:'CREATE',
+ stats_note:'Portfolio figures can be updated after checking the project records.',
+  portfolio_kicker:'PORTFOLIO',
+  faq_kicker:'GOOD TO KNOW / FAQ',
+  tools_kicker:'TOOLS /',
+  method_kicker:'THE MO METHOD / 03',
+  about_kicker:'BEHIND THE DESIGN / 002',
+  about_ribbon:'DESIGN × EDITING × AI',
+  portrait_pill:'DESIGN WITHOUT LIMITS',
+  form_kicker:'LET’S WORK TOGETHER',
+  hero_side:'MO DESIGN STUDIO',portrait_tag:'VISUAL STORYTELLER',
+  editorial_tag_1:'01 / PRODUCT DIRECTION',
+  editorial_tag_2:'02 / COLOR & CAMPAIGN',
+  editorial_tag_3:'03 / VISUAL EXPLORATION',
+  signature_kicker:'SELECTED CONCEPT CAMPAIGN',
   signature_title:'More than design.\nA complete visual story.',signature_desc:'From a single product frame to a complete campaign system: one idea developed across design, editing and AI-powered execution.',signature_link:'Explore the experience ↗',concept_label:'Presentation concepts showing the creative direction — easy to replace later with real portfolio work.',why_title:'More than just pretty.\nMade to be remembered.',why_1:'Understand the brand',why_1d:'We begin with a real goal and a clear audience.',why_2:'Design + Editing + AI',why_2d:'One creative system connecting visuals, editing, AI production and brand identity.',why_3:'Ready to use',why_3d:'Organised deliverables tailored for the channels you need.',faq_title:'Questions before we start?',faq_desc:'Every brief is different. Getting started should feel easy.',faq_q1:'How do I start a project?',faq_a1:'Send a short brief or contact me on WhatsApp to discuss the scope.',faq_q2:'Do you make AI-powered videos?',faq_a2:'Yes, when appropriate, combining design, editing and AI tools.',faq_q3:'How long does delivery take?',faq_a3:'Timelines and revision rounds are agreed based on project scope.',faq_q4:'Are your Concept visuals client campaigns?',faq_a4:'No, they are speculative personal explorations, not paid commissions.',company_label:'Brand / company (optional)',budget_label:'Project scope (optional)',budget_default:'Not decided yet',budget_flexible:'Open to a quote',budget_small:'Small project',budget_medium:'Medium project',budget_large:'Full campaign',timeline_label:'Timeline (optional)',timeline_default:'Flexible / to be agreed',timeline_urgent:'As soon as possible',timeline_2weeks:'Within two weeks',timeline_month:'Within a month',reference_label:'Reference link (optional)',privacy_ack:'I agree to use of my details solely to respond to my inquiry.',privacy_link:'Privacy policy',privacy_footer:'Privacy',
   nav_work:'Work',nav_services:'Services',nav_about:'About',nav_contact:'Contact',talk:'Start a project',explore:'Explore my work',scroll:'Keep scrolling',
   available:'Available for Freelance Projects',unavailable:'Currently unavailable',hero_card_title:'Creative Mind',hero_card_sub:'Design × Editing × AI',
-  selected:'Selected work from my creative world',selected_sub:'A more refined and interactive presentation of sample projects, showing the visual direction until real projects are added.',
+  selected:'A fresh take on creative work.',selected_sub:'Design, campaign ideas and visual stories. These are sample concepts until real portfolio work is added.',
   all_work:'All projects',all:'All work',featured:'Featured',demo_notice:'This gallery showcases the presentation style and visual identity. Each card can later be replaced with your real portfolio from the dashboard.',
   services_eyebrow:'What I bring to the table',services_title:'Services that sharpen your brand presence.',services_sub:'Design, editing, prompt creation and AI-powered visuals tailored to your brand story and business goals.',
   about_eyebrow:'Behind the visuals',about_title:'I’m Mohamed Mahmoud.\nThis is how I create.',about_card_1:'Bold visual thinking',about_card_2:'Details that matter',about_card_3:'Human creativity + AI support',
@@ -98,10 +128,10 @@ export const en = {
   name:'Your name',email:'Email address',subject:'What do you need?',message:'Tell me about your idea',
   subject_options:['Choose a service','Social media design & ads','Reels & podcast editing','AI images & video concepts','Prompt engineering & creative direction','Full visual identity','Other enquiry / collaboration'],
   submit:'Send project details',submitting:'Sending...',email_open:'The database isn’t connected yet. WhatsApp will open with your project brief.',sent:'Message received. Thank you!',send_error:'Something went wrong. Please reach me on WhatsApp.',
-  footer_line:'مصمّم بعناية. وجاهز يلفت الانتباه.',rights:'All rights reserved.',admin:'Dashboard',view:'Explore',details:'Project details',close:'Close',visit:'View project',no_link:'Add a live portfolio link when you publish the work.',
+  footer_line:'Designed with care. Made to stand out.',rights:'All rights reserved.',admin:'Dashboard',view:'Explore',details:'Project details',close:'Close',visit:'View project',no_link:'Add a live portfolio link when you publish the work.',
   email_me:'Email me',demo_chip:'Display concept',no_projects:'Nothing is published in this category yet.',connect:'Connect via',made:'Creativity has a new address.',required:'Please complete the required fields.',
   stat1:'Completed projects',stat2:'Years of experience',stat3:'Client satisfaction',copy_email:'Copy email',copied:'Email copied',email_missing:'Email address has not been added',whatsapp:'WhatsApp me',community:'Join the AI community',
-  feature_eyebrow:'CURATED CONCEPTS',feature_title:'Projects I love presenting.',feature_sub:'Selected visuals that show how the renewed website presents work with stronger art direction and storytelling.',feature_all:'Explore all work',feature_disclaimer:'The showcased pieces are speculative portfolio concepts, not client commissions.',reviews_eyebrow:'CLIENT VOICES',reviews_title:'Details make the difference.',reviews_sub:'Illustrative review layouts. Replace with genuine client feedback when available.',reviews_note:'You can later replace these with your own client testimonials from the dashboard.',review_placeholder:'Preview template',review_verified:'Verified review',cta_title:'Your story deserves to be seen.',cta_sub:'Let’s build a visual presence that feels sharp, memorable and true to your brand.',cta_button:'Let’s create together',  social_placeholder:'See more of my work on my social accounts',portfolio_note:'Concepts showing how the project grid will look',about_caption:'The human behind the pixels',hero_pic_note:'MOHAMED / CREATIVE DESIGNER',tools_eyebrow:'Tools & platforms',tools_sub:'The software and platforms I rely on for design, editing, and AI-powered image & video creation.',skip:'Skip to content'
+  feature_eyebrow:'CURATED CONCEPTS',feature_title:'Projects I love presenting.',feature_sub:'Selected visuals that show how the renewed website presents work with stronger art direction and storytelling.',feature_all:'Explore all work',feature_disclaimer:'The showcased pieces are speculative portfolio concepts, not client commissions.',reviews_eyebrow:'CLIENT VOICES',reviews_title:'Details make the difference.',reviews_sub:'Illustrative review layouts. Replace with genuine client feedback when available.',reviews_note:'These are fictional display examples, not genuine client endorsements. Replace them with verified reviews when available.',review_placeholder:'Preview template',review_verified:'Verified review',cta_title:'Your story deserves to be seen.',cta_sub:'Let’s build a visual presence that feels sharp, memorable and true to your brand.',cta_button:'Let’s create together',  social_placeholder:'See more of my work on my social accounts',portfolio_note:'Concepts showing how the project grid will look',about_caption:'The human behind the pixels',hero_pic_note:'MOHAMED / CREATIVE DESIGNER',tools_eyebrow:'Tools & platforms',tools_sub:'The software and platforms I rely on for design, editing, and AI-powered image & video creation.',skip:'Skip to content'
 };
 export function tField(obj,base,lang) {return obj?.[`${base}_${lang}`] || obj?.[`${base}_${lang==='ar'?'en':'ar'}`] || '';}
 export function safeUrl(value) {if(!value)return '';try{const u=new URL(value,window.location.href);return ['https:','http:','mailto:'].includes(u.protocol)?u.href:'';}catch{return '';}}

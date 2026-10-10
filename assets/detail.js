@@ -7,6 +7,8 @@ function update(){
  document.querySelectorAll('[data-detail-logo]').forEach(img=>{img.src=`${page.dataset.root||'../../'}assets/images/mo-logo-${t==='light'?'black':'white'}.webp`;});
  document.querySelectorAll('[data-theme]').forEach(el=>el.textContent=t==='dark'?'☼':'☾');
  document.querySelectorAll('[data-switch-lang]').forEach(el=>el.textContent=l==='ar'?'EN':'ع');
+ const heading=document.querySelector('.case-title [data-lang="'+l+'"]');
+ if(heading)document.title=heading.textContent.trim()+' | Mo Design';
 }
 document.addEventListener('click',e=>{
  const lang=e.target.closest('[data-switch-lang]'), theme=e.target.closest('[data-theme]');
