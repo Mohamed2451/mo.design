@@ -1,0 +1,76 @@
+/* MO DESIGN V9 — usability, accessibility, responsive polish */
+:root{scroll-behavior:smooth;scroll-padding-top:92px}
+html{scrollbar-gutter:stable}
+body{overflow-x:clip}
+img,video,canvas,svg{max-width:100%}
+a,button,input,textarea,select,[tabindex]:not([tabindex="-1"]){-webkit-tap-highlight-color:transparent}
+:where(a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])):focus-visible{outline:3px solid var(--accent,#c9f789);outline-offset:4px}
+button:disabled,[aria-disabled="true"]{cursor:not-allowed;opacity:.62}
+::selection{background:var(--accent,#c9f789);color:#10140e}
+img{height:auto}
+input,textarea,select{max-width:100%}
+textarea{resize:vertical}
+button,a{touch-action:manipulation}
+.pill-btn,.admin-btn,.icon-btn,.inner-primary{transition:transform .18s ease,border-color .18s ease,background-color .18s ease,opacity .18s ease}
+@media(hover:hover) and (pointer:fine){.pill-btn:hover,.admin-btn:hover,.inner-primary:hover{transform:translateY(-1px)}}
+.site-header{padding-top:env(safe-area-inset-top)}
+.mobile-nav a{min-height:44px;display:flex;align-items:center}
+.project-cover-button{overflow:hidden;border-radius:inherit}
+.project-cover-button img,.project-cover-button video{display:block;width:100%;height:100%;object-fit:cover}
+.project-card:focus-within{outline:2px solid var(--accent,#c9f789);outline-offset:4px}
+#formMessage[role],#formMessage{overflow-wrap:anywhere}
+.form-field input,.form-field textarea,.form-field select{min-height:44px}
+.form-field textarea{min-height:110px}
+.form-field input:focus,.form-field textarea:focus,.form-field select:focus{border-color:var(--accent,#c9f789)}
+/* Dashboard */
+.dashboard-page{min-height:100vh}
+.admin-layout{min-height:100vh;align-items:stretch}
+.admin-sidebar{position:sticky;top:0;align-self:start;max-height:100vh;overflow:auto;overscroll-behavior:contain}
+.admin-main{min-width:0}
+.admin-main>*{min-width:0}
+.admin-panel{min-width:0;border-radius:20px;box-shadow:0 12px 36px rgba(0,0,0,.08)}
+.admin-heading{gap:14px;align-items:center}
+.admin-heading h2,.admin-panel h2{line-height:1.45}
+.admin-form-grid{align-items:start}
+.admin-form-grid .form-field{min-width:0}
+.admin-form-grid input,.admin-form-grid textarea,.admin-form-grid select{width:100%;box-sizing:border-box}
+.admin-actions{display:flex;flex-wrap:wrap;gap:10px}
+.admin-btn{min-height:42px}
+.admin-rows{min-width:0}
+.admin-row{gap:14px;align-items:center}
+.admin-row>*{min-width:0}
+.admin-note{line-height:1.9;overflow-wrap:anywhere}
+.admin-panel :where(input,textarea,select){color:var(--text,#f5f5f5)}
+.admin-panel :where(input,textarea,select):focus-visible{outline:2px solid var(--accent,#c9f789);outline-offset:2px}
+.admin-panel :where(a,button){touch-action:manipulation}
+.admin-sidebar .sidebar-nav button{min-height:44px}
+.toast{max-width:min(92vw,560px);overflow-wrap:anywhere}
+.case-main,.case-content{overflow-wrap:anywhere}
+.case-lead-media img,.case-artframe img{display:block;width:100%;height:auto}
+@media(max-width:900px){
+  .admin-layout{display:block}
+  .admin-sidebar{position:relative;top:auto;max-height:none;overflow:visible}
+  .admin-sidebar .sidebar-nav{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:8px;scroll-snap-type:x proximity}
+  .admin-sidebar .sidebar-nav button{flex:0 0 auto;scroll-snap-align:start;white-space:nowrap}
+  .admin-main{padding-inline:clamp(12px,3vw,24px)}
+}
+@media(max-width:640px){
+  :root{scroll-padding-top:72px}
+  .admin-panel{padding:clamp(16px,4vw,24px)!important;border-radius:16px}
+  .admin-heading{align-items:flex-start;flex-direction:column}
+  .admin-heading .admin-btn{width:100%}
+  .admin-form-grid{grid-template-columns:minmax(0,1fr)!important}
+  .admin-actions .admin-btn{flex:1 1 100%}
+  .admin-row{align-items:flex-start;flex-wrap:wrap}
+  .admin-row .admin-actions{width:100%}
+  .site-header .header-layout{gap:8px}
+  .header-actions{gap:6px}
+  .contact-top{display:none}
+  .mobile-nav{padding-bottom:env(safe-area-inset-bottom)}
+  .case-main{padding-top:34px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  :root{scroll-behavior:auto}
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  #cursorGlow{display:none!important}
+}
