@@ -17,8 +17,8 @@ export const seed = {
     community_url:'https://chat.whatsapp.com/HvJGMrahSBFBmCxRMxD2Z5',
     behance_url:'https://www.behance.net/mode5', linkedin_url:'https://www.linkedin.com/in/mohamed-mahmoud-97638a211/', instagram_url:'https://www.instagram.com/mo.design.official',
     tiktok_url:'https://www.tiktok.com/@mohamedmahmoud30', facebook_url:'https://www.facebook.com/Mohame.Mahmoud11',
-    stats_projects: 100, stats_years: 3, stats_satisfaction: 100, stats_verified: true,
-    availability: true
+    stats_projects: 100, stats_years: 3, stats_satisfaction: 100, stats_verified: false,
+    availability: true, profile_image_url: '', section_visibility: {}, content_ar: {}, content_en: {}
   },
   // All items below are clearly marked as DEMO placeholders; no fake client work is claimed.
   projects: [
@@ -90,7 +90,7 @@ export const ar = {
   step2:'نصمّم ونطوّر',step2d:'أشتغل على التصميم أو المونتاج أو البرومبتات مع تطوير مستمر ومراجعات منظمة لحد ما نوصل للنتيجة الأفضل.',step3:'نسلّم جاهز للنشر',step3d:'تستلم الملفات النهائية بشكل مرتب، بجودة عالية، وجاهزة للاستخدام على المنصات المطلوبة.',
   learn_eyebrow:'المعرفة للجميع',learn_title:'المعرفة الجاية أقرب.',learn_desc:'بخطط لمحتوى تعليمي وكورسات مجانية ومدفوعة عن التصميم والمونتاج والذكاء الاصطناعي. لسه مش متاحة.',learn_tag:'قريبًا — مجتمع وتعلّم',
   contact_eyebrow:'نبدأ شغل جديد؟',contact_title:'عندك فكرة؟\nخلّيها مشروع.',contact_desc:'احكيلي عن فكرتك في النموذج أو ابعتلي واتساب، وهنشوف أنسب طريقة ننفذها سوا.',
-  name:'اسمك',email:'بريدك الإلكتروني',subject:'نوع المشروع',message:'قولّي بتفكر في إيه',
+  phone_label:'رقم واتساب للتواصل (اختياري)',name:'اسمك',email:'بريدك الإلكتروني',subject:'نوع المشروع',message:'قولّي بتفكر في إيه',
   subject_options:['اختار نوع الخدمة','تصاميم السوشيال ميديا والإعلانات','مونتاج الريلز والبودكاست','صور وفيديوهات بالذكاء الاصطناعي','هندسة البرومبتات وتطوير الأفكار','هوية بصرية كاملة','مشاركة أو استفسار آخر'],
   submit:'إرسال تفاصيل المشروع',submitting:'جارٍ الإرسال...',email_open:'لم يتم ربط قاعدة البيانات بعد. سيتم فتح واتساب لإرسال طلبك مباشرة.',sent:'رسالتك وصلت، شكرًا ليك!',send_error:'في مشكلة مؤقتة. تواصل معايا مباشرة على واتساب.',
   footer_line:'فكرة مميزة، وتنفيذ يفرق.',rights:'كل الحقوق محفوظة.',admin:'لوحة الإدارة',view:'اكتشف',details:'تفاصيل العمل',close:'إغلاق',visit:'شاهد المشروع',no_link:'أضف رابط المشروع عند نشر عملك الحقيقي.',
@@ -125,7 +125,7 @@ export const en = {
   step2:'Create & refine',step2d:'I work on the design, editing or prompt flow, refining the idea through clear feedback rounds.',step3:'Deliver ready to publish',step3d:'Receive organised, high-quality deliverables ready to publish and use on the right platforms.',
   learn_eyebrow:'Share the craft',learn_title:'Learning is on the way.',learn_desc:'Future free and paid content about design, editing and AI is in the works. Courses aren’t live yet.',learn_tag:'Coming later — community & courses',
   contact_eyebrow:'LET’S CREATE',contact_title:'Got a vision?\nLet’s make it real.',contact_desc:'Share your brief via the form or reach out on WhatsApp, and let’s turn the idea into a real project.',
-  name:'Your name',email:'Email address',subject:'What do you need?',message:'Tell me about your idea',
+  phone_label:'WhatsApp number (optional)',name:'Your name',email:'Email address',subject:'What do you need?',message:'Tell me about your idea',
   subject_options:['Choose a service','Social media design & ads','Reels & podcast editing','AI images & video concepts','Prompt engineering & creative direction','Full visual identity','Other enquiry / collaboration'],
   submit:'Send project details',submitting:'Sending...',email_open:'The database isn’t connected yet. WhatsApp will open with your project brief.',sent:'Message received. Thank you!',send_error:'Something went wrong. Please reach me on WhatsApp.',
   footer_line:'Designed with care. Made to stand out.',rights:'All rights reserved.',admin:'Dashboard',view:'Explore',details:'Project details',close:'Close',visit:'View project',no_link:'Add a live portfolio link when you publish the work.',

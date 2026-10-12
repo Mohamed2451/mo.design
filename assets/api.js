@@ -33,7 +33,7 @@ export async function sendInquiry(details) {
   const {error} = await db.from('inquiries').insert({
     sender_name: details.name.trim(), sender_email:details.email.trim(),
     service_type:details.service.trim(), message:details.message.trim(),
-    company:details.company.trim(), budget:details.budget.trim(), desired_timeline:details.timeline.trim(), reference_url:details.reference_url.trim()
+    sender_phone:(details.phone||'').trim(), company:details.company.trim(), budget:details.budget.trim(), desired_timeline:details.timeline.trim(), reference_url:details.reference_url.trim()
   });
   if (error) throw error;
   return {mode:'sent'};

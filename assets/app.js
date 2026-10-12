@@ -1,13 +1,13 @@
 import { seed, readDemo, escapeHTML as esc, safeUrl, tField, ar, en } from './data.js';
 import { connected, getPublicContent, sendInquiry } from './api.js';
 
-let model = readDemo();
+let model = connected ? {...seed, projects:[], testimonials:[]} : readDemo();
 let lang = (()=>{try{return localStorage.getItem('portfolio_lang')==='en'?'en':'ar'}catch{return 'ar'}})();
 let theme = (()=>{try{return localStorage.getItem('portfolio_theme')==='light'?'light':'dark'}catch{return 'dark'}})();
 let activeCategory = '*';
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
-const txt = () => lang === 'ar' ? ar : en;
+const txt = () => ({...(lang === 'ar' ? ar : en), ...(model.settings?.[lang==='ar'?'content_ar':'content_en']||{})});
 const field = (obj, key) => tField(obj, key, lang);
 const number = (n) => String(n).padStart(2, '0');
 
@@ -47,6 +47,8 @@ function updateDocument() {
 }
 function setBrandContent() {
   const settings = model.settings || seed.settings;
+  const photo = safeUrl(settings.profile_image_url);
+  if(photo) document.querySelector('.hero-portrait').src=photo;
   $('#brandName').textContent = field(settings, 'brand');
   $('#footerBrand').textContent = field(settings, 'brand');
   $('#heroRole').textContent = field(settings, 'role');
@@ -72,11 +74,13 @@ function setBrandContent() {
   ['heroWhatsApp','contactWhatsApp','floatingWhatsApp','ctaWhatsApp'].forEach(id=>{const a=$(`#${id}`);if(a)a.href=wa;});
   const community = safeUrl(settings.community_url) || 'https://chat.whatsapp.com/HvJGMrahSBFBmCxRMxD2Z5';
   $('#communityLink').href = community;
+  $('#communityLink').closest('.contact-quick').hidden = !(settings.community_url && safeUrl(settings.community_url));
+  document.querySelector('.email-actions').hidden = !email;
   $('#copyrightText').textContent = `© ${new Date().getFullYear()} Mo Design / Mohamed Mahmoud. ${txt().rights}`;
   const countValues=[settings.stats_projects,settings.stats_years,settings.stats_satisfaction];
-  $$('.stats-strip [data-count]').forEach((el,i)=>{ const newCount=Math.max(0,Number(countValues[i]??[100,3,100][i])||0);el.dataset.count=String(newCount);if(el.textContent==='0')el.textContent='0'; });
+  $$('.stats-strip [data-count]').forEach((el,i)=>{ const newCount=Math.max(0,Number(countValues[i]??[100,3,100][i])||0);el.dataset.count=String(newCount);el.textContent=String(newCount); });
   const hasStats = countValues.some(v => Number(v) > 0);
-  $('.stats-strip').hidden = !hasStats;
+  $('.stats-strip').hidden = !settings.stats_verified || !hasStats;
   $('#demoHint').style.display = model.projects.some(p=>String(p.id).startsWith('demo-') && p.is_published) ? 'flex' : 'none';
   const socials = [
     ['Behance',settings.behance_url,'Bē'],['LinkedIn',settings.linkedin_url,'in'],
@@ -94,7 +98,7 @@ function caseUrl(project){
 function graphicHTML(project) {
   const type = ['aurora','type','orbit','pop'].includes(project.cover_style) ? project.cover_style : 'aurora';
   const safeImage = safeUrl(project.image_url);
-  const isVideo = Boolean(project.video_url);
+  const isVideo = Boolean(project.video_url || project.youtube_url);
   const art = {aurora:'GO!',type:'aA.',orbit:'',pop:'WOW!'}[type];
   return `<div class="project-cover ${safeImage ? 'custom' : type}">${safeImage ? `<img class="cover-img" src="${esc(safeImage)}" alt="${esc(field(project, 'title'))}" loading="lazy" onerror="this.style.display='none'">` : `<div class="cover-graphic" aria-hidden="true">${art}</div>`}<span class="cover-label">${esc(field(project, 'category'))}${isVideo ? ' ▶ VIDEO' : ''}</span><span class="cover-arrow">↗</span></div>`;
 }
@@ -163,7 +167,7 @@ function renderFeatured() {
 }
 function moveFeature(delta){const a=featuredItems();if(!a.length)return;featureIndex=(featureIndex+delta+a.length)%a.length;renderFeatured();}
 function renderReviews() {
-  const items=(model.testimonials||[]).filter(r=>r.is_published).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+  const items=(model.testimonials||[]).filter(r=>r.is_published && r.is_verified).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
   $('#testimonialsGrid').innerHTML=items.map((r,i)=>{
     const verified=Boolean(r.is_verified);
     const name=field(r,'author')|| (lang==='ar'?'مساحة لرأي عميل':'Client review space');
@@ -238,7 +242,21 @@ function observeReveal() {
 const observer = new IntersectionObserver((entries,ob)=>entries.forEach(e=>{
   if(e.isIntersecting){e.target.classList.add('visible');ob.unobserve(e.target);}
 }),{threshold:.06,rootMargin:'0px 0px 20px 0px'});
-function render() {updateDocument();setBrandContent();renderProjects();renderFeatured();renderServices();renderTools();renderReviews();renderSubjects();observeReveal();applyInteractiveFX();}
+
+function renderSignature() {
+  const projects=(model.projects||[]).filter(p=>p.is_published).sort((a,b)=>(Number(b.featured)-Number(a.featured)) || ((a.sort_order||0)-(b.sort_order||0))).slice(0,3);
+  const gallery=document.querySelector('.editorial-gallery');
+  if(!gallery)return;
+  if(!projects.length){ document.querySelector('#signature').hidden=true; return; }
+  gallery.innerHTML=projects.map((p,i)=>`<a class="editorial-tile editorial-tile-${'abc'[i]}" href="${esc(caseUrl(p))}">${safeUrl(p.image_url)?`<img src="${esc(safeUrl(p.image_url))}" loading="lazy" alt="${esc(field(p,'title'))}">`:`<div class="editorial-fallback">✳</div>`}<span>${esc(field(p,'title'))}</span></a>`).join('');
+  const first=document.querySelector('.editorial-link');if(first)first.href=caseUrl(projects[0]);
+}
+function applySectionVisibility(){
+ const visibility=model.settings?.section_visibility||{};
+ const sections=['featured','signature','work','services','tools','why','about','process','testimonials','faq','cta','learn','contact'];
+ for(const id of sections){const node=document.getElementById(id);if(node){ const enabled=visibility[id]!==false; node.hidden=!enabled || (['featured','signature'].includes(id) && !model.projects.some(p=>p.is_published && (id==='signature'||p.featured))) || (id==='testimonials' && !model.testimonials.some(r=>r.is_verified && r.is_published)); }}
+}
+function render() {updateDocument();setBrandContent();renderProjects();renderFeatured();renderSignature();renderServices();renderTools();renderReviews();renderSubjects();applySectionVisibility();observeReveal();applyInteractiveFX();}
 
 $('#copyEmail').addEventListener('click',async ()=>{
   const email=String(model.settings?.contact_email||'').trim();
@@ -274,7 +292,7 @@ $('#contactForm').addEventListener('submit',async e=>{
   if(!form.reportValidity())return;
   const f = new FormData(form);
   if(f.get('website')) return; // spam honeypot
-  const vals={name:String(f.get('name')||''),email:String(f.get('email')||''),service:String(f.get('service')||''),message:String(f.get('message')||''),company:String(f.get('company')||''),budget:String(f.get('budget')||''),timeline:String(f.get('timeline')||''),reference_url:String(f.get('reference_url')||'')};
+  const vals={name:String(f.get('name')||''),email:String(f.get('email')||''),phone:String(f.get('phone')||''),service:String(f.get('service')||''),message:String(f.get('message')||''),company:String(f.get('company')||''),budget:String(f.get('budget')||''),timeline:String(f.get('timeline')||''),reference_url:String(f.get('reference_url')||'')};
   const button=form.querySelector('button[type=submit]');
   button.disabled=true; button.querySelector('span').textContent=txt().submitting;
   $('#formMessage').textContent='';
@@ -282,7 +300,7 @@ $('#contactForm').addEventListener('submit',async e=>{
     const result=await sendInquiry(vals);
     if(result.mode==='email'){
       const phone = (model.settings.whatsapp_url || 'https://wa.me/201097865616').split('?')[0];
-      const info = lang==='ar' ? `طلب مشروع من موقع Mo Design\nالاسم: ${vals.name}\nالبريد: ${vals.email}\nالخدمة: ${vals.service}\nالشركة: ${vals.company || "—"}\nالميزانية: ${vals.budget || "—"}\nالمدة: ${vals.timeline || "—"}\nمرجع: ${vals.reference_url || "—"}\nالتفاصيل: ${vals.message}` : `Project enquiry from Mo Design\nName: ${vals.name}\nEmail: ${vals.email}\nService: ${vals.service}\nCompany: ${vals.company || "—"}\nBudget: ${vals.budget || "—"}\nTimeline: ${vals.timeline || "—"}\nReference: ${vals.reference_url || "—"}\nBrief: ${vals.message}`;
+      const info = lang==='ar' ? `طلب مشروع من موقع Mo Design\nالاسم: ${vals.name}\nالبريد: ${vals.email}\nالهاتف: ${vals.phone||'—'}\nالخدمة: ${vals.service}\nالشركة: ${vals.company || "—"}\nالميزانية: ${vals.budget || "—"}\nالمدة: ${vals.timeline || "—"}\nمرجع: ${vals.reference_url || "—"}\nالتفاصيل: ${vals.message}` : `Project enquiry from Mo Design\nName: ${vals.name}\nEmail: ${vals.email}\nPhone: ${vals.phone||'—'}\nService: ${vals.service}\nCompany: ${vals.company || "—"}\nBudget: ${vals.budget || "—"}\nTimeline: ${vals.timeline || "—"}\nReference: ${vals.reference_url || "—"}\nBrief: ${vals.message}`;
       const url = `${safeUrl(phone) || 'https://wa.me/201097865616'}?text=${encodeURIComponent(info)}`;
       // Existing user gesture, opens direct WhatsApp as a transparent fallback.
       const opened=window.open(url,'_blank','noopener,noreferrer');
@@ -298,5 +316,5 @@ if(window.matchMedia('(hover: hover) and (pointer: fine)').matches){
 }
 render();
 if(connected){
-  getPublicContent().then(data=>{model=data;render();}).catch(err=>{console.error(err);toast(lang==='ar'?'تعذر تحميل البيانات؛ يجري عرض محتوى تجريبي.':'Could not load live data; showing sample content.');});
+  getPublicContent().then(data=>{model=data;render();}).catch(err=>{console.error(err);model={settings:seed.settings,projects:[],services:seed.services,testimonials:[]};render();toast(lang==='ar'?'تعذر تحميل المشاريع مؤقتًا. جرّب تحديث الصفحة.':'Could not load projects. Please refresh.');});
 }
