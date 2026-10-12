@@ -204,7 +204,7 @@ function renderTools() {
  ];
  const grid=$('#toolsGrid');if(!grid)return;
  grid.innerHTML=defs.map((d,i)=>`<article class="tool-card reveal" tabindex="0">
-  <div class="tool-badge"><img loading="lazy" src="./assets/icons/${d.id}.svg" alt="${esc(d.name)}" width="56" height="56"></div>
+  <div class="tool-badge"><img loading="lazy" src="./assets/icons/${['resolve','capcut','higgsfield','flow'].includes(d.id)?d.id+'.png':d.id+'.svg'}" alt="${esc(d.name)}" width="56" height="56"></div>
   <div class="tool-copy"><h3 dir="ltr">${esc(d.name)}</h3><p>${esc(lang==='ar'?d.ar:d.en)}</p></div><span class="tool-index">${number(i+1)}</span></article>`).join('');
 }
 
@@ -295,15 +295,47 @@ function renderLearning() {
     const id=video?youtubeId(item.youtube_url):'';
     const customThumb=safeUrl(item.thumbnail_url);
     const thumb=customThumb||(id?`https://i.ytimg.com/vi/${id}/hqdefault.jpg`:'');
-    return `<button type="button" class="learning-card reveal" data-lesson="${esc(item.id)}" aria-label="${esc(title)}">
-      <span class="learning-thumb">${thumb?`<img src="${esc(thumb)}" alt="" loading="lazy">`:`<span class="learning-abstract" aria-hidden="true">✳</span>`}<span class="learning-play" aria-hidden="true">${video?'▶':'↗'}</span></span>
+    return `<a class="learning-card reveal" href="./lesson.html?id=${encodeURIComponent(item.id)}" aria-label="${esc(title)}">
+      <span class="learning-thumb">${thumb?`<img src="${esc(thumb)}" alt="" loading="lazy" onerror="this.style.display='none'">`:`<span class="learning-abstract" aria-hidden="true">✳</span>`}<span class="learning-play" aria-hidden="true">${video?'▶':'↗'}</span></span>
       <span class="learning-item-meta">${video?(lang==='ar'?'فيديو تعليمي':'Video lesson'):(lang==='ar'?'مقال':'Article')} <span> / ${String(index+1).padStart(2,'0')}</span></span>
       <strong>${esc(title)}</strong><span class="learning-item-desc">${esc(summary)}</span>
-    </button>`;
+    </a>`;
   });
   list.innerHTML=cards.join('');
 }
-function render() {updateDocument();setBrandContent();renderProjects();renderFeatured();renderSignature();renderServices();renderTools();renderReviews();renderSubjects();applySectionVisibility();renderLearning();observeReveal();applyInteractiveFX();}
+
+function applySectionDesign(){
+ const design=model.settings?.section_design||{};
+ const validHex=v=>/^#[0-9a-f]{6}$/i.test(v||'')?v:'';
+ for(const [id,raw] of Object.entries(design)){
+  const section=document.getElementById(id);
+  if(!section || !raw || typeof raw!=='object' || raw.enabled!==true)continue;
+  const target=['cta','learn'].includes(id)?section.querySelector(id==='cta'?'.cta-statement':'.learn-panel'):section;
+  if(!target)continue;
+  const mode=theme==='light'?'light':'dark';
+  const background=validHex(raw[mode+'_bg']);
+  const foreground=validHex(raw[mode+'_text']);
+  const accent=validHex(raw[mode+'_accent']);
+  const cover=safeUrl(raw.cover_url);
+  const allowedCover=cover && /^https?:\/\//i.test(cover)?cover:'';
+  target.classList.add('v11-designed');
+  if(background)target.style.setProperty('--v11-bg',background);else target.style.removeProperty('--v11-bg');
+  if(foreground)target.style.setProperty('--v11-fg',foreground);else target.style.removeProperty('--v11-fg');
+  if(accent)target.style.setProperty('--v11-accent',accent);else target.style.removeProperty('--v11-accent');
+  target.style.setProperty('--v11-pad',`${Math.max(36,Math.min(220,Number(raw.padding)||90))}px`);
+  target.style.setProperty('--v11-minh',`${Math.max(0,Math.min(900,Number(raw.height)||0))}px`);
+  if(allowedCover){
+    // URL constructor escapes unsafe input; only HTTPS/http assets are displayed.
+    const clean=allowedCover.replace(/["\\
+
+()]/g,'');
+    target.style.setProperty('--v11-cover',`url("${clean}")`);
+    target.classList.add('v11-with-cover');
+    target.style.setProperty('--v11-shade',String(Math.max(.1,Math.min(.92,Number(raw.shade)||.7))));
+  }else{target.classList.remove('v11-with-cover');target.style.removeProperty('--v11-cover');}
+ }
+}
+function render() {updateDocument();setBrandContent();renderProjects();renderFeatured();renderSignature();renderServices();renderTools();renderReviews();renderSubjects();applySectionVisibility();renderLearning();applySectionDesign();observeReveal();applyInteractiveFX();}
 
 $('#learningList').addEventListener('click',e=>{
  const button=e.target.closest('[data-lesson]');if(!button)return;

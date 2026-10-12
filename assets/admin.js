@@ -8,8 +8,8 @@ let tab = 'overview';
 let editing = null; // {table,id}
 let busy = false;
 
-if(localStorage.getItem('portfolio_theme') === 'light') document.documentElement.classList.add('light');
-const labels = {overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى'};
+// Dashboard always uses its own neutral dark palette; the public site's theme remains unchanged.
+const labels = {overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',appearance:'مظهر الأقسام',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى'};
 const SECTIONS=[['featured','المشاريع المميزة'],['signature','عرض الأعمال الرئيسي'],['work','معرض الأعمال'],['services','الخدمات'],['tools','البرامج والأدوات'],['why','أسلوبي في الشغل'],['about','نبذة عني'],['process','مراحل تنفيذ المشاريع'],['testimonials','آراء العملاء'],['faq','الأسئلة الشائعة'],['cta','دعوة بدء مشروع'],['learn','المعرفة الجاية أقرب'],['contact','التواصل وطلب مشروع']];
 const CONTENT_GROUPS={
  'المشاريع والأعمال':[['feature_title','عنوان الأعمال المميزة'],['feature_sub','وصف الأعمال المميزة'],['selected','عنوان معرض الأعمال'],['selected_sub','وصف معرض الأعمال'],['signature_title','عنوان العرض السينمائي'],['signature_desc','وصف العرض السينمائي'],['signature_link','نص زر عرض المشروع']],
@@ -38,10 +38,10 @@ function renderLogin(error=''){
 function baseShell(){
  const groups=[
   {title:'المكتب',items:['overview','messages']},
-  {title:'إدارة المحتوى',items:['content','projects','media','services','testimonials','future']},
+  {title:'إدارة المحتوى',items:['content','appearance','projects','media','services','testimonials','future']},
   {title:'الهوية والإعدادات',items:['settings']}
  ];
- const icons={overview:'◫',messages:'✉',content:'▤',projects:'▦',media:'▧',services:'◇',testimonials:'❞',future:'▷',settings:'⚙'};
+ const icons={overview:'◫',messages:'✉',content:'▤',appearance:'◈',projects:'▦',media:'▧',services:'◇',testimonials:'❞',future:'▷',settings:'⚙'};
  $('#adminApp').innerHTML=`<div class="admin-layout v10-shell"><aside class="admin-sidebar">
  <div class="studio-sidebar-top"><a href="./index.html" class="brand v10-brand"><span class="brand-mark"><img src="./assets/images/mo-logo-white.webp" alt="" data-admin-brand-logo /></span><span><strong>Mo Design</strong><small>مساحة الإدارة الإبداعية</small></span></a><div class="v10-workspace-badge"><span class="v10-online-dot"></span> مساحة الإدارة الخاصة</div></div>
  <nav class="sidebar-nav" id="adminNav" aria-label="أقسام لوحة الإدارة">${groups.map(group=>`<div class="v10-nav-group"><div class="v10-nav-label">${group.title}</div>${group.items.map(key=>`<button type="button" data-tab="${key}" class="${tab===key?'active':''}"><span class="v10-nav-icon" aria-hidden="true">${icons[key]}</span><span>${labels[key]}</span><span class="v10-nav-chevron" aria-hidden="true">‹</span></button>`).join('')}</div>`).join('')}</nav>
@@ -175,7 +175,7 @@ function youtubeId(value){
  try{
   const u=new URL(value),host=u.hostname.toLowerCase();let id='';
   if(['youtu.be','www.youtu.be'].includes(host))id=u.pathname.slice(1).split('/')[0];
-  else if(['youtube.com','www.youtube.com','m.youtube.com'].includes(host)){
+  else if(['youtube.com','www.youtube.com','m.youtube.com','www.youtube-nocookie.com'].includes(host)){
    if(u.pathname==='/watch')id=u.searchParams.get('v')||'';
    else if(/^\/(shorts|embed|live)\//.test(u.pathname))id=u.pathname.split('/')[2]||'';
   }
@@ -197,10 +197,13 @@ function renderLearningItemEditor(item){
  ${field('video_url','رابط MP4 أو WebM مباشر (اختياري)',item.video_url||'',{type:'url',full:true})}
  <label class="form-field full">ارفع فيديو من جهازك (MP4 / WebM، بحد أقصى 45 ميجابايت)<input name="lesson_video_file" type="file" accept="video/mp4,video/webm" ${connected?'':'disabled'}><small>الفيديو بيترفع على Supabase Storage عند الضغط على حفظ. للفيديوهات الكبيرة استخدم يوتيوب لتوفير المساحة.</small></label>
  ${field('thumbnail_url','رابط صورة مصغرة (اختياري)',item.thumbnail_url||'',{type:'url',full:true})}
+ <label class="form-field full">أو ارفع صورة مصغّرة من جهازك (JPG / PNG / WebP لحد 8 ميجابايت)<input type="file" name="lesson_thumbnail_file" accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}><small>لو اخترت صورة هنا هتترفع تلقائيًا وقت الحفظ، وتظهر على بطاقة الدرس.</small></label>
+ ${field('resource_links','روابط الشرح وملفات PDF أو Google Drive (كل رابط في سطر، بصيغة: اسم الملف | https://...)',item.resource_links||'',{type:'textarea',full:true,rows:4})}
+ <p class="admin-note full">علشان ملفات Google Drive تفتح للزوار: افتح إعدادات المشاركة للملف واختر «أي شخص معه الرابط — مشاهد».</p>
  ${field('body_ar','نص المقال بالعربي (لنوع مقال)',item.body_ar||'',{type:'textarea',full:true,rows:7})}
  ${field('body_en','نص المقال بالإنجليزي',item.body_en||'',{type:'textarea',full:true,rows:6})}
  ${field('is_published','انشر المحتوى على الموقع',item.is_published||false,{type:'checkbox',full:true})}
- </div>${mediaId?`<div class="v10-video-preview"><img src="https://i.ytimg.com/vi/${mediaId}/hqdefault.jpg" alt="معاينة فيديو يوتيوب"><div>معاينة الصورة المصغّرة للفيديو</div></div>`:''}<div class="admin-actions">${uiButton('إلغاء','cancelLesson')}<button class="admin-btn" type="submit">${isNew?'حفظ المحتوى':'حفظ التعديلات'} ✓</button></div></form></div>`;
+ </div>${mediaId?`<div class="v10-video-preview"><img src="https://i.ytimg.com/vi/${mediaId}/hqdefault.jpg" alt="معاينة فيديو يوتيوب"><div>معاينة الصورة المصغّرة <a href="https://www.youtube.com/watch?v=${mediaId}" target="_blank" rel="noopener noreferrer">↗ جرّب فتح الفيديو على يوتيوب</a></div></div>`:''}<div class="admin-actions">${uiButton('إلغاء','cancelLesson')}<button class="admin-btn" type="submit">${isNew?'حفظ المحتوى':'حفظ التعديلات'} ✓</button></div></form></div>`;
 }
 function renderFuture(){
  const settings=data.settings||seed.settings,vis=settings.section_visibility||{},items=data.learning_items||[];
@@ -215,14 +218,35 @@ function renderFuture(){
  <div class="v10-education-save"><button class="admin-btn" type="submit">حفظ الحالة والنصوص ✓</button><span class="admin-note">مفيش حاجة هتظهر للزوار إلا بعد اختيار «بدأنا النشر» ونشر محتوى.</span></div></form></div>
  <div class="admin-panel" id="learningStudioList"><div class="admin-heading"><div><h2>مكتبة الفيديوهات والمقالات</h2><p class="admin-note">انشر محتوى حقيقي من غير ما ترجع GitHub. المسودات مش بتظهر للزوار.</p></div>${uiButton('＋ إضافة محتوى','newlesson','','primary')}</div>
  ${data.learning_error?`<div class="admin-banner">الأكاديمية محتاجة تشغيل ملف التحديث SQL رقم 005 أولًا: ${esc(data.learning_error)}</div>`:''}
- <div class="v10-learning-table"><div class="v10-learning-table-head"><span>المحتوى</span><span>الحالة</span><span>التحكم</span></div>${items.map(item=>{let id=youtubeId(item.youtube_url||'');return `<div class="v10-learning-row"><div class="v10-learning-title">${id?`<img src="https://i.ytimg.com/vi/${id}/mqdefault.jpg" loading="lazy" alt="">`:'<span class="v10-lesson-fallback">✳</span>'}<div><strong>${esc(item.title_ar)}</strong><small>${item.content_type==='video'?'فيديو / يوتيوب':'مقال'} · ${esc(item.title_en||'بدون ترجمة')}</small></div></div><span class="v10-status-tag ${item.is_published?'published':''}">${item.is_published?'منشور':'مسودة'}</span><div class="v10-learning-actions">${uiButton(item.is_published?'إخفاء':'نشر','togglepublish',`learning_items|${item.id}`)}${uiButton('تعديل','editLesson',item.id)}${uiButton('حذف','deleteLesson',item.id,'danger')}</div></div>`}).join('')||'<div class="v10-no-lesson">مفيش محتوى اتضاف لسه. اضغط «إضافة محتوى» علشان تبدأ.</div>'}</div></div>${editor}`;
+ <div class="v10-learning-table"><div class="v10-learning-table-head"><span>المحتوى</span><span>الحالة</span><span>التحكم</span></div>${items.map(item=>{let id=youtubeId(item.youtube_url||'');return `<div class="v10-learning-row"><div class="v10-learning-title">${safeUrl(item.thumbnail_url)?`<img src="${esc(safeUrl(item.thumbnail_url))}" loading="lazy" alt="">`:id?`<img src="https://i.ytimg.com/vi/${id}/mqdefault.jpg" loading="lazy" alt="">`:'<span class="v10-lesson-fallback">✳</span>'}<div><strong>${esc(item.title_ar)}</strong><small>${item.content_type==='video'?'فيديو / يوتيوب':'مقال'} · ${esc(item.title_en||'بدون ترجمة')}</small></div></div><span class="v10-status-tag ${item.is_published?'published':''}">${item.is_published?'منشور':'مسودة'}</span><div class="v10-learning-actions">${uiButton(item.is_published?'إخفاء':'نشر','togglepublish',`learning_items|${item.id}`)}${uiButton('تعديل','editLesson',item.id)}${uiButton('حذف','deleteLesson',item.id,'danger')}</div></div>`}).join('')||'<div class="v10-no-lesson">مفيش محتوى اتضاف لسه. اضغط «إضافة محتوى» علشان تبدأ.</div>'}</div></div>${editor}`;
 }
 
+
+const DESIGN_SECTIONS=[['home','بداية الموقع'],['featured','المشاريع المميزة'],['signature','أكتر من مجرد تصميم'],['work','معرض الأعمال'],['services','الخدمات'],['why','أسلوبي في الشغل'],['about','نبذة عني'],['process','مراحل التنفيذ'],['testimonials','آراء العملاء'],['cta','شغلك يستحق يتشاف'],['learn','الأكاديمية والمحتوى'],['contact','التواصل']];
+function renderAppearance(){
+ const design=data.settings?.section_design||{};
+ const fields=DESIGN_SECTIONS.map(([id,label],index)=>{
+  const d=design[id]||{};
+  const color=(key,fallback)=>/^#[a-fA-F0-9]{6}$/.test(d[key]||'')?d[key]:fallback;
+  const colorInput=(key,title,def)=>`<label class="form-field v11-color-field">${title}<input type="color" name="${id}__${key}" value="${color(key,def)}"></label>`;
+  return `<details class="v11-section-editor" ${index===0?'open':''}><summary><span>◈ ${esc(label)}</span><small>ألوان الدارك واللايت • كافر • حجم القسم</small></summary><div class="admin-form-grid">
+    ${field(id+'__enabled','تفعيل المظهر المخصص للقسم (الغيه علشان ترجع للتصميم الافتراضي)',d.enabled||false,{type:'checkbox',full:true})}
+    ${colorInput('dark_bg','خلفية الدارك مود','#10121a')}${colorInput('dark_text','الكتابة في الدارك مود','#f4f4f5')}${colorInput('dark_accent','اللون المميز في الدارك مود','#c6fa8a')}
+    ${colorInput('light_bg','خلفية اللايت مود','#f7f5ef')}${colorInput('light_text','الكتابة في اللايت مود','#172026')}${colorInput('light_accent','اللون المميز في اللايت مود','#39671a')}
+    ${field(id+'__cover_url','رابط الكافر الحالي (اختياري)',d.cover_url||'',{type:'url',full:true})}
+    <label class="form-field full">ارفع كافر من جهازك لهذا القسم (اختياري)<input name="${id}__cover_file" type="file" accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}><small>حد أقصى 8 ميجابايت للصورة، وتقدر تغيّره أو تمسح الرابط في أي وقت.</small></label>
+    ${field(id+'__padding','المسافة الداخلية بالأعلى والأسفل (36 إلى 220)',d.padding??90,{type:'number'})}
+    ${field(id+'__height','أقل ارتفاع للقسم بالبكسل (0 = تلقائي)',d.height??0,{type:'number'})}
+    ${field(id+'__shade','تعتيم صورة الكافر (من 0.1 إلى 0.92)',d.shade??0.7,{type:'text'})}
+    </div></details>`;
+ }).join('');
+ return `<section class="admin-panel v11-appearance"><div class="admin-heading"><div><h2>تحكّم في شكل أقسام الموقع</h2><p class="admin-note">كل قسم تقدر تغيّر خلفيته ولون الكتابة واللون المميز وصورة الكافر وارتفاعه. تغيير ألوان اللايت ما يأثرش على الدارك.</p></div><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">معاينة ↗</a></div><form data-entity="appearance" id="appearanceForm"><div class="v11-appearance-help">لتطبيق الشكل الجديد على قسم، فعّل خيار «المظهر المخصص» داخل القسم نفسه؛ الأقسام اللي مش مفعّلة هتحتفظ بشكلها الحالي. متشغّلش صورة كافر إلا لو محتاجها فعلًا، وخلي الكتابة واضحة فوقها.</div>${fields}<div class="admin-sticky-actions"><button class="admin-btn" type="submit">حفظ ألوان وخلفيات الأقسام ✓</button><small>التغييرات بتظهر للزوار بعد حفظها في Supabase وتحديث الصفحة.</small></div></form></section>`;
+}
 function renderPanel(){
   if(!data)return;
   const main=$('#adminMain'); if(!main) return;
-  const body=({overview:renderOverview,content:renderContent,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,services:()=>renderItems('services'),testimonials:()=>renderItems('testimonials'),messages:renderMessages,future:renderFuture})[tab]();
-  main.innerHTML=`<header class="admin-heading v10-page-head"><div><span class="v10-page-path">Mo Design <span>/</span> مساحة العمل <span>/</span> ${esc(labels[tab])}</span><h1>${esc(labels[tab])}</h1><p>أدواتك ومحتواك وطلبات الشغل في مكان واحد.</p></div><div class="v10-page-actions"><span class="admin-badge">${connected?`<span class="v10-online-dot"></span> متصل`:'◌ وضع تجربة محلية'}</span><button type="button" class="admin-btn secondary v10-theme-toggle" data-action="themeToggle">◐ الوضع ${document.documentElement.classList.contains('light')?'الداكن':'الفاتح'}</button><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">↗ شوف الموقع</a></div></header>${!connected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
+  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,services:()=>renderItems('services'),testimonials:()=>renderItems('testimonials'),messages:renderMessages,future:renderFuture})[tab]();
+  main.innerHTML=`<header class="admin-heading v10-page-head"><div><span class="v10-page-path">Mo Design <span>/</span> مساحة العمل <span>/</span> ${esc(labels[tab])}</span><h1>${esc(labels[tab])}</h1><p>أدواتك ومحتواك وطلبات الشغل في مكان واحد.</p></div><div class="v10-page-actions"><span class="admin-badge">${connected?`<span class="v10-online-dot"></span> متصل`:'◌ وضع تجربة محلية'}</span><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">↗ شوف الموقع</a></div></header>${!connected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
   document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
   if(tab==='media')void loadMedia();
 }
@@ -235,13 +259,27 @@ function getFields(form,table){
     const section_visibility={...(data.settings?.section_visibility||{})};SECTIONS.forEach(([id])=>section_visibility[id]=f.has('section_'+id));
     return {content_ar,content_en,section_visibility,headline_ar:get('headline_ar'),headline_en:get('headline_en'),subheadline_ar:get('subheadline_ar'),subheadline_en:get('subheadline_en')};
   }
+  if(table==='appearance'){
+    const section_design=structuredClone(data.settings?.section_design||{});
+    for(const [id] of DESIGN_SECTIONS){
+      const current={...(section_design[id]||{})};
+      current.enabled=f.has(id+'__enabled');
+      for(const key of ['dark_bg','dark_text','dark_accent','light_bg','light_text','light_accent'])current[key]=get(id+'__'+key);
+      current.cover_url=get(id+'__cover_url');
+      current.padding=Math.max(36,Math.min(220,Number(get(id+'__padding'))||90));
+      current.height=Math.max(0,Math.min(900,Number(get(id+'__height'))||0));
+      current.shade=Math.max(.1,Math.min(.92,Number(get(id+'__shade'))||.7));
+      section_design[id]=current;
+    }
+    return {section_design};
+  }
   if(table==='future'){
     const mode=['hidden','coming_soon','live'].includes(get('education_mode'))?get('education_mode'):'coming_soon';
     const content_ar={...(data.settings?.content_ar||{})},content_en={...(data.settings?.content_en||{})};
     ['learn_title','learn_desc','learn_tag','learn_live_title','learn_live_desc','learn_live_tag'].forEach(key=>{content_ar[key]=get('ar_'+key);content_en[key]=get('en_'+key);});
     return {education_mode:mode,content_ar,content_en,section_visibility:{...(data.settings?.section_visibility||{}),learn:mode!=='hidden'}};
   }
-  if(table==='learning_items')return {content_type:get('content_type')==='article'?'article':'video',title_ar:get('title_ar'),title_en:get('title_en'),summary_ar:get('summary_ar'),summary_en:get('summary_en'),body_ar:get('body_ar'),body_en:get('body_en'),youtube_url:get('youtube_url'),video_url:get('video_url'),thumbnail_url:get('thumbnail_url'),sort_order:Number(get('sort_order'))||0,is_published:f.has('is_published')};
+  if(table==='learning_items')return {content_type:get('content_type')==='article'?'article':'video',title_ar:get('title_ar'),title_en:get('title_en'),summary_ar:get('summary_ar'),summary_en:get('summary_en'),body_ar:get('body_ar'),body_en:get('body_en'),youtube_url:get('youtube_url'),video_url:get('video_url'),thumbnail_url:get('thumbnail_url'),resource_links:get('resource_links'),sort_order:Number(get('sort_order'))||0,is_published:f.has('is_published')};
   if(table==='settings'){
     return {brand_ar:get('brand_ar'),brand_en:get('brand_en'),personal_name:get('personal_name'),role_ar:get('role_ar'),role_en:get('role_en'),headline_ar:get('headline_ar'),headline_en:get('headline_en'),subheadline_ar:get('subheadline_ar'),subheadline_en:get('subheadline_en'),bio_ar:get('bio_ar'),bio_en:get('bio_en'),profile_image_url:get('profile_image_url'),contact_email:get('contact_email'),instagram_url:get('instagram_url'),behance_url:get('behance_url'),linkedin_url:get('linkedin_url'),whatsapp_url:get('whatsapp_url'),tiktok_url:get('tiktok_url'),facebook_url:get('facebook_url'),community_url:get('community_url'),availability:f.has('availability'),stats_projects:Math.max(0,Number(get('stats_projects'))||0),stats_years:Math.max(0,Number(get('stats_years'))||0),stats_satisfaction:Math.max(0,Math.min(100,Number(get('stats_satisfaction'))||0)),stats_verified:f.has('stats_verified')};
   }
@@ -261,6 +299,7 @@ async function saveForm(form){
     if(entry.youtube_url && !youtubeId(entry.youtube_url)){toast('رابط يوتيوب مش صحيح.');return;}
     if(entry.video_url && !/^https:\/\//.test(entry.video_url)){toast('رابط الفيديو المباشر لازم يكون HTTPS.');return;}
     if(entry.thumbnail_url && !/^https:\/\//.test(entry.thumbnail_url)){toast('رابط الصورة لازم يبدأ بـ https://');return;}
+    if(entry.resource_links && entry.resource_links.split(/\r?\n/).some(v=>{if(!v.trim())return false;const url=v.split('|').pop().trim();return !/^https:\/\//i.test(url)})){toast('رابط الملف لازم يبدأ بـ https://، واكتب كل ملف في سطر.');return;}
   }
   if(table==='projects') {
     if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(entry.slug)){toast('رابط المشروع يجب أن يكون إنجليزيًا بحروف صغيرة وشرطات فقط.');return;}
@@ -279,6 +318,14 @@ async function saveForm(form){
     if(connected && table==='learning_items'){
       const videoFile=form.querySelector('input[name="lesson_video_file"]')?.files?.[0];
       if(videoFile)entry.video_url=await uploadLearningVideo(videoFile);
+      const thumbnail=form.querySelector('input[name="lesson_thumbnail_file"]')?.files?.[0];
+      if(thumbnail)entry.thumbnail_url=await uploadImage(thumbnail,'learning');
+    }
+    if(connected && table==='appearance'){
+      for(const [section] of DESIGN_SECTIONS){
+        const file=form.querySelector(`input[name="${section}__cover_file"]`)?.files?.[0];
+        if(file)entry.section_design[section].cover_url=await uploadImage(file,'general');
+      }
     }
     if(connected && table==='projects'){
       const file=form.querySelector('input[name="media_file"]')?.files?.[0];
@@ -293,7 +340,7 @@ async function saveForm(form){
     }
     if(connected){
       const db=await getClient(); let result;
-      if(['settings','content','future'].includes(table))result=await db.from('site_settings').update(entry).eq('id',1);
+      if(['settings','content','future','appearance'].includes(table))result=await db.from('site_settings').update(entry).eq('id',1);
       else {
         const payload={...entry};
         if(id)payload.id=id;
@@ -303,7 +350,7 @@ async function saveForm(form){
       if(result.error)throw result.error;
       data=await getAdminContent();
     } else {
-      if(['settings','content','future'].includes(table))data.settings={...data.settings,...entry};
+      if(['settings','content','future','appearance'].includes(table))data.settings={...data.settings,...entry};
       else if(id){const index=data[table].findIndex(x=>x.id===id);if(index!==-1)data[table][index]={...data[table][index],...entry};}
       else data[table].push({...entry,id:`local-${Date.now()}`,slug:`project-${Date.now()}`});
       saveDemo(data);

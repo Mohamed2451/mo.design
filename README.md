@@ -1,3 +1,5 @@
+# Mo Design V11 — للبدء افتح `ابدأ-هنا-V11.md`
+
 # Mo Design V10 — Creative Portfolio + CMS
 
 موقع محمد محمود، صفحة Portfolio احترافية بالعربية المصرية والإنجليزية، Dark/Light، ولوحة تحكم عربية مدعومة بـ Supabase.
