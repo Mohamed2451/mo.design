@@ -256,8 +256,70 @@ function applySectionVisibility(){
  const sections=['featured','signature','work','services','tools','why','about','process','testimonials','faq','cta','learn','contact'];
  for(const id of sections){const node=document.getElementById(id);if(node){ const enabled=visibility[id]!==false; node.hidden=!enabled || (['featured','signature'].includes(id) && !model.projects.some(p=>p.is_published && (id==='signature'||p.featured))) || (id==='testimonials' && !model.testimonials.some(r=>r.is_verified && r.is_published)); }}
 }
-function render() {updateDocument();setBrandContent();renderProjects();renderFeatured();renderSignature();renderServices();renderTools();renderReviews();renderSubjects();applySectionVisibility();observeReveal();applyInteractiveFX();}
+function youtubeId(value) {
+  try {
+    const u=new URL(value),host=u.hostname.toLowerCase(); let id='';
+    if(host==='youtu.be'||host==='www.youtu.be') id=u.pathname.slice(1).split('/')[0];
+    else if(['youtube.com','www.youtube.com','m.youtube.com','music.youtube.com'].includes(host)) {
+      if(u.pathname==='/watch')id=u.searchParams.get('v')||'';
+      else if(/^\/(shorts|embed|live)\//.test(u.pathname))id=u.pathname.split('/')[2]||'';
+    }
+    return /^[A-Za-z0-9_-]{11}$/.test(id)?id:'';
+  } catch {return '';}
+}
+function renderLearning() {
+  const section=$('#learn'),list=$('#learningList');if(!section||!list)return;
+  const settings=model.settings||seed.settings;
+  const mode=['hidden','coming_soon','live'].includes(settings.education_mode)?settings.education_mode:'coming_soon';
+  const visibility=settings.section_visibility||{};
+  section.hidden=(visibility.learn===false||mode==='hidden');
+  if(section.hidden)return;
+  const live=mode==='live';
+  const copy=txt();
+  const header=section.querySelector('[data-i18n="learn_title"]');
+  const intro=section.querySelector('[data-i18n="learn_desc"]');
+  const badge=section.querySelector('[data-i18n="learn_tag"]');
+  header.textContent=live?copy.learn_live_title|| (lang==='ar'?'بدأت أنشر محتوى جديد':'New content is live'):copy.learn_title;
+  intro.textContent=live?copy.learn_live_desc||'':copy.learn_desc;
+  badge.textContent=live?copy.learn_live_tag||'':copy.learn_tag;
+  list.hidden=!live;
+  if(!live)return;
+  const published=(model.learning_items||[]).filter(item=>item.is_published);
+  if(!published.length) {
+    list.innerHTML=`<p class="learning-empty">${lang==='ar'?'لسه بنجهّز أول درس. تابعنا قريب.':'First lesson coming soon.'}</p>`;
+    return;
+  }
+  const cards=published.map((item,index)=>{
+    const title=field(item,'title'),summary=field(item,'summary');
+    const video=item.content_type==='video';
+    const id=video?youtubeId(item.youtube_url):'';
+    const customThumb=safeUrl(item.thumbnail_url);
+    const thumb=customThumb||(id?`https://i.ytimg.com/vi/${id}/hqdefault.jpg`:'');
+    return `<button type="button" class="learning-card reveal" data-lesson="${esc(item.id)}" aria-label="${esc(title)}">
+      <span class="learning-thumb">${thumb?`<img src="${esc(thumb)}" alt="" loading="lazy">`:`<span class="learning-abstract" aria-hidden="true">✳</span>`}<span class="learning-play" aria-hidden="true">${video?'▶':'↗'}</span></span>
+      <span class="learning-item-meta">${video?(lang==='ar'?'فيديو تعليمي':'Video lesson'):(lang==='ar'?'مقال':'Article')} <span> / ${String(index+1).padStart(2,'0')}</span></span>
+      <strong>${esc(title)}</strong><span class="learning-item-desc">${esc(summary)}</span>
+    </button>`;
+  });
+  list.innerHTML=cards.join('');
+}
+function render() {updateDocument();setBrandContent();renderProjects();renderFeatured();renderSignature();renderServices();renderTools();renderReviews();renderSubjects();applySectionVisibility();renderLearning();observeReveal();applyInteractiveFX();}
 
+$('#learningList').addEventListener('click',e=>{
+ const button=e.target.closest('[data-lesson]');if(!button)return;
+ const item=(model.learning_items||[]).find(x=>String(x.id)===button.dataset.lesson&&x.is_published);
+ if(!item)return;
+ const dialog=$('#learningDialog'),body=$('#learningDialogBody');
+ const title=esc(field(item,'title')),description=esc(field(item,'summary'));
+ const id=item.content_type==='video'?youtubeId(item.youtube_url):'';
+ const fileVideo=item.content_type==='video'?safeUrl(item.video_url):'';
+ const article=esc(field(item,'body')).replace(/\n/g,'<br>');
+ body.innerHTML=`<h2>${title}</h2><p>${description}</p>${id?`<div class="learning-player"><iframe src="https://www.youtube-nocookie.com/embed/${id}?rel=0" title="${title}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`:fileVideo?`<div class="learning-player"><video src="${esc(fileVideo)}" controls playsinline preload="none"></video></div>`:`<div class="learning-article">${article||esc(lang==='ar'?'تفاصيل المقال هتظهر قريب.':'Article details coming soon.')}</div>`}`;
+ dialog.showModal();
+});
+$('#learningClose').addEventListener('click',()=>$('#learningDialog').close());
+$('#learningDialog').addEventListener('click',e=>{if(e.target.id==='learningDialog')e.target.close();});
+$('#learningDialog').addEventListener('close',()=>{$('#learningDialogBody').innerHTML='';});
 $('#copyEmail').addEventListener('click',async ()=>{
   const email=String(model.settings?.contact_email||'').trim();
   if(!email){toast(txt().email_missing);return;}

@@ -9,13 +9,13 @@ let editing = null; // {table,id}
 let busy = false;
 
 if(localStorage.getItem('portfolio_theme') === 'light') document.documentElement.classList.add('light');
-const labels = {overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'التعلم والمستقبل'};
+const labels = {overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى'};
 const SECTIONS=[['featured','المشاريع المميزة'],['signature','عرض الأعمال الرئيسي'],['work','معرض الأعمال'],['services','الخدمات'],['tools','البرامج والأدوات'],['why','أسلوبي في الشغل'],['about','نبذة عني'],['process','مراحل تنفيذ المشاريع'],['testimonials','آراء العملاء'],['faq','الأسئلة الشائعة'],['cta','دعوة بدء مشروع'],['learn','المعرفة الجاية أقرب'],['contact','التواصل وطلب مشروع']];
 const CONTENT_GROUPS={
  'المشاريع والأعمال':[['feature_title','عنوان الأعمال المميزة'],['feature_sub','وصف الأعمال المميزة'],['selected','عنوان معرض الأعمال'],['selected_sub','وصف معرض الأعمال'],['signature_title','عنوان العرض السينمائي'],['signature_desc','وصف العرض السينمائي'],['signature_link','نص زر عرض المشروع']],
  'الخدمات وطريقتي':[['services_eyebrow','عنوان صغير للخدمات'],['services_title','العنوان الرئيسي للخدمات'],['services_sub','وصف الخدمات'],['why_title','عنوان طريقة الشغل'],['why_1','الخطوة الأولى'],['why_1d','شرح الخطوة الأولى'],['why_2','الخطوة الثانية'],['why_2d','شرح الخطوة الثانية'],['why_3','الخطوة الثالثة'],['why_3d','شرح الخطوة الثالثة'],['step1','مرحلة التنفيذ الأولى'],['step1d','شرح المرحلة الأولى'],['step2','مرحلة التنفيذ الثانية'],['step2d','شرح المرحلة الثانية'],['step3','مرحلة التنفيذ الثالثة'],['step3d','شرح المرحلة الثالثة']],
  'عني والعملاء':[['about_title','عنوان قسم عني'],['about_card_1','ميزة أولى'],['about_card_2','ميزة ثانية'],['about_card_3','ميزة ثالثة'],['reviews_title','عنوان آراء العملاء'],['reviews_sub','وصف آراء العملاء']],
- 'التعليم والتواصل':[['learn_title','عنوان قسم التعليم'],['learn_desc','وصف التعليم المستقبلي'],['learn_tag','عبارة قريبًا'],['contact_title','عنوان التواصل'],['contact_desc','شرح التواصل'],['cta_title','عنوان الدعوة للمشروع'],['cta_sub','وصف الدعوة للمشروع'],['cta_button','نص زر التواصل']],
+ 'التعليم والتواصل':[['learn_title','عنوان قسم التعليم'],['learn_desc','وصف التعليم المستقبلي'],['learn_tag','عبارة قريبًا'],['learn_live_title','عنوان بعد بدء النشر'],['learn_live_desc','الوصف بعد بدء النشر'],['learn_live_tag','شارة المحتوى المنشور'],['contact_title','عنوان التواصل'],['contact_desc','شرح التواصل'],['cta_title','عنوان الدعوة للمشروع'],['cta_sub','وصف الدعوة للمشروع'],['cta_button','نص زر التواصل']],
  'الأسئلة الشائعة':[['faq_title','عنوان الأسئلة الشائعة'],['faq_desc','مقدمة الأسئلة'],['faq_q1','السؤال الأول'],['faq_a1','إجابة السؤال الأول'],['faq_q2','السؤال الثاني'],['faq_a2','إجابة السؤال الثاني'],['faq_q3','السؤال الثالث'],['faq_a3','إجابة السؤال الثالث'],['faq_q4','السؤال الرابع'],['faq_a4','إجابة السؤال الرابع']]
 };
 let mediaCache=[];
@@ -26,7 +26,7 @@ function field(name,label,value='',options={}){
   const required=options.required ? 'required' : '';
   const full=options.full ? ' full' : '';
   if(options.type==='checkbox')return `<label class="form-field checkbox${full}"><input type="checkbox" name="${esc(name)}" ${value?'checked':''}/>${esc(label)}</label>`;
-  if(options.type==='textarea')return `<label class="form-field${full}">${esc(label)}<textarea name="${esc(name)}" rows="${options.rows||3}" ${required} maxlength="4000">${v}</textarea></label>`;
+  if(options.type==='textarea')return `<label class="form-field${full}">${esc(label)}<textarea name="${esc(name)}" rows="${options.rows||3}" ${required} maxlength="12000">${v}</textarea></label>`;
   if(options.select)return `<label class="form-field${full}">${esc(label)}<select name="${esc(name)}">${options.select.map(x=>`<option value="${esc(x[0])}" ${String(value)===String(x[0])?'selected':''}>${esc(x[1])}</option>`).join('')}</select></label>`;
   return `<label class="form-field${full}">${esc(label)}<input name="${esc(name)}" type="${options.type||'text'}" value="${v}" maxlength="${options.max||255}" ${required}/></label>`;
 }
@@ -36,20 +36,40 @@ function renderLogin(error=''){
   $('#adminApp').innerHTML=`<div class="admin-login-wrap"><div class="admin-panel"><a href="./index.html" class="brand"><span class="brand-mark"><img src="./assets/images/mo-logo-white.webp" alt="" data-admin-brand-logo /></span> Mo Design<span class="brand-period">.</span></a><h1 style="margin:33px 0 12px;font-size:28px">تسجيل دخول الإدارة</h1><p class="admin-note">هذه اللوحة للمالك والمشرفين المعتمدين فقط. أنشئ حساب المستخدم داخل Supabase وأضف معرفه لجدول admin_users.</p><form id="loginForm" class="admin-auth">${field('email','البريد الإلكتروني','',{type:'email',required:true})}${field('password','كلمة المرور','',{type:'password',required:true})}<button class="admin-btn" type="submit">تسجيل الدخول ↗</button></form><p class="admin-note" role="alert" style="color:#f8a3a3">${esc(error)}</p><a class="admin-note" href="./index.html">← الرجوع للموقع</a></div></div>`;
 }
 function baseShell(){
-  $('#adminApp').innerHTML=`<div class="admin-layout"><aside class="admin-sidebar"><a href="./index.html" class="brand"><span class="brand-mark"><img src="./assets/images/mo-logo-white.webp" alt="" data-admin-brand-logo /></span> Mo Design<span class="brand-period">.</span></a><div class="admin-top-mobile"><strong>لوحة الإدارة</strong></div><nav class="sidebar-nav" id="adminNav">${Object.entries(labels).map(([key,label])=>`<button type="button" data-tab="${key}" class="${tab===key?'active':''}"><span>${({overview:'◉',content:'▤',settings:'✳',projects:'▣',media:'▧',services:'◇',testimonials:'❝',messages:'✉',future:'✦'})[key]}</span> ${label}</button>`).join('')}</nav><div class="sidebar-footer"><a href="./index.html" target="_blank" rel="noopener">معاينة الموقع ↗</a>${connected?'<button type="button" data-action="logout">تسجيل الخروج</button>':''}</div></aside><main class="admin-main" id="adminMain"></main></div>`;
+ const groups=[
+  {title:'المكتب',items:['overview','messages']},
+  {title:'إدارة المحتوى',items:['content','projects','media','services','testimonials','future']},
+  {title:'الهوية والإعدادات',items:['settings']}
+ ];
+ const icons={overview:'◫',messages:'✉',content:'▤',projects:'▦',media:'▧',services:'◇',testimonials:'❞',future:'▷',settings:'⚙'};
+ $('#adminApp').innerHTML=`<div class="admin-layout v10-shell"><aside class="admin-sidebar">
+ <div class="studio-sidebar-top"><a href="./index.html" class="brand v10-brand"><span class="brand-mark"><img src="./assets/images/mo-logo-white.webp" alt="" data-admin-brand-logo /></span><span><strong>Mo Design</strong><small>مساحة الإدارة الإبداعية</small></span></a><div class="v10-workspace-badge"><span class="v10-online-dot"></span> مساحة الإدارة الخاصة</div></div>
+ <nav class="sidebar-nav" id="adminNav" aria-label="أقسام لوحة الإدارة">${groups.map(group=>`<div class="v10-nav-group"><div class="v10-nav-label">${group.title}</div>${group.items.map(key=>`<button type="button" data-tab="${key}" class="${tab===key?'active':''}"><span class="v10-nav-icon" aria-hidden="true">${icons[key]}</span><span>${labels[key]}</span><span class="v10-nav-chevron" aria-hidden="true">‹</span></button>`).join('')}</div>`).join('')}</nav>
+ <div class="sidebar-footer"><div class="v10-admin-account"><span class="v10-avatar">م</span><div><strong>محمد محمود</strong><small>مدير الموقع</small></div></div><a href="./index.html" target="_blank" rel="noopener">↗ معاينة الموقع</a>${connected?'<button type="button" data-action="logout">تسجيل الخروج</button>':''}</div></aside>
+ <main class="admin-main" id="adminMain"></main></div>`;
 }
 function renderOverview(){
- const projects=data.projects||[], messages=data.messages||[];
- const counts=[['مشاريع منشورة',projects.filter(p=>p.is_published).length,'▣'],['مشاريع مسودة',projects.filter(p=>!p.is_published).length,'◷'],['رسائل جديدة',messages.filter(m=>m.status==='new').length,'✉'],['خدمات متاحة',(data.services||[]).filter(v=>v.is_published).length,'◇']];
- return `<div class="admin-panel"><div class="admin-welcome"><div><span class="admin-overline">MO DESIGN — STUDIO DESK</span><h2>أهلًا يا محمد 👋</h2><p class="admin-note">كل حاجة محتاجها علشان تدير موقعك وشغلك من مكان واحد.</p></div><a class="admin-btn" href="./index.html" target="_blank" rel="noopener">شوف الموقع ↗</a></div><div class="admin-stat-grid">${counts.map(([label,count,icon])=>`<article class="admin-stat"><span>${icon} ${label}</span><strong>${count}</strong></article>`).join('')}</div></div>
- <div class="admin-panel"><h2>إجراءات سريعة</h2><div class="admin-quick-actions">${uiButton('✎ تعديل النصوص','goto','content')}${uiButton('▣ مشروع جديد','newproject')}${uiButton('▧ مكتبة الصور','goto','media')}${uiButton('✉ رسائل العملاء','goto','messages')}${uiButton('✳ إعدادات الموقع','goto','settings')}</div></div>
- <div class="admin-panel"><h2>مهم قبل النشر</h2><p class="admin-note">المشاريع والتقييمات التجريبية مش شهادات شغل حقيقي. انشر بس البيانات المعتمدة، وارفع الأعمال اللي عندك حق نشرها. تعديل محتوى الأقسام الجديد يحتاج تشغيل ترحيل قاعدة البيانات V9 مرة واحدة.</p></div>`;
+ const projects=data.projects||[], messages=data.messages||[],lessons=data.learning_items||[];
+ const metrics=[
+ ['المشاريع المنشورة',projects.filter(x=>x.is_published).length,'▧','مشروع ظاهر للزوار'],
+ ['المشاريع المسودة',projects.filter(x=>!x.is_published).length,'◷','مستني المراجعة'],
+ ['طلبات جديدة',messages.filter(x=>x.status==='new').length,'✉','محتاج متابعة'],
+ ['محتوى تعليمي منشور',lessons.filter(x=>x.is_published).length,'▷','فيديوهات ومقالات']
+ ];
+ const mode=data.settings?.education_mode||'coming_soon';
+ const educationNames={hidden:'القسم مخفي',coming_soon:'قريبًا',live:'بننشر دلوقتي'};
+ const recent=messages.slice(0,4);
+ return `<section class="v10-overview-hero"><div><span class="v10-eyebrow">لوحة إدارة أعمالك</span><h2>شغلك كله،<br><em>تحت السيطرة.</em></h2><p>أهلًا يا محمد! من هنا تدير الموقع، وتنشر أعمالك، وتتابع العملاء، وتجهّز المحتوى التعليمي.</p><div class="v10-hero-actions">${uiButton('✳ افتح محرر الموقع','goto','content','primary')}${uiButton('▷ انشر محتوى تعليمي','goto','future')}</div></div><div class="v10-overview-art" aria-hidden="true"><span>MO</span><span>DESIGN</span><i>✳</i></div></section>
+ <div class="v10-metric-grid">${metrics.map(([label,val,icon,desc])=>`<div class="v10-metric-card"><div class="v10-metric-heading"><span>${esc(label)}</span><b>${icon}</b></div><strong>${val}</strong><small>${esc(desc)}</small></div>`).join('')}</div>
+ <div class="v10-overview-columns"><section class="admin-panel v10-overview-section"><div class="admin-heading"><h2>إجراءات سريعة</h2><span class="v10-note-pill">ابدأ من هنا</span></div><div class="v10-action-list">${[['تعديل الصفحة الرئيسية','غير النصوص والعناوين وحالة الأقسام','content','▤'],['إضافة مشروع جديد','الصور والفيديوهات وأعمالك الحقيقية','projects','▧'],['مكتبة الصور','كل صورك في مكان واحد','media','▦'],['الأكاديمية والمحتوى','الحالة الحالية: '+(educationNames[mode]||'قريبًا'),'future','▷']].map(([title,desc,id,icon])=>`<button type="button" class="v10-action-row" data-action="goto" data-id="${id}"><span class="v10-action-icon">${icon}</span><span><strong>${title}</strong><small>${desc}</small></span><span class="v10-action-arrow">↗</span></button>`).join('')}</div></section>
+ <section class="admin-panel v10-overview-section"><div class="admin-heading"><h2>آخر طلبات العملاء</h2>${uiButton('عرض الكل','goto','messages')}</div>${recent.length?recent.map(m=>`<div class="v10-recent-lead"><span class="v10-lead-avatar">${esc(m.sender_name?.slice(0,1)||'؟')}</span><div><strong>${esc(m.sender_name||'عميل')}</strong><small>${esc(m.service_type||'طلب مشروع')}</small></div><span class="v10-lead-state">${m.status==='new'?'جديد':'قيد المتابعة'}</span></div>`).join(''):'<div class="v10-empty-leads">مفيش طلبات جديدة دلوقتي. لما حد يراسلّك من الموقع، هتلاقي طلبه هنا.</div>'}</section></div>`;
 }
+
 function renderContent(){
  const settings=data.settings||seed.settings, vis=settings.section_visibility||{};
  const controls=SECTIONS.map(([id,label])=>`<label class="cms-toggle"><input type="checkbox" name="section_${id}" ${vis[id]===false?'':'checked'}><span><strong>${esc(label)}</strong><small>${vis[id]===false?'مخفي':'يظهر على الموقع'}</small></span></label>`).join('');
  const sections=Object.entries(CONTENT_GROUPS).map(([label,fields],i)=>`<details class="cms-editor-group" ${i===0?'open':''}><summary>${esc(label)} <span>▾</span></summary><div class="admin-form-grid">${fields.map(([key,name])=>`${field('ar_'+key,`${name} — بالعربي المصري`,(settings.content_ar||{})[key]??ar[key]??'',{type:'textarea',full:true,rows:2})}${field('en_'+key,`${name} — النسخة الإنجليزية`,(settings.content_en||{})[key]??en[key]??'',{type:'textarea',full:true,rows:2})}`).join('')}</div></details>`).join('');
- return `<div class="admin-panel"><div class="admin-heading"><div><h2>إدارة كل أقسام الموقع</h2><p class="admin-note">فعّل أو اخفي أي قسم، وعدّل عناوينه ووصفه بالعربي والإنجليزي. مش هتحتاج ترجع لـ GitHub.</p></div><a class="admin-btn secondary" href="./index.html" target="_blank" rel="noopener">معاينة ↗</a></div><form data-entity="content" id="contentForm"><h3>الأقسام اللي تظهر للزائر</h3><div class="cms-toggle-grid">${controls}</div><h3 style="margin-block:35px 15px">تحرير النصوص</h3>${sections}<div class="admin-sticky-actions"><button type="submit" class="admin-btn">حفظ المحتوى والتغييرات ✓</button><small>المحتوى بيتحفظ مباشرة في Supabase بعد تطبيق ترحيل V9</small></div></form></div>`;
+ return `<div class="admin-panel"><div class="admin-heading"><div><h2>إدارة كل أقسام الموقع</h2><p class="admin-note">فعّل أو اخفي أي قسم، وعدّل عناوينه ووصفه بالعربي والإنجليزي. مش هتحتاج ترجع لـ GitHub.</p></div><a class="admin-btn secondary" href="./index.html" target="_blank" rel="noopener">معاينة ↗</a></div><form data-entity="content" id="contentForm"><div class="v10-home-copy"><h3>✳ كلام الصفحة الرئيسية</h3><p class="admin-note">ده أول كلام العميل بيشوفه في الموقع. عدّله من هنا واحفظ مع باقي الأقسام.</p><div class="admin-form-grid">${field('headline_ar','العنوان الرئيسي — عربي',settings.headline_ar,{type:'textarea',required:true,rows:2})}${field('headline_en','العنوان الرئيسي — إنجليزي',settings.headline_en,{type:'textarea',required:true,rows:2})}${field('subheadline_ar','نبذة البداية — عربي',settings.subheadline_ar,{type:'textarea',rows:3})}${field('subheadline_en','نبذة البداية — إنجليزي',settings.subheadline_en,{type:'textarea',rows:3})}</div></div><h3>الأقسام اللي تظهر للزائر</h3><div class="cms-toggle-grid">${controls}</div><h3 style="margin-block:35px 15px">تحرير النصوص</h3>${sections}<div class="admin-sticky-actions"><button type="submit" class="admin-btn">حفظ المحتوى والتغييرات ✓</button><small>المحتوى بيتحفظ على Supabase ويظهر على الموقع من غير GitHub</small></div></form></div>`;
 }
 
 function renderSettings(){
@@ -106,7 +126,7 @@ function renderItems(table){
   <label class="form-field full">إضافة صور متعددة للمعرض (حتى 6 في المرة)<input type="file" name="gallery_files" multiple accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}/></label>
   ${field('external_url','رابط مشاهدة المشروع (HTTPS) - اختياري' ,item.external_url,{type:'url',full:true})}
   ${field('featured','مميز',item.featured,{type:'checkbox'})}`:
-  `${field('description_ar','وصف الخدمة بالعربي',item.description_ar,{type:'textarea',full:true})}${field('description_en','Service description in English',item.description_en,{type:'textarea',full:true})}
+  `${field('description_ar','وصف الخدمة بالعربي',item.description_ar,{type:'textarea',full:true})}${field('description_en','وصف الخدمة بالإنجليزي',item.description_en,{type:'textarea',full:true})}
   ${field('icon','رمز الخدمة',item.icon || 'sparkles',{select:[['diamond','◇ Diamond'],['sparkles','✳ Sparkles'],['play','▷ Editing'],['layout','▦ Web'],['target','◎ Strategy'],['brush','✺ Design']]})}`}
   ${field('sort_order','الترتيب',item.sort_order ?? arr.length+1,{type:'number'})}${field('is_published','منشور على الموقع',item.is_published ?? false,{type:'checkbox'})}`;
   const preview=isProjects?`<div class="cms-project-preview" id="cmsProjectPreview"><div class="cms-preview-art">${safeUrl(item.image_url)?`<img id="previewImage" src="${esc(safeUrl(item.image_url))}" alt="معاينة الغلاف">`:`<span id="previewFallback">✳</span>`}</div><div><small>معاينة سريعة قبل النشر</small><h3 id="previewTitle">${esc(item.title_ar||'اسم مشروعك الجديد')}</h3><p id="previewCategory">${esc(item.category_ar||'تصنيف المشروع')}</p>${item.slug&&item.is_published?`<a href="./project.html?slug=${esc(item.slug)}" target="_blank" rel="noopener">فتح المشروع المنشور ↗</a>`:''}</div></div>`:'';
@@ -133,6 +153,14 @@ async function uploadImage(file,folder='general'){
  if(error)throw error;
  return db.storage.from('portfolio-media').getPublicUrl(path).data.publicUrl;
 }
+async function uploadLearningVideo(file){
+ if(!['video/mp4','video/webm'].includes(file.type)||file.size>45*1024*1024)throw Error('الفيديو لازم يكون MP4 أو WebM وحجمه أقل من 45 ميجابايت.');
+ const db=await getClient();const ext=file.type==='video/mp4'?'mp4':'webm';
+ const path=`learning/${crypto.randomUUID()}.${ext}`;
+ const {error}=await db.storage.from('portfolio-video').upload(path,file,{contentType:file.type,upsert:false,cacheControl:'3600'});
+ if(error)throw error;
+ return db.storage.from('portfolio-video').getPublicUrl(path).data.publicUrl;
+}
 async function loadMedia(){
  const grid=$('#mediaGallery');if(!grid||!connected)return;
  try{
@@ -143,13 +171,58 @@ async function loadMedia(){
  }catch(e){grid.innerHTML=`<p class="admin-note">تعذّر تحميل الصور: ${esc(e.message)}</p>`;}
 }
 
-function renderFuture(){const vis=data.settings?.section_visibility||{};return `<div class="admin-panel"><h2>المعرفة الجاية أقرب</h2><p class="admin-note">تقدر تظهر أو تخفي القسم التعليمي في الصفحة الرئيسية. المقالات والكورسات المدفوعة لسه ميتمش تشغيلها.</p><form data-entity="future"><label class="cms-toggle cms-feature-toggle"><input type="checkbox" name="learn_enabled" ${vis.learn===false?'':'checked'}><span><strong>إظهار قسم «المعرفة الجاية أقرب»</strong><small>لما تلغي العلامة، القسم يختفي من الموقع من غير ما يتحذف.</small></span></label><button class="admin-btn" type="submit">حفظ حالة القسم</button></form><hr class="cms-divider"/><h3>تحرير المحتوى</h3><p class="admin-note">لتعديل عنوان القسم ووصفه بالعربي والإنجليزي، افتح محرر الموقع.</p>${uiButton('اذهب لمحرر الموقع','goto','content')}<h3 style="margin-top:30px">الخطوات اللي جاية</h3><div class="admin-rows"><div class="admin-row">مقالات وفيديوهات تعليمية فعلية</div><div class="admin-row">مكتبة برومبتات قابلة للبحث</div><div class="admin-row">دروس وكورسات مع نظام دفع آمن لما تحتاجه</div></div></div>`;}
+function youtubeId(value){
+ try{
+  const u=new URL(value),host=u.hostname.toLowerCase();let id='';
+  if(['youtu.be','www.youtu.be'].includes(host))id=u.pathname.slice(1).split('/')[0];
+  else if(['youtube.com','www.youtube.com','m.youtube.com'].includes(host)){
+   if(u.pathname==='/watch')id=u.searchParams.get('v')||'';
+   else if(/^\/(shorts|embed|live)\//.test(u.pathname))id=u.pathname.split('/')[2]||'';
+  }
+  return /^[A-Za-z0-9_-]{11}$/.test(id)?id:'';
+ }catch{return '';}
+}
+function renderLearningItemEditor(item){
+ const isNew=!item.id;
+ const mediaId=youtubeId(item.youtube_url||'');
+ return `<div class="admin-panel v10-lesson-form" id="lessonEditor"><div class="admin-heading"><div><span class="v10-eyebrow">محرر المحتوى</span><h2>${isNew?'إضافة محتوى جديد':'تعديل المحتوى'}</h2><p class="admin-note">احفظه كمسودة الأول، وبعد المراجعة فعّل النشر.</p></div>${uiButton('إلغاء','cancelLesson')}</div>
+ <form data-entity="learning_items" data-edit-id="${esc(item.id||'')}"><div class="admin-form-grid">
+ ${field('content_type','نوع المحتوى',item.content_type||'video',{select:[['video','فيديو يوتيوب / شورتس'],['article','مقال أو شرح مكتوب']]})}
+ ${field('sort_order','ترتيب الظهور',item.sort_order??((data.learning_items||[]).length+1),{type:'number'})}
+ ${field('title_ar','عنوان المحتوى بالعربي',item.title_ar||'',{required:true})}
+ ${field('title_en','العنوان بالإنجليزي',item.title_en||'')}
+ ${field('summary_ar','وصف قصير بالعربي',item.summary_ar||'',{type:'textarea',full:true,rows:2})}
+ ${field('summary_en','الوصف بالإنجليزي',item.summary_en||'',{type:'textarea',full:true,rows:2})}
+ ${field('youtube_url','رابط فيديو YouTube أو Shorts (اختياري لو هترفع فيديو)',item.youtube_url||'',{type:'url',full:true})}
+ ${field('video_url','رابط MP4 أو WebM مباشر (اختياري)',item.video_url||'',{type:'url',full:true})}
+ <label class="form-field full">ارفع فيديو من جهازك (MP4 / WebM، بحد أقصى 45 ميجابايت)<input name="lesson_video_file" type="file" accept="video/mp4,video/webm" ${connected?'':'disabled'}><small>الفيديو بيترفع على Supabase Storage عند الضغط على حفظ. للفيديوهات الكبيرة استخدم يوتيوب لتوفير المساحة.</small></label>
+ ${field('thumbnail_url','رابط صورة مصغرة (اختياري)',item.thumbnail_url||'',{type:'url',full:true})}
+ ${field('body_ar','نص المقال بالعربي (لنوع مقال)',item.body_ar||'',{type:'textarea',full:true,rows:7})}
+ ${field('body_en','نص المقال بالإنجليزي',item.body_en||'',{type:'textarea',full:true,rows:6})}
+ ${field('is_published','انشر المحتوى على الموقع',item.is_published||false,{type:'checkbox',full:true})}
+ </div>${mediaId?`<div class="v10-video-preview"><img src="https://i.ytimg.com/vi/${mediaId}/hqdefault.jpg" alt="معاينة فيديو يوتيوب"><div>معاينة الصورة المصغّرة للفيديو</div></div>`:''}<div class="admin-actions">${uiButton('إلغاء','cancelLesson')}<button class="admin-btn" type="submit">${isNew?'حفظ المحتوى':'حفظ التعديلات'} ✓</button></div></form></div>`;
+}
+function renderFuture(){
+ const settings=data.settings||seed.settings,vis=settings.section_visibility||{},items=data.learning_items||[];
+ const mode=vis.learn===false?'hidden':(['hidden','coming_soon','live'].includes(settings.education_mode)?settings.education_mode:'coming_soon');
+ const fields=[['learn_title','عنوان القسم في حالة قريبًا'],['learn_desc','شرح القسم في حالة قريبًا'],['learn_tag','الشارة في حالة قريبًا'],['learn_live_title','عنوان القسم بعد بدء النشر'],['learn_live_desc','وصف القسم بعد بدء النشر'],['learn_live_tag','الشارة بعد بدء النشر']];
+ const copyFields=fields.map(([key,label])=>`<div class="v10-editor-pair">${field('ar_'+key,label+' — عربي',(settings.content_ar||{})[key]??ar[key]??'',{type:'textarea',rows:2})}${field('en_'+key,label+' — إنجليزي',(settings.content_en||{})[key]??en[key]??'',{type:'textarea',rows:2})}</div>`).join('');
+ const editor=editing?.table==='learning_items'?renderLearningItemEditor(items.find(x=>String(x.id)===String(editing.id))||{}):'';
+ return `<div class="admin-panel v10-education-header"><div><span class="v10-eyebrow">استوديو المحتوى التعليمي</span><h2>من «قريبًا» لأول فيديو.</h2><p>هنا تقدر تختار إمتى تظهر الأكاديمية، وتكتب الرسالة اللي تناسب كل مرحلة، وتنشر فيديوهات يوتيوب أو مقالات بنفسك.</p></div><span class="v10-education-icon">▷</span></div>
+ <div class="admin-panel"><div class="admin-heading"><div><h2>حالة قسم التعليم</h2><p class="admin-note">اختار حالة واحدة؛ الكلام والبطاقات في الموقع هيتغيروا تلقائيًا بعد الحفظ.</p></div><a href="./index.html#learn" class="admin-btn secondary" target="_blank" rel="noopener">معاينة القسم ↗</a></div><form data-entity="future" id="educationForm">
+ <div class="v10-status-options">${[['hidden','مخفي','مش هيظهر للزوار لحد ما تقرر'],['coming_soon','قريبًا','تعريف بمحتوى لسه بيتجهّز'],['live','بدأنا النشر','عرض الفيديوهات والمقالات المنشورة']].map(([key,title,detail])=>`<label class="v10-status-option ${mode===key?'selected':''}"><input type="radio" name="education_mode" value="${key}" ${mode===key?'checked':''}><span class="v10-radio-circle"></span><strong>${title}</strong><small>${detail}</small></label>`).join('')}</div>
+ <details class="v10-copy-expander" open><summary>✎ عدّل كلام قسم التعليم (قبل وبعد النشر)</summary><div class="v10-copy-body">${copyFields}</div></details>
+ <div class="v10-education-save"><button class="admin-btn" type="submit">حفظ الحالة والنصوص ✓</button><span class="admin-note">مفيش حاجة هتظهر للزوار إلا بعد اختيار «بدأنا النشر» ونشر محتوى.</span></div></form></div>
+ <div class="admin-panel" id="learningStudioList"><div class="admin-heading"><div><h2>مكتبة الفيديوهات والمقالات</h2><p class="admin-note">انشر محتوى حقيقي من غير ما ترجع GitHub. المسودات مش بتظهر للزوار.</p></div>${uiButton('＋ إضافة محتوى','newlesson','','primary')}</div>
+ ${data.learning_error?`<div class="admin-banner">الأكاديمية محتاجة تشغيل ملف التحديث SQL رقم 005 أولًا: ${esc(data.learning_error)}</div>`:''}
+ <div class="v10-learning-table"><div class="v10-learning-table-head"><span>المحتوى</span><span>الحالة</span><span>التحكم</span></div>${items.map(item=>{let id=youtubeId(item.youtube_url||'');return `<div class="v10-learning-row"><div class="v10-learning-title">${id?`<img src="https://i.ytimg.com/vi/${id}/mqdefault.jpg" loading="lazy" alt="">`:'<span class="v10-lesson-fallback">✳</span>'}<div><strong>${esc(item.title_ar)}</strong><small>${item.content_type==='video'?'فيديو / يوتيوب':'مقال'} · ${esc(item.title_en||'بدون ترجمة')}</small></div></div><span class="v10-status-tag ${item.is_published?'published':''}">${item.is_published?'منشور':'مسودة'}</span><div class="v10-learning-actions">${uiButton(item.is_published?'إخفاء':'نشر','togglepublish',`learning_items|${item.id}`)}${uiButton('تعديل','editLesson',item.id)}${uiButton('حذف','deleteLesson',item.id,'danger')}</div></div>`}).join('')||'<div class="v10-no-lesson">مفيش محتوى اتضاف لسه. اضغط «إضافة محتوى» علشان تبدأ.</div>'}</div></div>${editor}`;
+}
 
 function renderPanel(){
   if(!data)return;
   const main=$('#adminMain'); if(!main) return;
   const body=({overview:renderOverview,content:renderContent,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,services:()=>renderItems('services'),testimonials:()=>renderItems('testimonials'),messages:renderMessages,future:renderFuture})[tab]();
-  main.innerHTML=`<header class="admin-heading"><div><div class="eyebrow">مركز إدارة المحتوى</div><h1>${esc(labels[tab])}</h1><p>أعمالك ومحتواك وطلبات العملاء في مكان واحد.</p></div><span class="admin-badge">${connected?`● متصل · ${esc(currentUser?.email||'')}`:'◌ وضع تجربة محلية'}</span></header>${!connected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
+  main.innerHTML=`<header class="admin-heading v10-page-head"><div><span class="v10-page-path">Mo Design <span>/</span> مساحة العمل <span>/</span> ${esc(labels[tab])}</span><h1>${esc(labels[tab])}</h1><p>أدواتك ومحتواك وطلبات الشغل في مكان واحد.</p></div><div class="v10-page-actions"><span class="admin-badge">${connected?`<span class="v10-online-dot"></span> متصل`:'◌ وضع تجربة محلية'}</span><button type="button" class="admin-btn secondary v10-theme-toggle" data-action="themeToggle">◐ الوضع ${document.documentElement.classList.contains('light')?'الداكن':'الفاتح'}</button><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">↗ شوف الموقع</a></div></header>${!connected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
   document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
   if(tab==='media')void loadMedia();
 }
@@ -160,9 +233,15 @@ function getFields(form,table){
     const content_ar={...(data.settings?.content_ar||{})},content_en={...(data.settings?.content_en||{})};
     Object.values(CONTENT_GROUPS).flat().forEach(([key])=>{content_ar[key]=get('ar_'+key);content_en[key]=get('en_'+key);});
     const section_visibility={...(data.settings?.section_visibility||{})};SECTIONS.forEach(([id])=>section_visibility[id]=f.has('section_'+id));
-    return {content_ar,content_en,section_visibility};
+    return {content_ar,content_en,section_visibility,headline_ar:get('headline_ar'),headline_en:get('headline_en'),subheadline_ar:get('subheadline_ar'),subheadline_en:get('subheadline_en')};
   }
-  if(table==='future')return {section_visibility:{...(data.settings?.section_visibility||{}),learn:f.has('learn_enabled')}};
+  if(table==='future'){
+    const mode=['hidden','coming_soon','live'].includes(get('education_mode'))?get('education_mode'):'coming_soon';
+    const content_ar={...(data.settings?.content_ar||{})},content_en={...(data.settings?.content_en||{})};
+    ['learn_title','learn_desc','learn_tag','learn_live_title','learn_live_desc','learn_live_tag'].forEach(key=>{content_ar[key]=get('ar_'+key);content_en[key]=get('en_'+key);});
+    return {education_mode:mode,content_ar,content_en,section_visibility:{...(data.settings?.section_visibility||{}),learn:mode!=='hidden'}};
+  }
+  if(table==='learning_items')return {content_type:get('content_type')==='article'?'article':'video',title_ar:get('title_ar'),title_en:get('title_en'),summary_ar:get('summary_ar'),summary_en:get('summary_en'),body_ar:get('body_ar'),body_en:get('body_en'),youtube_url:get('youtube_url'),video_url:get('video_url'),thumbnail_url:get('thumbnail_url'),sort_order:Number(get('sort_order'))||0,is_published:f.has('is_published')};
   if(table==='settings'){
     return {brand_ar:get('brand_ar'),brand_en:get('brand_en'),personal_name:get('personal_name'),role_ar:get('role_ar'),role_en:get('role_en'),headline_ar:get('headline_ar'),headline_en:get('headline_en'),subheadline_ar:get('subheadline_ar'),subheadline_en:get('subheadline_en'),bio_ar:get('bio_ar'),bio_en:get('bio_en'),profile_image_url:get('profile_image_url'),contact_email:get('contact_email'),instagram_url:get('instagram_url'),behance_url:get('behance_url'),linkedin_url:get('linkedin_url'),whatsapp_url:get('whatsapp_url'),tiktok_url:get('tiktok_url'),facebook_url:get('facebook_url'),community_url:get('community_url'),availability:f.has('availability'),stats_projects:Math.max(0,Number(get('stats_projects'))||0),stats_years:Math.max(0,Number(get('stats_years'))||0),stats_satisfaction:Math.max(0,Math.min(100,Number(get('stats_satisfaction'))||0)),stats_verified:f.has('stats_verified')};
   }
@@ -176,6 +255,13 @@ async function saveForm(form){
   if(!form.reportValidity() || busy)return;
   const entry=getFields(form,table);
   const id=form.dataset.editId;
+  if(table==='learning_items'){
+    if(entry.title_ar.length<2){toast('اكتب عنوان عربي من حرفين على الأقل.');return;}
+    if(entry.content_type==='video' && !youtubeId(entry.youtube_url) && !(/^https:\/\//.test(entry.video_url)||form.querySelector('input[name="lesson_video_file"]')?.files?.length)){toast('اربط فيديو يوتيوب أو ارفع فيديو MP4 / WebM من جهازك.');return;}
+    if(entry.youtube_url && !youtubeId(entry.youtube_url)){toast('رابط يوتيوب مش صحيح.');return;}
+    if(entry.video_url && !/^https:\/\//.test(entry.video_url)){toast('رابط الفيديو المباشر لازم يكون HTTPS.');return;}
+    if(entry.thumbnail_url && !/^https:\/\//.test(entry.thumbnail_url)){toast('رابط الصورة لازم يبدأ بـ https://');return;}
+  }
   if(table==='projects') {
     if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(entry.slug)){toast('رابط المشروع يجب أن يكون إنجليزيًا بحروف صغيرة وشرطات فقط.');return;}
     if(entry.image_url && !(/^https:\/\//i.test(entry.image_url) || /^\.\/assets\/images\/[\w.-]+$/i.test(entry.image_url))) {toast('استخدم رابط HTTPS أو صورة من مجلد assets/images.');return;}
@@ -189,6 +275,10 @@ async function saveForm(form){
     if(connected && table==='settings'){
       const file=form.querySelector('input[name="profile_file"]')?.files?.[0];
       if(file)entry.profile_image_url=await uploadImage(file,'general');
+    }
+    if(connected && table==='learning_items'){
+      const videoFile=form.querySelector('input[name="lesson_video_file"]')?.files?.[0];
+      if(videoFile)entry.video_url=await uploadLearningVideo(videoFile);
     }
     if(connected && table==='projects'){
       const file=form.querySelector('input[name="media_file"]')?.files?.[0];
@@ -245,6 +335,11 @@ $('#adminApp').addEventListener('click',async e=>{
   const btn=e.target.closest('button[data-action]');if(!btn)return;
   const {action,id}=btn.dataset;
   if(action==='goto'){tab=id;editing=null;renderPanel();window.scrollTo({top:0});return;}
+  if(action==='themeToggle'){const light=document.documentElement.classList.toggle('light');localStorage.setItem('portfolio_theme',light?'light':'dark');refreshAdminLogos();renderPanel();return;}
+  if(action==='newlesson'){tab='future';editing={table:'learning_items',id:null};renderPanel();$('#lessonEditor')?.scrollIntoView({behavior:'smooth'});return;}
+  if(action==='editLesson'){tab='future';editing={table:'learning_items',id};renderPanel();$('#lessonEditor')?.scrollIntoView({behavior:'smooth'});return;}
+  if(action==='cancelLesson'){editing=null;renderPanel();return;}
+  if(action==='deleteLesson'){await deleteItem('learning_items',id);return;}
   if(action==='newproject'){tab='projects';editing={table:'projects',id:null};renderPanel();$('#editorPanel')?.scrollIntoView({behavior:'smooth'});return;}
   if(action==='add'){tab=id;editing={table:id,id:null};renderPanel();$('#editorPanel')?.scrollIntoView({behavior:'smooth'});}
   if(action==='edit'){const [table,itemId]=id.split('|');tab=table;editing={table,id:itemId};renderPanel();$('#editorPanel')?.scrollIntoView({behavior:'smooth'});}
@@ -264,6 +359,9 @@ $('#adminApp').addEventListener('change',async e=>{
   const ctl=e.target.closest('[data-message-status]');
   if(!ctl || !connected)return;
   try{const db=await getClient();const {error}=await db.from('inquiries').update({status:ctl.value}).eq('id',ctl.dataset.messageStatus);if(error)throw error;toast('تم تحديث حالة الطلب');}catch(error){toast('تعذر تعديل الحالة: '+error.message);}
+});
+$('#adminApp').addEventListener('change',e=>{
+ if(e.target.matches('[name="education_mode"]')) document.querySelectorAll('.v10-status-option').forEach(el=>el.classList.toggle('selected',el.querySelector('input').checked));
 });
 $('#adminApp').addEventListener('input',e=>{
  const projectForm=e.target.closest('form[data-entity="projects"]');

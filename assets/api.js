@@ -23,9 +23,13 @@ export async function getPublicContent() {
     db.from('services').select('*').eq('is_published', true).order('sort_order')
   ]);
   if (s.error || p.error || v.error) throw new Error(s.error?.message || p.error?.message || v.error?.message);
-  const reviews=await db.from('testimonials').select('*').eq('is_published',true).eq('is_verified',true).order('sort_order');
-  if(reviews.error)console.warn('Testimonials table not installed; run migration if needed:',reviews.error.message);
-  return {settings:s.data || seed.settings,projects:p.data || [],services:v.data || [],testimonials:reviews.data || []};
+  const [reviews,lessons] = await Promise.all([
+    db.from('testimonials').select('*').eq('is_published',true).eq('is_verified',true).order('sort_order'),
+    db.from('learning_items').select('*').eq('is_published',true).order('sort_order').order('created_at',{ascending:false})
+  ]);
+  if(reviews.error)console.warn('Testimonials are not available:',reviews.error.message);
+  if(lessons.error)console.warn('Learning studio not installed yet: run migration 005:',lessons.error.message);
+  return {settings:s.data || seed.settings,projects:p.data || [],services:v.data || [],testimonials:reviews.data || [],learning_items:lessons.data || []};
 }
 export async function sendInquiry(details) {
   if (!connected) return {mode:'email'};
@@ -54,7 +58,11 @@ export async function getAdminContent() {
     db.from('inquiries').select('*').order('created_at',{ascending:false}).limit(100)
   ]);
   for(const result of [s,p,v,m]) if(result.error) throw result.error;
-  const reviews=await db.from('testimonials').select('*').order('sort_order');
+  const [reviews,lessons] = await Promise.all([
+    db.from('testimonials').select('*').order('sort_order'),
+    db.from('learning_items').select('*').order('sort_order').order('created_at',{ascending:false})
+  ]);
   if(reviews.error)console.warn('Testimonials table not installed:',reviews.error.message);
-  return {settings:s.data,projects:p.data,services:v.data,testimonials:reviews.data||[],messages:m.data};
+  if(lessons.error)console.warn('Run V10 migration 005 before using the learning studio:',lessons.error.message);
+  return {settings:s.data,projects:p.data,services:v.data,testimonials:reviews.data||[],messages:m.data,learning_items:lessons.data||[],learning_error:lessons.error?.message||''};
 }

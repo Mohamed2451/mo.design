@@ -18,7 +18,7 @@ export const seed = {
     behance_url:'https://www.behance.net/mode5', linkedin_url:'https://www.linkedin.com/in/mohamed-mahmoud-97638a211/', instagram_url:'https://www.instagram.com/mo.design.official',
     tiktok_url:'https://www.tiktok.com/@mohamedmahmoud30', facebook_url:'https://www.facebook.com/Mohame.Mahmoud11',
     stats_projects: 100, stats_years: 3, stats_satisfaction: 100, stats_verified: false,
-    availability: true, profile_image_url: '', section_visibility: {}, content_ar: {}, content_en: {}
+    availability: true, profile_image_url: '', section_visibility: {}, content_ar: {}, content_en: {}, education_mode: 'coming_soon'
   },
   // All items below are clearly marked as DEMO placeholders; no fake client work is claimed.
   projects: [
@@ -43,6 +43,7 @@ services: [
     {id:'service-prompts',title_ar:'هندسة البرومبتات وتطوير الأفكار',title_en:'Prompt Engineering & Creative Direction',description_ar:'صياغة برومبتات احترافية تساعد على توليد نتائج أقوى وأكثر دقة، مع تطوير الفكرة والإخراج من البداية.',description_en:'Professional prompt design that improves output quality, paired with concept development and art direction.',icon:'layout',sort_order:4,is_published:true},
     {id:'service-brand',title_ar:'هوية بصرية كاملة',title_en:'Full Visual Identity Systems',description_ar:'بناء هوية بصرية متكاملة تشمل الاتجاه الفني، الألوان، الخطوط، وقواعد الاستخدام بشكل احترافي ومنظم.',description_en:'Complete visual identity systems with art direction, color, typography and clear usage consistency.',icon:'diamond',sort_order:5,is_published:true}
   ],
+  learning_items: [],
   testimonials: [
     {id:'review-01',author_ar:'أحمد سامي (اسم افتراضي)',author_en:'Ahmed Samy (example)',job_ar:'مؤسس متجر إلكتروني',job_en:'E-commerce Founder',quote_ar:'اشتغلت مع محمد على مجموعة تصاميم وإعلانات للسوشيال ميديا، والنتيجة كانت منظمة وسريعة وفيها فهم حقيقي لطبيعة البراند والجمهور.',quote_en:'Mohamed delivered organised, on-brand social media creatives with a strong understanding of our audience and message.',rating:5,is_verified:false,is_published:true,sort_order:1},
     {id:'review-02',author_ar:'سارة خالد (اسم افتراضي)',author_en:'Sara Khaled (example)',job_ar:'صانعة محتوى ومقدمة بودكاست',job_en:'Content Creator & Podcast Host',quote_ar:'المونتاج كان احترافي جدًا، والإيقاع مناسب للمحتوى، مع اهتمام واضح بالتفاصيل اللي تخلّي الحلقة أخف وأكثر جاذبية.',quote_en:'The editing felt polished and engaging, with great pacing and a strong eye for the small details that make an episode flow better.',rating:5,is_verified:false,is_published:true,sort_order:2},
@@ -64,6 +65,7 @@ export function readDemo() {
 export function saveDemo(data) { localStorage.setItem(STORAGE_KEY,JSON.stringify(data)); }
 
 export const ar = {
+ learn_live_title:'بدأت أنشر محتوى يفيدك.',learn_live_desc:'هنا هتلاقي فيديوهات وشرح عملي عن التصميم والمونتاج وصناعة المحتوى بالذكاء الاصطناعي.',learn_live_tag:'اتفرّج وتعلّم',
  cta_kicker:'شغل يفرق',learn_big1:'اتعلّم',learn_big2:'ابتكر',
  stats_note:'أرقام تعريفيّة قابلة للتحديث بعد مراجعة بيانات المشاريع.',
   portfolio_kicker:'معرض أعمالي',
@@ -99,6 +101,7 @@ export const ar = {
   feature_eyebrow:'أعمال مختارة',feature_title:'مشاريع أحب أقدّمها.',feature_sub:'مشاريع وأفكار بصرية مختلفة؛ كل واحدة ليها طابعها الخاص. الأعمال التجريبية متعلّم عليها بوضوح.',feature_all:'شوف كل الأعمال',feature_disclaimer:'دي أفكار وتجارب للعرض فقط، وليست مشروعات اتنفذت لعملاء.',reviews_eyebrow:'آراء وتجارب',reviews_title:'التفاصيل اللي بتفرق.',reviews_sub:'أمثلة توضيحية لشكل آراء العملاء لحين إضافة التقييمات الحقيقية من أصحابها.',reviews_note:'الآراء دي نماذج توضيحية بأسماء مستعارة، مش تجارب عملاء حقيقية. هتتبدل بآراء موثقة لما تتوفر.',review_placeholder:'مثال توضيحي',review_verified:'رأي عميل موثّق',cta_title:'شغلك يستحق يبان.',cta_sub:'خلّينا نبني لمشروعك حضور بصري يلفت، يعلّق، ويعكس قيمته الحقيقية.',cta_button:'خلّينا نعمل حاجة عظيمة',  social_placeholder:'تابع أعمالي على حساباتي الرسمية',portfolio_note:'نماذج عرض توضّح الأسلوب البصري وطريقة تقديم الأعمال',about_caption:'الإنسان وراء الأفكار',hero_pic_note:'محمد محمود / مصمم ومونتير',tools_eyebrow:'الأدوات والمنصات',tools_sub:'الأدوات اللي بستخدمها كل يوم في التصميم والمونتاج وتوليد الصور والفيديوهات بالذكاء الاصطناعي.',skip:'انتقل للمحتوى'
 };
 export const en = {
+ learn_live_title:'Fresh ideas. Real lessons.',learn_live_desc:'Practical videos and articles on design, editing and AI-powered creativity.',learn_live_tag:'Watch & learn',
  cta_kicker:'MAKE SOMETHING MATTER',learn_big1:'LEARN',learn_big2:'CREATE',
  stats_note:'Portfolio figures can be updated after checking the project records.',
   portfolio_kicker:'PORTFOLIO',
