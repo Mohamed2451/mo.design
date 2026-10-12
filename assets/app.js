@@ -235,9 +235,18 @@ function applyInteractiveFX(){
 }
 
 function observeReveal() {
+  // Progressive enhancement: items are visible by default.
+  // Hide only after the observer is successfully attached so a JS/network
+  // failure cannot leave the complete portfolio invisible.
   const nodes = $$('.reveal:not(.visible)');
-  if(!('IntersectionObserver' in window)) {nodes.forEach(n=>n.classList.add('visible')); return;}
-  nodes.forEach(node=>observer.observe(node));
+  if(!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    nodes.forEach(n=>{ n.classList.remove('will-reveal'); n.classList.add('visible'); });
+    return;
+  }
+  nodes.forEach(node=>{
+    try { observer.observe(node); node.classList.add('will-reveal'); }
+    catch(err) { console.error('Reveal observer:',err); node.classList.add('visible'); }
+  });
 }
 const observer = new IntersectionObserver((entries,ob)=>entries.forEach(e=>{
   if(e.isIntersecting){e.target.classList.add('visible');ob.unobserve(e.target);}
@@ -326,16 +335,38 @@ function applySectionDesign(){
   target.style.setProperty('--v11-minh',`${Math.max(0,Math.min(900,Number(raw.height)||0))}px`);
   if(allowedCover){
     // URL constructor escapes unsafe input; only HTTPS/http assets are displayed.
-    const clean=allowedCover.replace(/["\\
-
-()]/g,'');
+    const clean=allowedCover.replace(/["()]/g,'').replaceAll(String.fromCharCode(92),'');
     target.style.setProperty('--v11-cover',`url("${clean}")`);
     target.classList.add('v11-with-cover');
     target.style.setProperty('--v11-shade',String(Math.max(.1,Math.min(.92,Number(raw.shade)||.7))));
   }else{target.classList.remove('v11-with-cover');target.style.removeProperty('--v11-cover');}
  }
 }
-function render() {updateDocument();setBrandContent();renderProjects();renderFeatured();renderSignature();renderServices();renderTools();renderReviews();renderSubjects();applySectionVisibility();renderLearning();applySectionDesign();observeReveal();applyInteractiveFX();}
+function render() {
+  // Independent sections: an error in one widget must never blank the whole site.
+  const stages = [
+    ['document',updateDocument],
+    ['hero',setBrandContent],
+    ['projects',renderProjects],
+    ['featured',renderFeatured],
+    ['signature',renderSignature],
+    ['services',renderServices],
+    ['tools',renderTools],
+    ['testimonials',renderReviews],
+    ['subjects',renderSubjects],
+    ['visibility',applySectionVisibility],
+    ['learning',renderLearning],
+    ['appearance',applySectionDesign],
+    ['interactive effects',applyInteractiveFX]
+  ];
+  for(const [name,run] of stages) {
+    try { run(); } catch(error) { console.error('Mo Design section failed:',name,error); }
+  }
+  try { observeReveal(); } catch(error) {
+    console.error('Mo Design reveal fallback:',error);
+    $$('.reveal').forEach(el=>el.classList.add('visible'));
+  }
+}
 
 $('#learningList').addEventListener('click',e=>{
  const button=e.target.closest('[data-lesson]');if(!button)return;
