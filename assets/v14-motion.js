@@ -17,6 +17,15 @@
   window.addEventListener('resize',updateProgress,{passive:true});
   updateProgress();
   if(!window.matchMedia('(hover: hover) and (pointer: fine)').matches)return;
+  // Delegated pointer glow also works on project cards rendered later from Supabase.
+  const grid=document.querySelector('#projectGrid');
+  grid?.addEventListener('pointermove',event=>{
+    const card=event.target.closest('.project-card');
+    if(!card)return;
+    const box=card.getBoundingClientRect();
+    card.style.setProperty('--mo14-mx',((event.clientX-box.left)/box.width*100).toFixed(1)+'%');
+    card.style.setProperty('--mo14-my',((event.clientY-box.top)/box.height*100).toFixed(1)+'%');
+  },{passive:true});
   const hero=document.querySelector('.hero');
   const art=document.querySelector('.hero-art');
   if(!hero||!art)return;
