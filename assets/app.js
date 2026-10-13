@@ -514,5 +514,16 @@ if(window.matchMedia('(hover: hover) and (pointer: fine)').matches){
 }
 render();
 if(connected){
-  getPublicContent().then(data=>{model=data;render();}).catch(err=>{console.error(err);model={settings:seed.settings,projects:[],services:seed.services,testimonials:[]};render();toast(lang==='ar'?'تعذر تحميل المشاريع مؤقتًا. جرّب تحديث الصفحة.':'Could not load projects. Please refresh.');});
+  getPublicContent().then(data=>{
+    model=data;
+    render();
+    if(data._loadWarnings?.length) {
+      console.warn('Mo Design: some public content is temporarily unavailable:',data._loadWarnings);
+      toast(lang==='ar'?'بعض محتويات الموقع غير متاحة مؤقتًا. حاول تحديث الصفحة لاحقًا.':'Some content is temporarily unavailable. Please refresh later.');
+    }
+  }).catch(err=>{
+    console.error('Mo Design: public content loading failed:',err);
+    // Preserve the last successfully rendered state; never erase real projects on an error.
+    toast(lang==='ar'?'تعذر تحديث البيانات مؤقتًا. حاول مجددًا لاحقًا.':'Content could not be refreshed. Please try again later.');
+  });
 }

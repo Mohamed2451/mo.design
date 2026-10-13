@@ -16,22 +16,47 @@ export async function getClient() {
 }
 
 // A temporary problem in one content table must not block other public sections.
+// Keep transient network errors separate from legitimate empty published collections.
+// Do not fall back to demo projects or unverified reviews on a live website.
 export async function getPublicContent() {
   if (!connected) return readDemo();
-  const db = await getClient();
 
+  const warnings = [];
+  let db;
+  try {
+    db = await getClient();
+  } catch (error) {
+    console.warn('Mo Design: Supabase client unavailable:', error);
+    return {
+      settings: seed.settings, projects: [], services: seed.services || [],
+      testimonials: [], learning_items: [],
+      _loadWarnings: ['connection']
+    };
+  }
+
+  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
   async function safelyRead(label, query) {
-    try {
-      const result = await query();
-      if (result?.error) {
-        console.warn(`Mo Design: could not load ${label}:`, result.error.message);
-        return null;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const result = await query();
+        if (!result?.error) return result?.data ?? null;
+        const error = result.error;
+        // Only retry likely transient errors, not SQL, authorization or missing-table errors.
+        const code = String(error.code || '');
+        const status = Number(error.status || 0);
+        const transient = status === 408 || status === 429 || status >= 500 ||
+          /^(08|53|57P|58)/.test(code) || /fetch|network|timeout|temporar/i.test(error.message || '');
+        if (transient && attempt < 2) { await wait(350); continue; }
+        console.warn(`Mo Design: could not load ${label}:`, error.message);
+      } catch (error) {
+        if (attempt < 2) { await wait(350); continue; }
+        console.warn(`Mo Design: ${label} request failed:`, error);
       }
-      return result?.data ?? null;
-    } catch (error) {
-      console.warn(`Mo Design: ${label} request failed:`, error);
+      warnings.push(label);
       return null;
     }
+    warnings.push(label);
+    return null;
   }
 
   const [settings, projects, services, reviews, lessons] = await Promise.all([
@@ -47,7 +72,8 @@ export async function getPublicContent() {
     projects: Array.isArray(projects) ? projects : [],
     services: Array.isArray(services) ? services : (seed.services || []),
     testimonials: Array.isArray(reviews) ? reviews : [],
-    learning_items: Array.isArray(lessons) ? lessons : []
+    learning_items: Array.isArray(lessons) ? lessons : [],
+    _loadWarnings: warnings
   };
 }
 
