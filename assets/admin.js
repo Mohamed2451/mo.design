@@ -192,7 +192,7 @@ async function loadMedia(){
   const db=await getClient();const [project,other]=await Promise.all(['projects','general'].map(folder=>db.storage.from('portfolio-media').list(folder,{limit:100,sortBy:{column:'created_at',order:'desc'}})));
   const errors=[project,other].filter(r=>r.error);if(errors.length)throw errors[0].error;
   mediaCache=[...project.data.map(x=>({folder:'projects',...x})),...other.data.map(x=>({folder:'general',...x}))].filter(x=>x.name&&!x.name.startsWith('.'));
-  grid.innerHTML=mediaCache.map(x=>{const url=db.storage.from('portfolio-media').getPublicUrl(x.folder+'/'+x.name).data.publicUrl;return `<div class="media-card"><img src="${esc(url)}" alt="صورة من مكتبة الوسائط" loading="lazy"><small dir="ltr" title="${esc(x.name)}">${esc(x.name.slice(0,14))}...</small><button type="button" class="admin-btn secondary" data-copy-url="${esc(url)}">نسخ الرابط</button></div>`}).join('')||'<p class="admin-empty">المكتبة فاضية، ابدأ برفع صورة.</p>';
+  grid.innerHTML=mediaCache.map(x=>{const url=db.storage.from('portfolio-media').getPublicUrl(x.folder+'/'+x.name).data.publicUrl;return `<div class="media-card"><img src="${esc(url)}" alt="صورة من مكتبة الوسائط" loading="lazy"><small dir="ltr" title="${esc(x.name)}">${esc(x.name.slice(0,14))}...</small><div class="v13-media-actions"><button type="button" class="admin-btn secondary" data-copy-url="${esc(url)}">نسخ الرابط</button><button type="button" class="admin-btn secondary v13-media-delete" data-media-delete="${esc(x.folder+'/'+x.name)}">حذف الصورة</button></div></div>`}).join('')||'<p class="admin-empty">المكتبة فاضية، ابدأ برفع صورة.</p>';
  }catch(e){grid.innerHTML=`<p class="admin-note">تعذّر تحميل الصور: ${esc(e.message)}</p>`;}
 }
 
@@ -558,6 +558,29 @@ $('#adminApp').addEventListener('click',async e=>{
   if(nav){
     if(cmsDirty && !confirm('عندك تغييرات غير محفوظة في محرر الموقع. هل تريد مغادرة القسم وفقدان التعديلات؟'))return;
     cmsDirty=false;tab=nav.dataset.tab;editing=null;renderPanel();window.scrollTo({top:0,behavior:'smooth'});return;
+  }
+  const deleteMedia=e.target.closest('[data-media-delete]');
+  if(deleteMedia){
+    if(!connected || deleteMedia.disabled)return;
+    const path=deleteMedia.dataset.mediaDelete||'';
+    // Only files currently returned by the authenticated media library can be removed.
+    if(!mediaCache.some(x=>x.folder+'/'+x.name===path))return;
+    const db=await getClient();
+    const url=db.storage.from('portfolio-media').getPublicUrl(path).data.publicUrl;
+    const referenced=(data.projects||[]).some(p=>p.image_url===url||String(p.gallery_urls||'').split(/\r?\n/).some(x=>x.trim()===url))
+      ||(data.learning_items||[]).some(p=>p.thumbnail_url===url||String(p.image_urls||'').split(/\r?\n/).some(x=>x.trim()===url))
+      ||Object.values(data.settings||{}).some(v=>v===url)
+      ||Object.values(data.settings?.section_design||{}).some(v=>v?.cover_url===url);
+    if(referenced){toast('الصورة مستخدمة حاليًا في محتوى الموقع. غيّرها من القسم المرتبط أولًا ثم احذفها.');return;}
+    if(!confirm('تحذف الصورة نهائيًا من مكتبة Supabase؟ الإجراء لا يمكن التراجع عنه.'))return;
+    deleteMedia.disabled=true;deleteMedia.textContent='جارٍ الحذف...';
+    try{
+      const {error}=await db.storage.from('portfolio-media').remove([path]);
+      if(error)throw error;
+      toast('تم حذف الصورة من المكتبة ✓');
+      await loadMedia();
+    }catch(error){toast('تعذّر حذف الصورة: '+(error.message||'تحقق من صلاحيات Storage'));deleteMedia.disabled=false;deleteMedia.textContent='حذف الصورة';}
+    return;
   }
   const copyBtn=e.target.closest('[data-copy-url]');if(copyBtn){try{await navigator.clipboard.writeText(copyBtn.dataset.copyUrl);toast('تم نسخ الرابط ✓');}catch{toast('تعذر نسخ الرابط');}return;}
   const btn=e.target.closest('button[data-action]');if(!btn)return;
