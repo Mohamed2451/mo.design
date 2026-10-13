@@ -16,4 +16,17 @@ assert.match(admin,/function updateLessonGalleryCount\(/,'academy gallery count 
 assert.match(admin,/function markCmsDirty\(/,'unsaved CMS changes warning exists');
 assert.match(admin,/function refreshAppearancePreview\(/,'local theme preview exists');
 assert.match(css,/V13: keep CMS project images consistent/,'responsive images CSS exists');
+const motion=read('assets/v14-motion.js');
+const style=read('assets/v14-motion.css');
+const homepage=read('index.html');
+const adminPage=read('admin.html');
+assert.match(admin,/data-media-delete/,'media library offers delete button');
+assert.match(admin,/portfolio-media'\)\.remove\(\[path\]\)/,'media deletion uses Supabase Storage');
+assert.match(admin,/mediaCache\.some\(/,'media deletion restricted to listed files');
+assert.match(admin,/if\(referenced\)/,'media deletion guards against known content references');
+assert.match(motion,/prefers-reduced-motion/,'motion respects accessibility settings');
+assert.match(style,/prefers-reduced-motion:reduce/,'motion styles respect accessibility');
+assert.match(homepage,/v14-motion\.js/,'motion layer is connected on homepage');
+assert.match(homepage,/v14-motion\.css/,'motion stylesheet is connected on homepage');
+assert.match(adminPage,/v14-motion\.css/,'media deletion buttons styled in admin');
 console.log('V13 regression checks passed');
