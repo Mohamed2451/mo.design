@@ -76,7 +76,7 @@ function renderOverview(){
  ];
  const mode=data.settings?.education_mode||'coming_soon';
  const educationNames={hidden:'القسم مخفي',coming_soon:'قريبًا',live:'بننشر دلوقتي'};
- const recent=messages.slice(0,4);
+ const recent=messages.filter(m=>m.status!=='archived').slice(0,4);
  return `<section class="v10-overview-hero"><div><span class="v10-eyebrow">لوحة إدارة أعمالك</span><h2>شغلك كله،<br><em>تحت السيطرة.</em></h2><p>أهلًا يا محمد! من هنا تدير الموقع، وتنشر أعمالك، وتتابع العملاء، وتجهّز المحتوى التعليمي.</p><div class="v10-hero-actions">${uiButton('✳ افتح محرر الموقع','goto','content','primary')}${uiButton('▷ انشر محتوى تعليمي','goto','future')}</div></div><div class="v10-overview-art" aria-hidden="true"><span>MO</span><span>DESIGN</span><i>✳</i></div></section>
  <div class="v10-metric-grid">${metrics.map(([label,val,icon,desc])=>`<div class="v10-metric-card"><div class="v10-metric-heading"><span>${esc(label)}</span><b>${icon}</b></div><strong>${val}</strong><small>${esc(desc)}</small></div>`).join('')}</div>
  <div class="v10-overview-columns"><section class="admin-panel v10-overview-section"><div class="admin-heading"><h2>إجراءات سريعة</h2><span class="v10-note-pill">ابدأ من هنا</span></div><div class="v10-action-list">${[['تعديل الصفحة الرئيسية','غير النصوص والعناوين وحالة الأقسام','content','▤'],['إضافة مشروع جديد','الصور والفيديوهات وأعمالك الحقيقية','projects','▧'],['مكتبة الصور','كل صورك في مكان واحد','media','▦'],['الأكاديمية والمحتوى','الحالة الحالية: '+(educationNames[mode]||'قريبًا'),'future','▷']].map(([title,desc,id,icon])=>`<button type="button" class="v10-action-row" data-action="goto" data-id="${id}"><span class="v10-action-icon">${icon}</span><span><strong>${title}</strong><small>${desc}</small></span><span class="v10-action-arrow">↗</span></button>`).join('')}</div></section>
@@ -164,7 +164,7 @@ function renderMessages(){
  const number=String(m.sender_phone||'').replace(/[^0-9]/g,'').replace(/^0(?=1[0125][0-9]{8}$)/,'20');
  const validPhone=number.length>=9&&number.length<=15;
  const safeEmail=encodeURIComponent(m.sender_email||'');
- return `<article class="message-card inbox-item" data-search="${esc((m.sender_name+' '+m.service_type+' '+m.sender_email).toLowerCase())}" data-status="${esc(m.status)}"><div class="admin-heading"><div><strong class="inbox-name">${esc(m.sender_name)} ${m.status==='new'?'<span class="inbox-new">جديد</span>':''}</strong><small>${esc(m.sender_email)} · ${esc(m.service_type)} · ${esc(new Date(m.created_at).toLocaleString('ar-EG'))}</small></div><select data-message-status="${esc(m.id)}" aria-label="حالة الطلب">${[['new','جديد'],['reviewing','قيد المراجعة'],['contacted','تم التواصل'],['proposal_sent','تم إرسال عرض'],['accepted','تم الاتفاق'],['completed','مكتمل'],['archived','مؤرشف']].map(([value,label])=>`<option value="${value}" ${m.status===value?'selected':''}>${label}</option>`).join('')}</select></div><p class="inbox-message">${esc(m.message)}</p><div class="inbox-meta">${m.company?`<span>الشركة: ${esc(m.company)}</span>`:''}${m.budget?`<span>حجم المشروع: ${esc(m.budget)}</span>`:''}${m.desired_timeline?`<span>المدة: ${esc(m.desired_timeline)}</span>`:''}${m.sender_phone?`<span>الهاتف: <b dir="ltr">${esc(m.sender_phone)}</b></span>`:''}${m.reference_url&&safeUrl(m.reference_url)?`<a href="${esc(safeUrl(m.reference_url))}" target="_blank" rel="noopener">الرابط المرجعي ↗</a>`:''}</div><div class="inbox-actions"><a class="admin-btn secondary" href="mailto:${safeEmail}?subject=${encodeURIComponent('بخصوص طلبك من Mo Design')}">↗ الرد بالإيميل</a>${validPhone?`<a class="admin-btn secondary" href="https://wa.me/${number}?text=${encodeURIComponent('أهلًا '+m.sender_name+'، معاك محمد من Mo Design. بخصوص طلب المشروع اللي بعته من الموقع.')}" target="_blank" rel="noopener noreferrer">↗ واتساب العميل</a>`:''}</div><label class="form-field full">ملاحظاتك الداخلية (مش ظاهرة للعميل)<textarea data-inquiry-note="${esc(m.id)}" rows="2" maxlength="2000">${esc(m.internal_notes||'')}</textarea></label>${uiButton('حفظ الملاحظات','savenote',m.id)}</article>`;
+ return `<article class="message-card inbox-item" data-search="${esc((m.sender_name+' '+m.service_type+' '+m.sender_email).toLowerCase())}" data-status="${esc(m.status)}"><div class="admin-heading"><div><strong class="inbox-name">${esc(m.sender_name)} ${m.status==='new'?'<span class="inbox-new">جديد</span>':''}</strong><small>${esc(m.sender_email)} · ${esc(m.service_type)} · ${esc(new Date(m.created_at).toLocaleString('ar-EG'))}</small></div><select data-message-status="${esc(m.id)}" aria-label="حالة الطلب">${[['new','جديد'],['reviewing','قيد المراجعة'],['contacted','تم التواصل'],['proposal_sent','تم إرسال عرض'],['accepted','تم الاتفاق'],['completed','مكتمل'],['archived','مؤرشف']].map(([value,label])=>`<option value="${value}" ${m.status===value?'selected':''}>${label}</option>`).join('')}</select></div><p class="inbox-message">${esc(m.message)}</p><div class="inbox-meta">${m.company?`<span>الشركة: ${esc(m.company)}</span>`:''}${m.budget?`<span>حجم المشروع: ${esc(m.budget)}</span>`:''}${m.desired_timeline?`<span>المدة: ${esc(m.desired_timeline)}</span>`:''}${m.sender_phone?`<span>الهاتف: <b dir="ltr">${esc(m.sender_phone)}</b></span>`:''}${m.reference_url&&safeUrl(m.reference_url)?`<a href="${esc(safeUrl(m.reference_url))}" target="_blank" rel="noopener">الرابط المرجعي ↗</a>`:''}</div><div class="inbox-actions"><a class="admin-btn secondary" href="mailto:${safeEmail}?subject=${encodeURIComponent('بخصوص طلبك من Mo Design')}">↗ الرد بالإيميل</a>${validPhone?`<a class="admin-btn secondary" href="https://wa.me/${number}?text=${encodeURIComponent('أهلًا '+m.sender_name+'، معاك محمد من Mo Design. بخصوص طلب المشروع اللي بعته من الموقع.')}" target="_blank" rel="noopener noreferrer">↗ واتساب العميل</a>`:''}</div><label class="form-field full">ملاحظاتك الداخلية (مش ظاهرة للعميل)<textarea data-inquiry-note="${esc(m.id)}" rows="2" maxlength="2000">${esc(m.internal_notes||'')}</textarea></label>${uiButton('حفظ الملاحظات','savenote',m.id)}<div class="inbox-management-actions">${m.status==='archived'?uiButton('إلغاء الأرشفة','restoreInquiry',m.id):uiButton('أرشفة الطلب','archiveInquiry',m.id)}${uiButton('حذف نهائي','deleteInquiry',m.id)}</div></article>`;
  }).join('')||'<p class="admin-empty">مفيش طلبات لحد دلوقتي.</p>'}</div></div>`;
 }
 function renderMedia(){
@@ -639,6 +639,26 @@ $('#adminApp').addEventListener('click',async e=>{
   }
   if(action==='delete'){const [table,itemId]=id.split('|');await deleteItem(table,itemId);}
   if(action==='markread')await markRead(id);
+  if(['archiveInquiry','restoreInquiry','deleteInquiry'].includes(action) && connected){
+    const message=(data.messages||[]).find(m=>String(m.id)===String(id));
+    if(!message)return;
+    const removing=action==='deleteInquiry';
+    if(removing && !confirm('حذف طلب العميل نهائيًا؟ لا يمكن استرجاع الرسالة بعد الحذف.'))return;
+    if(!removing && !confirm(action==='archiveInquiry'?'نقل الطلب إلى الأرشيف؟':'إلغاء أرشفة الطلب؟'))return;
+    btn.disabled=true;
+    try{
+      const db=await getClient();
+      const result=removing
+        ?await db.from('inquiries').delete().eq('id',id)
+        :await db.from('inquiries').update({status:action==='archiveInquiry'?'archived':'reviewing'}).eq('id',id);
+      if(result.error)throw result.error;
+      data.messages=removing?data.messages.filter(m=>String(m.id)!==String(id)):
+        data.messages.map(m=>String(m.id)===String(id)?{...m,status:action==='archiveInquiry'?'archived':'reviewing'}:m);
+      renderPanel();
+      toast(removing?'تم حذف الطلب':'تم تحديث أرشفة الطلب');
+    }catch(error){btn.disabled=false;toast('تعذر تحديث الطلب: '+error.message);}
+    return;
+  }
   if(action==='savenote' && connected){try{const db=await getClient();const notes=document.querySelector(`[data-inquiry-note="${id}"]`)?.value||'';const {error}=await db.from('inquiries').update({internal_notes:notes.trim().slice(0,2000)}).eq('id',id);if(error)throw error;toast('تم حفظ ملاحظات الطلب');}catch(error){toast('تعذر حفظ الملاحظة: '+error.message);}}
   if(action==='export')exportDemo();
   if(action==='logout'){const db=await getClient();await db.auth.signOut();currentUser=null;data=null;renderLogin();}
@@ -646,7 +666,7 @@ $('#adminApp').addEventListener('click',async e=>{
 $('#adminApp').addEventListener('change',async e=>{
   const ctl=e.target.closest('[data-message-status]');
   if(!ctl || !connected)return;
-  try{const db=await getClient();const {error}=await db.from('inquiries').update({status:ctl.value}).eq('id',ctl.dataset.messageStatus);if(error)throw error;toast('تم تحديث حالة الطلب');}catch(error){toast('تعذر تعديل الحالة: '+error.message);}
+  try{const db=await getClient();const {error}=await db.from('inquiries').update({status:ctl.value}).eq('id',ctl.dataset.messageStatus);if(error)throw error;data.messages=(data.messages||[]).map(m=>String(m.id)===String(ctl.dataset.messageStatus)?{...m,status:ctl.value}:m);renderPanel();toast('تم تحديث حالة الطلب والعداد');}catch(error){toast('تعذر تعديل الحالة: '+error.message);}
 });
 $('#adminApp').addEventListener('change',e=>{
  if(e.target.matches('[name="education_mode"]')) document.querySelectorAll('.v10-status-option').forEach(el=>el.classList.toggle('selected',el.querySelector('input').checked));
