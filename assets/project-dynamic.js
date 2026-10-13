@@ -108,16 +108,14 @@ if (!route || !/^[a-zA-Z0-9_-]{1,140}$/.test(route)) {
    const {data:project,error}=await db.from('projects').select('*').eq('slug',route).eq('is_published',true).maybeSingle();
    if(error)throw error;
    entry=project||null;
-   // Project is already loaded; optional settings must never delay or hide it.
-   try{
-     const {data:site,error:settingsError}=await db.from('site_settings').select('*').eq('id',1).maybeSingle();
-     if(settingsError)console.warn('Optional project settings unavailable:',settingsError.message);
-     settings=site||{};
-   }catch(settingsError){
-     console.warn('Optional project settings request failed:',settingsError);
-     settings={};
-   }
-   try{render()}catch(renderError){console.error('Project display error',renderError);showLoadError(tr('حصل خطأ أثناء عرض بيانات المشروع.','Project rendering failed.'));}
+   // Render immediately after the required project query. Settings are optional.
+   settings={};
+   try{render()}catch(renderError){console.error('Project display error',renderError);showLoadError(tr('حصل خطأ أثناء عرض بيانات المشروع.','Project rendering failed.'));return;}
+   void db.from('site_settings').select('*').eq('id',1).maybeSingle()
+     .then(({data:site,error:settingsError})=>{
+       if(settingsError){console.warn('Optional project settings unavailable:',settingsError.message);return;}
+       if(site){settings=site;try{render()}catch(renderError){console.warn('Optional settings render failed:',renderError);}}
+     }).catch(settingsError=>console.warn('Optional project settings request failed:',settingsError));
    return;
   }catch(error){
    console.warn(`Mo Design project loading attempt ${attempt}/3`,error);
