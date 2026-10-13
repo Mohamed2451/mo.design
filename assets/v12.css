@@ -62,3 +62,13 @@ html.light body #cta .v11-designed h2 em{color:var(--v11-accent)!important;-webk
 .appearance-reset-bar .appearance-reset-button{margin:0;white-space:normal}
 .case-error{min-height:45vh}.case-error p{max-width:65ch;margin-inline:auto;line-height:2;color:var(--muted,#aaa)}
 @media(max-width:650px){.appearance-reset-bar{flex-direction:column;align-items:stretch}.appearance-reset-button{width:100%}}
+
+/* V13: keep CMS project images consistent without cropping their artwork. */
+.case-lead-media,.case-artframe{width:100%;overflow:hidden}
+.case-lead-media img,.case-artframe img{display:block;width:100%;height:auto;max-width:100%;object-fit:contain}
+.case-stacked-media{width:100%;min-width:0}
+.case-stacked-media .case-artframe{margin-inline:auto}
+@media(max-width:700px){
+ .case-lead-media,.case-stacked-media,.case-artframe{max-width:100%}
+ .case-lead-media img,.case-artframe img{max-height:none}
+}
