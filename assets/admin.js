@@ -603,19 +603,18 @@ $('#adminApp').addEventListener('click',async e=>{
   if(action==='resetAppearance'){
     const section=btn.dataset.section;
     if(!DESIGN_SECTIONS.some(([key])=>key===section))return;
-    if(!confirm('ترجع الألوان والخلفية والكافر والخط الأصلي للقسم ده؟ التغييرات غير المحفوظة في الأقسام التانية مش هتتحفظ.'))return;
-    try{
-      const section_design={...(data.settings?.section_design||{})};
-      delete section_design[section];
-      if(connected){
-        const db=await getClient();
-        const {error}=await db.from('site_settings').update({section_design}).eq('id',1);
-        if(error)throw error;
-      }else{saveDemo({...data,settings:{...data.settings,section_design}});}
-      data.settings={...data.settings,section_design};
-      renderPanel();
-      toast('رجعنا الألوان والتصميم الأصلي للقسم ✓');
-    }catch(error){console.error(error);toast('تعذر إعادة التصميم الأصلي: '+(error.message||'خطأ غير معروف'));}
+    const form=document.getElementById('appearanceForm');
+    if(!form)return;
+    if(!confirm('تحضير إعادة التصميم الأصلي لهذا القسم؟ التغيير مش هيظهر على الموقع إلا بعد الضغط على حفظ ألوان الأقسام.'))return;
+    const defaults={dark_bg:'#10121a',dark_text:'#f4f4f5',dark_accent:'#c6fa8a',light_bg:'#f7f5ef',light_text:'#172026',light_accent:'#39671a',cover_url:'',font:'',heading_size:'0',body_size:'0',padding:'90',height:'0',shade:'0.7',enabled:'0'};
+    for(const [key,value] of Object.entries(defaults)){
+      const input=form.elements.namedItem(section+'__'+key);
+      if(input)input.value=value;
+    }
+    refreshAppearancePreview(section);
+    const label=btn.closest('.appearance-reset-bar')?.querySelector('.appearance-state');
+    if(label)label.textContent='إعادة التصميم الأصلي جاهزة — اضغط حفظ ألوان الأقسام لتطبيقها.';
+    toast('إعادة الضبط جاهزة. لن يتغير الموقع إلا بعد الضغط على حفظ. ✓');
     return;
   }
   if(action==='clearNotice'){
