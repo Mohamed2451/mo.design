@@ -7,7 +7,7 @@ const admin=read('assets/admin.js');
 const css=read('assets/v12.css');
 assert.match(app,/function refreshTicker\(/,'ticker refresh exists');
 assert.match(app,/function applySectionDesign\(/,'section theme controls exist');
-assert.match(app,/const original=\[/,'legacy portfolio routing is preserved');
+assert.match(app,/function caseUrl\(project\)/,'project navigation exists');
 assert.match(projects,/Optional project settings request failed/,'project renders despite optional settings outage');
 assert.match(projects,/data-case-media/,'broken gallery media fallback exists');
 assert.match(projects,/new Set\(String\(entry\.gallery_urls/,'duplicate gallery images are filtered');
