@@ -148,7 +148,7 @@ function renderItems(table){
   ${field('text_font','خط النص الطويل',item.text_style?.font||'Alexandria',{select:FONT_CHOICES})}${field('text_size','حجم النص بالبكسل (14–30)',item.text_style?.size||17,{type:'number'})}
   <div class="form-field full cms-tool-entry"><span>الأدوات المستخدمة في المشروع</span><div class="cms-tools-box" data-tools-box><div data-tools-tags class="cms-tools-tags"></div><input data-tool-add placeholder="اكتب Photoshop واضغط Enter" aria-label="اكتب أداة واضغط Enter" maxlength="70"></div><input type="hidden" name="tools_used" value="${esc(formatTools(item.tools_used).join(', '))}"><small>اضغط Enter بعد كل برنامج علشان يظهر في خانة مستقلة، أو اضغط × لإزالته.</small></div>
   <label class="form-field full">رفع صورة غلاف للمشروع إلى Supabase Storage (بعد التفعيل) <input type="file" name="media_file" accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'} /> <small>صورة بحد أقصى 8 MB. ترفع بصورة آمنة فقط عند تفعيل التخزين وسياسات الصلاحيات.</small></label>
-  <label class="form-field full">إضافة صور متعددة للمعرض (حتى 15 صورة إضافية)<input type="file" name="gallery_files" multiple accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}/></label>
+  <label class="form-field full">إضافة صور متعددة للمعرض (حتى 15 صورة إضافية)<input type="file" name="gallery_files" multiple accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}/><small data-project-gallery-count role="status" aria-live="polite">الحد الأقصى 15 صورة إضافية، شامل الروابط والملفات الجديدة.</small></label>
   ${field('external_url','رابط مشاهدة المشروع (HTTPS) - اختياري' ,item.external_url,{type:'url',full:true})}
   ${field('featured','مميز',item.featured,{type:'checkbox'})}`:
   `${field('description_ar','وصف الخدمة بالعربي',item.description_ar,{type:'textarea',full:true})}${field('description_en','وصف الخدمة بالإنجليزي',item.description_en,{type:'textarea',full:true})}
@@ -477,6 +477,25 @@ function exportDemo(){
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='mo-design-portfolio-preview-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
+function updateProjectGalleryCount(form){
+ if(!form || form.dataset.entity!=='projects')return;
+ const urls=String(form.querySelector('[name="gallery_urls"]')?.value||'').split(/\r?\n/).filter(line=>line.trim()).length;
+ const files=form.querySelector('[name="gallery_files"]')?.files?.length||0;
+ const total=urls+files;
+ const label=form.querySelector('[data-project-gallery-count]');
+ if(label){
+   label.textContent='صور المعرض: '+total+' من 15 ('+urls+' روابط + '+files+' ملفات)';
+   label.style.color=total>15?'#ff8a8a':'';
+ }
+ const submit=form.querySelector('button[type="submit"]');
+ if(submit)submit.disabled=total>15;
+}
+$('#adminApp').addEventListener('input',e=>{
+ if(e.target.name==='gallery_urls')updateProjectGalleryCount(e.target.closest('form'));
+});
+$('#adminApp').addEventListener('change',e=>{
+ if(e.target.name==='gallery_files')updateProjectGalleryCount(e.target.closest('form'));
+});
 $('#adminApp').addEventListener('input',e=>{
   if(e.target.closest('#contentForm') && e.target.id!=='cmsCopySearch')markCmsDirty();
 });
