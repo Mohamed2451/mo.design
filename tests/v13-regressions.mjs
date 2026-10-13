@@ -37,4 +37,6 @@ assert.match(studioJs,/MutationObserver/,'V15 handles asynchronous project cards
 assert.match(homepage,/v15-studio\.css/,'V15 stylesheet is loaded');
 assert.match(homepage,/v15-studio\.js/,'V15 interactions are loaded');
 assert.doesNotMatch(homepage,/v16-impact|v16-work-editorial|v16-creative-strip/,'disliked V16 layout is removed');
+assert.match(projects,/esc\(copy\.case_cta_title\|\|txt/,'project CTA title escapes CMS text');
+assert.match(projects,/esc\(copy\.case_cta_button\|\|txt/,'project CTA button escapes CMS text');
 console.log('V13 regression checks passed');
