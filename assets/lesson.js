@@ -15,6 +15,7 @@ function ytId(value){
  return /^[A-Za-z0-9_-]{11}$/.test(id)?id:'';
  }catch{return ''}
 }
+function lessonImages(value){return String(value||'').split(/\r?\n/).map(v=>safeUrl(v.trim())).filter(u=>u&&u.startsWith('https://')).slice(0,32).map((url,i)=>`<figure class="lesson-figure"><img src="${esc(url)}" loading="lazy" alt="${lang==='ar'?'صورة شرح':'Lesson illustration'} ${i+1}"><figcaption>${lang==='ar'?'صورة شرح':'Lesson image'} ${i+1}</figcaption></figure>`).join('')}
 function resLinks(value){return String(value||'').split(/\r?\n/).map(line=>{
  const parts=line.split('|'); const url=safeUrl(parts.pop()?.trim()||'');if(!url||!url.startsWith('https://'))return '';
  const label=(parts.join('|').trim()||new URL(url).hostname).slice(0,120);
@@ -35,9 +36,9 @@ function render(){applyTheme();if(!article)return;
  (video&&direct?`<div class="lesson-player"><video src="${esc(direct)}" controls playsinline preload="metadata" ${cover?`poster="${esc(cover)}"`:''}></video></div>`:
  (cover?`<img class="lesson-cover" src="${esc(cover)}" alt="" loading="eager">`:''));
  const external=(video&&youtubeLink)?`<a class="lesson-youtube-external" href="${esc(youtubeLink)}" target="_blank" rel="noopener noreferrer">↗ ${lang==='ar'?'افتح الفيديو على يوتيوب لو مش شغال هنا':'Open on YouTube if embedding is unavailable'}</a>`:'';
- const resources=resLinks(article.resource_links);
+ const resources=resLinks(article.resource_links);const gallery=lessonImages(article.image_urls);
  const date=article.created_at?new Date(article.created_at).toLocaleDateString(lang==='ar'?'ar-EG':'en-US'):'';
- root.innerHTML=`<div class="lesson-kicker">${video?(lang==='ar'?'فيديو تعليمي':'Video lesson'):(lang==='ar'?'مقال وشرح':'Article & guide')} <span>✳</span> ${esc(date)}</div><h1>${esc(title)}</h1><p class="lesson-summary">${esc(summary)}</p>${media}${external}${body?`<article class="lesson-body">${formatBody(body)}</article>`:''}${resources?`<section class="lesson-resources"><h2>${lang==='ar'?'ملفات وروابط تساعدك':'Resources & downloads'}</h2><div>${resources}</div></section>`:''}<a class="lesson-bottom-back" href="./index.html#learn">← ${lang==='ar'?'شوف باقي المحتوى':'Explore more lessons'}</a>`;
+ root.innerHTML=`<div class="lesson-kicker">${video?(lang==='ar'?'فيديو تعليمي':'Video lesson'):(lang==='ar'?'مقال وشرح':'Article & guide')} <span>✳</span> ${esc(date)}</div><h1>${esc(title)}</h1><p class="lesson-summary">${esc(summary)}</p>${media}${external}${body?`<article class="lesson-body">${formatBody(body)}</article>`:''}${gallery?`<section class="lesson-image-gallery"><h2>${lang==='ar'?'صور الشرح بالتفصيل':'Lesson illustrations'}</h2>${gallery}</section>`:''}${resources?`<section class="lesson-resources"><h2>${lang==='ar'?'ملفات وروابط تساعدك':'Resources & downloads'}</h2><div>${resources}</div></section>`:''}<a class="lesson-bottom-back" href="./index.html#learn">← ${lang==='ar'?'شوف باقي المحتوى':'Explore more lessons'}</a>`;
 }
 document.getElementById('lessonLang').onclick=()=>{lang=lang==='ar'?'en':'ar';localStorage.setItem('portfolio_lang',lang);render()};
 document.getElementById('lessonTheme').onclick=()=>{theme=theme==='light'?'dark':'light';localStorage.setItem('portfolio_theme',theme);render()};

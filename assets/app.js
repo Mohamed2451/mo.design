@@ -1,5 +1,6 @@
 import { seed, readDemo, escapeHTML as esc, safeUrl, tField, ar, en } from './data.js';
 import { connected, getPublicContent, sendInquiry } from './api.js';
+import {PORTFOLIO_CATEGORIES, categoryFor} from './categories.js';
 
 let model = connected ? {...seed, projects:[], testimonials:[]} : readDemo();
 let lang = (()=>{try{return localStorage.getItem('portfolio_lang')==='en'?'en':'ar'}catch{return 'ar'}})();
@@ -32,7 +33,7 @@ function updateDocument() {
     ticker.innerHTML=[...words,...words].map(word=>`${esc(word)} <span aria-hidden="true">✳</span>`).join(' ');
   }
 
-  $$('[data-brand-logo]').forEach(img => {img.src = `./assets/images/mo-logo-${theme === 'dark' ? 'white' : 'black'}.webp`;});
+  $$('[data-brand-logo]').forEach(img => {img.src = safeUrl(model.settings?.[theme==='dark'?'logo_dark_url':'logo_light_url']) || `./assets/images/mo-logo-${theme === 'dark' ? 'white' : 'black'}.webp`;});
   $$('[data-i18n]').forEach(el => {
     const val = txt()[el.dataset.i18n];
     if (val !== undefined) {
@@ -48,7 +49,8 @@ function updateDocument() {
 function setBrandContent() {
   const settings = model.settings || seed.settings;
   const photo = safeUrl(settings.profile_image_url);
-  if(photo) document.querySelector('.hero-portrait').src=photo;
+  if(photo) {document.querySelector('.hero-portrait').src=photo;const about=document.querySelector('.about-photo-mini img');if(about)about.src=photo;}
+  $$('[data-brand-logo]').forEach(img=>{img.src=safeUrl(settings[theme==='dark'?'logo_dark_url':'logo_light_url']) || `./assets/images/mo-logo-${theme==='dark'?'white':'black'}.webp`;});
   $('#brandName').textContent = field(settings, 'brand');
   $('#footerBrand').textContent = field(settings, 'brand');
   $('#heroRole').textContent = field(settings, 'role');
@@ -103,26 +105,18 @@ function graphicHTML(project) {
   return `<div class="project-cover ${safeImage ? 'custom' : type}">${safeImage ? `<img class="cover-img" src="${esc(safeImage)}" alt="${esc(field(project, 'title'))}" loading="lazy" onerror="this.style.display='none'">` : `<div class="cover-graphic" aria-hidden="true">${art}</div>`}<span class="cover-label">${esc(field(project, 'category'))}${isVideo ? ' ▶ VIDEO' : ''}</span><span class="cover-arrow">↗</span></div>`;
 }
 function renderFilters() {
-  const published=model.projects.filter(p=>p.is_published);
-  const core=[
-    ['Social Media Ads','تصاميم السوشيال ميديا والإعلانات'],
-    ['Reels & Podcast Editing','مونتاج الريلز والبودكاست'],
-    ['AI Visuals & Concepts','فنون وتوليد الذكاء الاصطناعي'],
-    ['Branding & Identity','براندينج وهوية بصرية']
-  ];
-  const cats=[...core];
-  for(const p of published){const k=p.category_en || p.category_ar;if(k && !cats.some(a=>a[0]===k))cats.push([k,p.category_ar||k]);}
-  if(activeCategory!=='*' && !cats.some(a=>a[0]===activeCategory))activeCategory='*';
-  const pills=[['*',txt().all],...cats.map(([key,arabic])=>[key,lang==='ar'?arabic:key])];
-  $('#workFilters').innerHTML=pills.map(([key,label])=>`<button type="button" class="filter-pill ${activeCategory===key?'active':''}" data-filter="${esc(key)}" aria-pressed="${activeCategory===key}">${esc(label)}</button>`).join('');
+ const categories=PORTFOLIO_CATEGORIES;
+ if(activeCategory!=='*'&&!categories.some(c=>c.id===activeCategory))activeCategory='*';
+ const pills=[{id:'*',ar:txt().all,en:txt().all},...categories];
+ $('#workFilters').innerHTML=pills.map(c=>`<button type="button" class="filter-pill ${activeCategory===c.id?'active':''}" data-filter="${esc(c.id)}" aria-pressed="${activeCategory===c.id}">${esc(lang==='ar'?c.ar:c.en)}</button>`).join('');
 }
 function renderProjects() {
-  renderFilters();
-  const items = model.projects.filter(p=>p.is_published && (activeCategory==='*'||(p.category_en || p.category_ar)===activeCategory)).sort((a,b)=>(a.sort_order || 0)-(b.sort_order || 0));
-  $('#worksCount').textContent = lang === 'ar' ? `${number(items.length)} عمل` : `${number(items.length)} projects`;
-  $('#projectGrid').setAttribute('aria-live','polite');
-  $('#projectGrid').innerHTML = items.length ? items.map((p,i)=>`<article class="project-card reveal"><a class="project-cover-button" href="${esc(caseUrl(p))}" style="display:block;width:100%" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">${graphicHTML(p)}</a><div class="project-meta"><div><h3>${esc(field(p,'title'))}</h3><p>${esc(field(p,'category'))}</p></div><span class="project-index">/${number(i+1)}</span></div></article>`).join('') : `<p class="admin-empty">${esc(txt().no_projects)}</p>`;
-  observeReveal();
+ renderFilters();
+ const items = model.projects.filter(p=>p.is_published&&(activeCategory==='*'||categoryFor(p)?.id===activeCategory)).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+ $('#worksCount').textContent=lang==='ar'?`${number(items.length)} عمل`:`${number(items.length)} projects`;
+ $('#projectGrid').setAttribute('aria-live','polite');
+ $('#projectGrid').innerHTML=items.length?items.map((p,i)=>`<article class="project-card reveal"><a class="project-cover-button" href="${esc(caseUrl(p))}" style="display:block;width:100%" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">${graphicHTML(p)}</a><div class="project-meta"><div><h3>${esc(field(p,'title'))}</h3><p>${esc((categoryFor(p)||{})[lang]||field(p,'category'))}</p></div><span class="project-index">/${number(i+1)}</span></div></article>`).join(''):`<p class="admin-empty">${esc(txt().no_projects)}</p>`;
+ observeReveal();
 }
 function renderServices() {
   const items = model.services.filter(s=>s.is_published).sort((a,b)=>(a.sort_order || 0)-(b.sort_order || 0));
