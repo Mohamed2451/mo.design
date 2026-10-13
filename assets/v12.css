@@ -9,11 +9,11 @@
 .case-prose{max-width:75ch}.case-content{min-width:0}.case-content-grid{min-width:0}
 .lesson-summary.rich-body{max-width:80ch}.lesson-body.rich-body{max-width:90ch}
 /* real seamless continuous ticker; both tracks have identical intrinsic width */
-.ticker{overflow:hidden}.ticker-track{display:flex;gap:0;width:max-content;direction:ltr;white-space:nowrap;animation:mo-ticker 42s linear infinite;will-change:transform}
+.ticker{overflow:hidden}.ticker-track{display:flex;gap:0;width:max-content;direction:ltr;white-space:nowrap;animation:mo-ticker var(--mo-ticker-time,42s) linear infinite;will-change:transform}
 .ticker-track .ticker-segment{display:flex;align-items:center;gap:0;flex:0 0 auto;white-space:nowrap}
 .ticker-track .ticker-item{display:inline-flex;align-items:center;padding-inline:23px;white-space:nowrap;direction:auto}
 .ticker-track .ticker-item::after{content:'✳';padding-inline-start:35px;font-size:19px}
-@keyframes mo-ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes mo-ticker{from{transform:translate3d(0,0,0)}to{transform:translate3d(calc(-1 * var(--mo-ticker-distance, 50%)),0,0)}}
 @media(prefers-reduced-motion:reduce){.ticker-track{animation:none!important}}
 /* Custom appearance overrides must outrank old light-mode forced defaults */
 html.light body #testimonials.v11-designed,html.light body #testimonials.v11-designed.testimonials-section,
@@ -53,3 +53,12 @@ html.light body #cta .v11-designed h2 em{color:var(--v11-accent)!important;-webk
 .v11-designed.v12-custom-font{font-family:var(--v12-section-font)!important}
 .v11-designed.v12-custom-heading .section-title,.v11-designed.v12-custom-heading .editorial-intro h2,.v11-designed.v12-custom-heading h2{font-size:var(--v12-heading-size)!important}
 .v11-designed.v12-custom-body .section-sub,.v11-designed.v12-custom-body .editorial-intro p,.v11-designed.v12-custom-body p{font-size:var(--v12-body-size)!important}
+
+/* V12.1: exact ticker segment width and safe reset controls */
+.ticker-track .ticker-segment{padding:0;letter-spacing:normal;font-size:inherit;min-width:max-content}
+.ticker-track .ticker-item{font-size:inherit;letter-spacing:normal;flex-shrink:0;padding-block:0}
+.appearance-reset-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border:1px solid rgba(154,170,173,.25);border-radius:12px;flex-wrap:wrap}
+.appearance-reset-bar .appearance-state{font-size:13px;opacity:.8;line-height:1.8}
+.appearance-reset-bar .appearance-reset-button{margin:0;white-space:normal}
+.case-error{min-height:45vh}.case-error p{max-width:65ch;margin-inline:auto;line-height:2;color:var(--muted,#aaa)}
+@media(max-width:650px){.appearance-reset-bar{flex-direction:column;align-items:stretch}.appearance-reset-button{width:100%}}

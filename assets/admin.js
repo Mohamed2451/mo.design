@@ -246,7 +246,7 @@ function renderAppearance(){
   const color=(key,fallback)=>/^#[a-fA-F0-9]{6}$/.test(d[key]||'')?d[key]:fallback;
   const colorInput=(key,title,def)=>`<label class="form-field v11-color-field">${title}<input type="color" name="${id}__${key}" value="${color(key,def)}"></label>`;
   return `<details class="v11-section-editor" ${index===0?'open':''}><summary><span>◈ ${esc(label)}</span><small>ألوان الدارك واللايت • كافر • حجم القسم</small></summary><div class="admin-form-grid">
-    ${field(id+'__enabled','تفعيل المظهر المخصص للقسم (الغيه علشان ترجع للتصميم الافتراضي)',d.enabled||false,{type:'checkbox',full:true})}
+    <div class="full appearance-reset-bar"><span class="appearance-state">${d.enabled?'المظهر المخصص محفوظ لهذا القسم':'القسم على ألوانه الأصلية'} — أي تعديل جديد هيتفعّل عند الحفظ.</span><input type="hidden" name="${id}__enabled" value="${d.enabled?'1':'0'}"><button type="button" class="admin-btn secondary appearance-reset-button" data-action="resetAppearance" data-section="${id}">↶ إعادة الألوان والتصميم الأصلي</button></div>
     ${colorInput('dark_bg','خلفية الدارك مود','#10121a')}${colorInput('dark_text','الكتابة في الدارك مود','#f4f4f5')}${colorInput('dark_accent','اللون المميز في الدارك مود','#c6fa8a')}
     ${colorInput('light_bg','خلفية اللايت مود','#f7f5ef')}${colorInput('light_text','الكتابة في اللايت مود','#172026')}${colorInput('light_accent','اللون المميز في اللايت مود','#39671a')}
     ${field(id+'__cover_url','رابط الكافر الحالي (اختياري)',d.cover_url||'',{type:'url',full:true})}
@@ -259,7 +259,7 @@ function renderAppearance(){
     ${field(id+'__shade','تعتيم صورة الكافر (من 0.1 إلى 0.92)',d.shade??0.7,{type:'text'})}
     </div></details>`;
  }).join('');
- return `<section class="admin-panel v11-appearance"><div class="admin-heading"><div><h2>تحكّم في شكل أقسام الموقع</h2><p class="admin-note">كل قسم تقدر تغيّر خلفيته ولون الكتابة واللون المميز وصورة الكافر وارتفاعه. تغيير ألوان اللايت ما يأثرش على الدارك.</p></div><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">معاينة ↗</a></div><form data-entity="appearance" id="appearanceForm"><details class="v11-section-editor" open><summary>✎ العنوان والوصف: «التفاصيل اللي بتفرق»</summary><div class="admin-form-grid">${field('reviews_title_ar','عنوان القسم بالعربي',(data.settings?.content_ar||{}).reviews_title??ar.reviews_title??'التفاصيل اللي بتفرق.',{full:true})}${field('reviews_title_en','العنوان بالإنجليزي',(data.settings?.content_en||{}).reviews_title??en.reviews_title??'The details make the difference.',{full:true})}${field('reviews_sub_ar','وصف القسم بالعربي',(data.settings?.content_ar||{}).reviews_sub??ar.reviews_sub??'',{type:'textarea',full:true})}${field('reviews_sub_en','وصف القسم بالإنجليزي',(data.settings?.content_en||{}).reviews_sub??en.reviews_sub??'',{type:'textarea',full:true})}</div></details><div class="v11-appearance-help">لتطبيق الشكل الجديد على قسم، فعّل خيار «المظهر المخصص» داخل القسم نفسه؛ الأقسام اللي مش مفعّلة هتحتفظ بشكلها الحالي. متشغّلش صورة كافر إلا لو محتاجها فعلًا، وخلي الكتابة واضحة فوقها.</div>${fields}<div class="admin-sticky-actions"><button class="admin-btn" type="submit">حفظ ألوان وخلفيات الأقسام ✓</button><small>التغييرات بتظهر للزوار بعد حفظها في Supabase وتحديث الصفحة.</small></div></form></section>`;
+ return `<section class="admin-panel v11-appearance"><div class="admin-heading"><div><h2>تحكّم في شكل أقسام الموقع</h2><p class="admin-note">كل قسم تقدر تغيّر خلفيته ولون الكتابة واللون المميز وصورة الكافر وارتفاعه. تغيير ألوان اللايت ما يأثرش على الدارك.</p></div><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">معاينة ↗</a></div><form data-entity="appearance" id="appearanceForm"><details class="v11-section-editor" open><summary>✎ العنوان والوصف: «التفاصيل اللي بتفرق»</summary><div class="admin-form-grid">${field('reviews_title_ar','عنوان القسم بالعربي',(data.settings?.content_ar||{}).reviews_title??ar.reviews_title??'التفاصيل اللي بتفرق.',{full:true})}${field('reviews_title_en','العنوان بالإنجليزي',(data.settings?.content_en||{}).reviews_title??en.reviews_title??'The details make the difference.',{full:true})}${field('reviews_sub_ar','وصف القسم بالعربي',(data.settings?.content_ar||{}).reviews_sub??ar.reviews_sub??'',{type:'textarea',full:true})}${field('reviews_sub_en','وصف القسم بالإنجليزي',(data.settings?.content_en||{}).reviews_sub??en.reviews_sub??'',{type:'textarea',full:true})}</div></details><div class="v11-appearance-help">أي تغيير في الألوان أو الخط أو الكافر هيشتغل تلقائيًا لما تضغط حفظ. لو عايز ترجع الشكل الأصلي لقسم معين، استخدم زر «إعادة الألوان والتصميم الأصلي» الخاص بيه. متشغّلش صورة كافر إلا لو محتاجها فعلًا، وخلي الكتابة واضحة فوقها.</div>${fields}<div class="admin-sticky-actions"><button class="admin-btn" type="submit">حفظ ألوان وخلفيات الأقسام ✓</button><small>التغييرات بتظهر للزوار بعد حفظها في Supabase وتحديث الصفحة.</small></div></form></section>`;
 }
 function renderNoticeEditor(){
  const s=data.settings?.site_notice||{};
@@ -309,7 +309,7 @@ function getFields(form,table){
     const section_design=structuredClone(data.settings?.section_design||{});
     for(const [id] of DESIGN_SECTIONS){
       const current={...(section_design[id]||{})};
-      current.enabled=f.has(id+'__enabled');
+      current.enabled=get(id+'__enabled')==='1';
       for(const key of ['dark_bg','dark_text','dark_accent','light_bg','light_text','light_accent'])current[key]=get(id+'__'+key);
       current.font=get(id+'__font');
       current.heading_size=Math.max(0,Math.min(110,Number(get(id+'__heading_size'))||0));
@@ -451,7 +451,7 @@ $('#adminApp').addEventListener('input',e=>{
     document.querySelectorAll('.cms-editor-group').forEach(group=>{let found=0;group.querySelectorAll('.form-field').forEach(el=>{const ok=!q||el.textContent.toLocaleLowerCase().includes(q);el.hidden=!ok;if(ok)found++;});group.hidden=!!q&&!found;if(q&&found)group.open=true;});return;
   }
   if(target.closest('#appearanceForm') && /__(dark_bg|dark_text|dark_accent|light_bg|light_text|light_accent|cover_url|cover_file|font|heading_size|body_size|padding|height|shade)$/.test(target.name||'')){
-    const section=target.name.split('__')[0];const flag=document.querySelector(`[name="${section}__enabled"]`);if(flag)flag.checked=true;
+    const section=target.name.split('__')[0];const flag=document.querySelector(`[name="${section}__enabled"]`);if(flag){flag.value='1';const label=flag.closest('.appearance-reset-bar')?.querySelector('.appearance-state');if(label)label.textContent='تغييرات جاهزة للحفظ — اضغط حفظ ألوان الأقسام';}
   }
 });
 $('#adminApp').addEventListener('click',async e=>{
@@ -466,6 +466,24 @@ $('#adminApp').addEventListener('click',async e=>{
   const copyBtn=e.target.closest('[data-copy-url]');if(copyBtn){try{await navigator.clipboard.writeText(copyBtn.dataset.copyUrl);toast('تم نسخ الرابط ✓');}catch{toast('تعذر نسخ الرابط');}return;}
   const btn=e.target.closest('button[data-action]');if(!btn)return;
   const {action,id}=btn.dataset;
+  if(action==='resetAppearance'){
+    const section=btn.dataset.section;
+    if(!DESIGN_SECTIONS.some(([key])=>key===section))return;
+    if(!confirm('ترجع الألوان والخلفية والكافر والخط الأصلي للقسم ده؟ التغييرات غير المحفوظة في الأقسام التانية مش هتتحفظ.'))return;
+    try{
+      const section_design={...(data.settings?.section_design||{})};
+      delete section_design[section];
+      if(connected){
+        const db=await getClient();
+        const {error}=await db.from('site_settings').update({section_design}).eq('id',1);
+        if(error)throw error;
+      }else{saveDemo({...data,settings:{...data.settings,section_design}});}
+      data.settings={...data.settings,section_design};
+      renderPanel();
+      toast('رجعنا الألوان والتصميم الأصلي للقسم ✓');
+    }catch(error){console.error(error);toast('تعذر إعادة التصميم الأصلي: '+(error.message||'خطأ غير معروف'));}
+    return;
+  }
   if(action==='clearNotice'){
     const form=document.getElementById('noticeForm');if(!form)return;
     for(const k of ['notice_title_ar','notice_title_en','notice_message_ar','notice_message_en','notice_starts','notice_ends']){const el=form.elements.namedItem(k);if(el)el.value='';}

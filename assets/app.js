@@ -19,6 +19,41 @@ function toast(message) {
   clearTimeout(toast.timeout);
   toast.timeout = setTimeout(() => el.classList.remove('show'), 5000);
 }
+let tickerSignature='';
+let tickerResizePending=false;
+function refreshTicker(force=false){
+ const track=document.querySelector('.ticker-track');
+ const shell=track?.closest('.ticker');
+ if(!track||!shell)return;
+ const words=String(txt().ticker_items||'').split(/\n|\|/).map(w=>w.trim()).filter(Boolean).slice(0,20);
+ const selected=words.length?words:['مو ديزاين','تصميم إعلانات','مونتاج فيديو','ذكاء اصطناعي'];
+ const signature=selected.join('|')+'::'+lang;
+ const viewport=Math.max(window.innerWidth||0,shell.getBoundingClientRect().width,320);
+ if(!force && signature===tickerSignature && Number(track.dataset.forWidth)>=viewport) return;
+ tickerSignature=signature;
+ const build=()=>selected.map(word=>`<span class="ticker-item">${esc(word)}</span>`).join('');
+ const segment=document.createElement('span');segment.className='ticker-segment';
+ segment.innerHTML=build();
+ track.replaceChildren(segment);
+ // Repeat until one full half is wider than the complete viewport.
+ let count=0;
+ while(segment.getBoundingClientRect().width<viewport+160&&count<50){segment.insertAdjacentHTML('beforeend',build());count++;}
+ const width=Math.ceil(segment.getBoundingClientRect().width);
+ const duplicate=segment.cloneNode(true);duplicate.setAttribute('aria-hidden','true');
+ track.appendChild(duplicate);
+ track.dataset.forWidth=String(viewport);
+ track.style.setProperty('--mo-ticker-distance',width+'px');
+ track.style.setProperty('--mo-ticker-time',Math.max(18,width/80)+'s');
+ track.style.animation='none';
+ // Force browser to apply the new track size before restarting the seamless loop.
+ void track.offsetWidth;
+ track.style.animation='';
+}
+window.addEventListener('resize',()=>{
+ if(tickerResizePending)return;
+ tickerResizePending=true;
+ requestAnimationFrame(()=>{tickerResizePending=false;refreshTicker(true);});
+},{passive:true});
 function updateDocument() {
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
@@ -27,15 +62,7 @@ function updateDocument() {
   $('#langToggle').setAttribute('aria-label', lang === 'ar' ? 'Switch to English' : 'التبديل للعربية');
   $('#themeToggle').textContent = theme === 'dark' ? '☼' : '☾';
   $('#themeToggle').setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
-  const ticker = document.querySelector('.ticker-track');
-  if(ticker){
-    const raw=String(txt().ticker_items||'');
-    const words=raw.split(/\n|\|/).map(s=>s.trim()).filter(Boolean).slice(0,20);
-    const safeWords=words.length?words:['MO DESIGN','DESIGN','VIDEO','AI'];
-    // Two perfectly identical halves. Each half is wide enough to cover desktops.
-    const chunk=Array.from({length:4},()=>safeWords).flat().map(word=>`<span class="ticker-item">${esc(word)}</span>`).join('');
-    ticker.innerHTML=`<span class="ticker-segment">${chunk}</span><span class="ticker-segment" aria-hidden="true">${chunk}</span>`;
-  }
+  refreshTicker();
 
   $$('[data-brand-logo]').forEach(img => {img.src = safeUrl(model.settings?.[theme==='dark'?'logo_dark_url':'logo_light_url']) || `./assets/images/mo-logo-${theme === 'dark' ? 'white' : 'black'}.webp`;});
   $$('[data-i18n]').forEach(el => {

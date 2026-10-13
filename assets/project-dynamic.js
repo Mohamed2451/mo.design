@@ -1,4 +1,4 @@
-import { getPublicContent } from './api.js';
+import { getClient, connected } from './api.js';
 import { readDemo, escapeHTML as esc, safeUrl, tField } from './data.js';
 import { categoryFor, formatTools } from './categories.js';
 import {renderRich,textStyle} from './rich-text.js';
@@ -7,8 +7,15 @@ let theme=localStorage.getItem('portfolio_theme')==='light'?'light':'dark';
 let entry=null;let settings=null;
 const $=id=>document.getElementById(id);
 const tr=(a,b)=>lang==='ar'?a:b;
+const txt=tr;
 const fld=k=>tField(entry,k,lang)||'';
 const route=new URLSearchParams(location.search).get('slug');
+const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+function showLoadError(message){
+ $('dynamicProject').innerHTML=`<section class="case-hero case-error"><h1 class="case-title">${esc(message)}</h1><p>${tr('المشروع موجود في قاعدة البيانات غالبًا، لكن الاتصال اتأخر. جرّب تاني.','The project might be available, but loading was interrupted. Please retry.')}</p><button class="inner-primary" type="button" id="retryProject">${tr('حاول تاني ↻','Try again ↻')}</button></section>`;
+ $('retryProject')?.addEventListener('click',()=>void loadProject());
+}
+
 function youtubeID(raw) {
   try {
     const u=new URL(raw);
@@ -39,7 +46,6 @@ function render(){chrome();
  const copy=settings?.[lang==='ar'?'content_ar':'content_en']||{};
  const aboutLabel=copy.project_about_title||txt('عن المشروع','About this project');
  const goalLabel=copy.project_objective_title||txt('هدف المشروع','Project objective');
- const txt=(ar,en)=>tr(ar,en);
  const gallery=(entry.gallery_urls||'').split(/\r?\n/).map(v=>safeUrl(v.trim())).filter(Boolean).slice(0,15);
  const galleryHTML=gallery.length?`<div class="case-stacked-media">${gallery.map((url,i)=>`<div class="case-artframe"><img src="${esc(url)}" loading="lazy" alt="${esc(fld('title'))} gallery image ${i+1}"/></div>`).join('')}</div>`:'';
  const youtube=youtubeID(entry.youtube_url);
@@ -50,6 +56,31 @@ function render(){chrome();
 $('dynamicLanguage').addEventListener('click',()=>{lang=lang==='ar'?'en':'ar';localStorage.setItem('portfolio_lang',lang);render()});
 $('dynamicTheme').addEventListener('click',()=>{theme=theme==='dark'?'light':'dark';localStorage.setItem('portfolio_theme',theme);render()});
 chrome();
-if(route&&/^[a-z0-9-]{1,100}$/.test(route)){
- getPublicContent().then(data=>{settings=data.settings;entry=(data.projects||[]).find(p=>p.slug===route&&p.is_published)||null;render()}).catch(()=>{const demo=readDemo();entry=demo.projects.find(p=>p.slug===route&&p.is_published)||null;render()});
-}else render();
+async function loadProject(){
+ if(!route||!(/^[a-zA-Z0-9_-]{1,140}$/.test(route))){showLoadError(tr('رابط المشروع غير صحيح.','Invalid project link.'));return;}
+ $('dynamicProject').innerHTML=`<section class="case-hero"><h1 class="case-title">${tr('جاري تحميل المشروع…','Loading project…')}</h1></section>`;
+ if(!connected){
+  const demo=readDemo();settings=demo.settings;entry=(demo.projects||[]).find(p=>p.slug===route&&p.is_published)||null;
+  try{render()}catch(error){console.error('Project render failed',error);showLoadError(tr('حصل خطأ أثناء عرض المشروع.','Could not display this project.'))}
+  return;
+ }
+ for(let attempt=1;attempt<=3;attempt++){
+  try{
+   const db=await getClient();
+   // Only request this project: errors in services/reviews/lessons must never block it.
+   const {data:project,error}=await db.from('projects').select('*').eq('slug',route).eq('is_published',true).maybeSingle();
+   if(error)throw error;
+   entry=project||null;
+   const {data:site, error:settingsError}=await db.from('site_settings').select('*').eq('id',1).maybeSingle();
+   if(settingsError)console.warn('Optional project site settings unavailable:',settingsError.message);
+   settings=site||{};
+   try{render()}catch(renderError){console.error('Project display error',renderError);showLoadError(tr('حصل خطأ أثناء عرض بيانات المشروع.','Project rendering failed.'));}
+   return;
+  }catch(error){
+   console.warn(`Mo Design project loading attempt ${attempt}/3`,error);
+   if(attempt<3)await wait(450*attempt);
+   else showLoadError(tr('تعذر تحميل المشروع مؤقتًا.','Unable to load the project right now.'));
+  }
+ }
+}
+void loadProject();
