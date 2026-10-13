@@ -161,7 +161,7 @@ function renderServices() {
     if(id==='service-ads'||/social|advertis|ads|سوشيال|إعلان/.test(name))return PORTFOLIO_CATEGORIES[0].id;
     return '';
   };
-  $('#servicesList').innerHTML = items.map((s,i)=>`<article class="service-item reveal"><span class="service-number">/${number(i+1)}</span><h3 class="service-title">${esc(field(s,'title'))}</h3><p class="service-desc">${esc(field(s,'description'))}</p><a href="${serviceCategory(s)?`./index.html?category=${encodeURIComponent(serviceCategory(s))}#work`:`#work`}" class="service-mark" aria-label="${esc(txt().details)}: ${esc(field(s,'title'))}">${icons[s.icon] || '↗'}</a></article>`).join('');
+  $('#servicesList').innerHTML = items.map((s,i)=>`<article class="service-item reveal"><span class="service-number">/${number(i+1)}</span><h3 class="service-title"><a href="${serviceCategory(s)?`./index.html?category=${encodeURIComponent(serviceCategory(s))}#work`:`#work`}" style="color:inherit;text-decoration:none">${esc(field(s,'title'))}</a></h3><p class="service-desc">${esc(field(s,'description'))}</p><a href="${serviceCategory(s)?`./index.html?category=${encodeURIComponent(serviceCategory(s))}#work`:`#work`}" class="service-mark" aria-label="${esc(txt().details)}: ${esc(field(s,'title'))}">${icons[s.icon] || '↗'}</a></article>`).join('');
   observeReveal();
 }
 function showProject(id) {
