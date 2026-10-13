@@ -125,8 +125,8 @@ function setBrandContent() {
 }
 function caseUrl(project){
   const slug=String(project.slug||'').trim();
-  const original=['glow-beauty','vanta-ai','pulse-motion','forme-brand','flash-social','solar-product','neon-ai','noir-identity','aura-fragrance','zest-beverage','kinetik-motion','frame-storyboard'].includes(slug);
-  return original ? `./projects/${encodeURIComponent(slug)}/` : `./project.html?slug=${encodeURIComponent(slug)}`;
+  // The CMS project page is the single source of truth, including for old slugs.
+  return `./project.html?slug=${encodeURIComponent(slug)}`;
 }
 function graphicHTML(project) {
   const type = ['aurora','type','orbit','pop'].includes(project.cover_style) ? project.cover_style : 'aurora';
