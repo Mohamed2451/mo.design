@@ -16,7 +16,8 @@ assert.match(admin,/function updateLessonGalleryCount\(/,'academy gallery count 
 assert.match(admin,/function markCmsDirty\(/,'unsaved CMS changes warning exists');
 assert.match(admin,/function refreshAppearancePreview\(/,'local theme preview exists');
 assert.match(admin,/إعادة التصميم الأصلي جاهزة/,'appearance reset is staged before save');
-assert.doesNotMatch(admin,/if\(action==='resetAppearance'\)\{[\s\S]*?db\.from\('site_settings'\)/,'reset button does not save directly');
+const resetBlock=admin.slice(admin.indexOf("if(action==='resetAppearance')"),admin.indexOf("if(action==='clearNotice')"));
+assert.doesNotMatch(resetBlock,/db\.from\(/,'reset button does not save directly');
 assert.match(css,/V13: keep CMS project images consistent/,'responsive images CSS exists');
 const motion=read('assets/v14-motion.js');
 const style=read('assets/v14-motion.css');
