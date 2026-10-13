@@ -76,7 +76,7 @@ function renderContent(){
  const controls=SECTIONS.map(([id,label])=>`<label class="cms-toggle"><input type="checkbox" name="section_${id}" ${vis[id]===false?'':'checked'}><span><strong>${esc(label)}</strong><small>${vis[id]===false?'مخفي':'يظهر على الموقع'}</small></span></label>`).join('');
  const groups={...CONTENT_GROUPS,'كل العبارات والأزرار الإضافية (تحكم موسع)':copyGroup()};
  const sections=Object.entries(groups).map(([label,fields],i)=>`<details class="cms-editor-group" ${i===0?'open':''}><summary>${esc(label)} <span>▾</span></summary><div class="admin-form-grid">${fields.map(([key,name])=>`${field('ar_'+key,`${name} — بالعربي المصري`,(settings.content_ar||{})[key]??ar[key]??'',{type:'textarea',full:true,rows:2})}${field('en_'+key,`${name} — النسخة الإنجليزية`,(settings.content_en||{})[key]??en[key]??'',{type:'textarea',full:true,rows:2})}`).join('')}</div></details>`).join('');
- return `<div class="admin-panel"><div class="admin-heading"><div><h2>إدارة كل أقسام الموقع</h2><p class="admin-note">فعّل أو اخفي أي قسم، وعدّل عناوينه ووصفه بالعربي والإنجليزي. مش هتحتاج ترجع لـ GitHub.</p></div><a class="admin-btn secondary" href="./index.html" target="_blank" rel="noopener">معاينة ↗</a></div><form data-entity="content" id="contentForm"><div class="v10-home-copy"><h3>✳ كلام الصفحة الرئيسية</h3><p class="admin-note">ده أول كلام العميل بيشوفه في الموقع. عدّله من هنا واحفظ مع باقي الأقسام.</p><div class="admin-form-grid">${field('headline_ar','العنوان الرئيسي — عربي',settings.headline_ar,{type:'textarea',required:true,rows:2})}${field('headline_en','العنوان الرئيسي — إنجليزي',settings.headline_en,{type:'textarea',required:true,rows:2})}${field('subheadline_ar','نبذة البداية — عربي',settings.subheadline_ar,{type:'textarea',rows:3})}${field('subheadline_en','نبذة البداية — إنجليزي',settings.subheadline_en,{type:'textarea',rows:3})}</div></div><h3>الأقسام اللي تظهر للزائر</h3><div class="cms-toggle-grid">${controls}</div><h3 style="margin-block:35px 15px">تحرير النصوص</h3><label class="form-field full" style="margin-block:12px 16px">ابحث عن كلمة أو عبارة عايز تغيّرها<input id="cmsCopySearch" type="search" placeholder="مثلاً: آراء العملاء أو الزر أو العنوان" autocomplete="off"></label>${sections}<div class="admin-sticky-actions"><button type="submit" class="admin-btn">حفظ المحتوى والتغييرات ✓</button><small>المحتوى بيتحفظ على Supabase ويظهر على الموقع من غير GitHub</small></div></form></div>`;
+ return `<div class="admin-panel"><div class="admin-heading"><div><h2>إدارة كل أقسام الموقع</h2><p class="admin-note">فعّل أو اخفي أي قسم، وعدّل عناوينه ووصفه بالعربي والإنجليزي. مش هتحتاج ترجع لـ GitHub.</p></div><a class="admin-btn secondary" href="./index.html" target="_blank" rel="noopener">معاينة ↗</a></div><form data-entity="content" id="contentForm"><div class="v10-home-copy"><h3>✳ كلام الصفحة الرئيسية</h3><p class="admin-note">ده أول كلام العميل بيشوفه في الموقع. عدّله من هنا واحفظ مع باقي الأقسام.</p><div class="admin-form-grid">${field('headline_ar','العنوان الرئيسي — عربي',settings.headline_ar,{type:'textarea',required:true,rows:2})}${field('headline_en','العنوان الرئيسي — إنجليزي',settings.headline_en,{type:'textarea',required:true,rows:2})}${field('subheadline_ar','نبذة البداية — عربي',settings.subheadline_ar,{type:'textarea',rows:3})}${field('subheadline_en','نبذة البداية — إنجليزي',settings.subheadline_en,{type:'textarea',rows:3})}</div></div><h3>الأقسام اللي تظهر للزائر</h3><div class="cms-toggle-grid">${controls}</div><h3 style="margin-block:35px 15px">تحرير النصوص</h3><style id="v13-cms-search-style">.cms-search-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:15px}.cms-search-controls small{margin-inline-end:auto}.cms-search-controls .admin-btn{font-size:12px;padding:8px 10px}.cms-editor-group[hidden],.cms-editor-group .form-field[hidden]{display:none!important}</style><div class="cms-search-tools"><label class="form-field full" style="margin-block:12px 8px">ابحث عن اسم الحقل أو النص الموجود بالعربي أو الإنجليزي<input id="cmsCopySearch" type="search" placeholder="مثلاً: آراء العملاء، الزر، أو كلمات من النص نفسه" autocomplete="off"></label><div class="cms-search-controls"><small id="cmsSearchResults" role="status" aria-live="polite">تقدر تبحث في أسماء الحقول ومحتواها.</small><button class="admin-btn secondary" type="button" data-cms-groups="open">فتح كل المجموعات</button><button class="admin-btn secondary" type="button" data-cms-groups="close">طي كل المجموعات</button></div></div>${sections}<div class="admin-sticky-actions"><button type="submit" class="admin-btn">حفظ المحتوى والتغييرات ✓</button><small>المحتوى بيتحفظ على Supabase ويظهر على الموقع من غير GitHub</small></div></form></div>`;
 }
 
 function renderSettings(){
@@ -447,12 +447,33 @@ function exportDemo(){
 }
 $('#adminApp').addEventListener('input',e=>{
   const target=e.target;
-  if(target.id==='cmsCopySearch'){const q=target.value.trim().toLocaleLowerCase();
-    document.querySelectorAll('.cms-editor-group').forEach(group=>{let found=0;group.querySelectorAll('.form-field').forEach(el=>{const ok=!q||el.textContent.toLocaleLowerCase().includes(q);el.hidden=!ok;if(ok)found++;});group.hidden=!!q&&!found;if(q&&found)group.open=true;});return;
+  if(target.id==='cmsCopySearch'){
+    const q=target.value.trim().toLocaleLowerCase();let matches=0;
+    document.querySelectorAll('.cms-editor-group').forEach(group=>{
+      let found=0;
+      group.querySelectorAll('.form-field').forEach(el=>{
+        const input=el.querySelector('input,textarea,select');
+        const searchText=[el.textContent,input?.value||'',input?.name||'',group.querySelector('summary')?.textContent||''].join(' ').toLocaleLowerCase();
+        const ok=!q||searchText.includes(q);
+        el.hidden=!ok;if(ok)found++;
+      });
+      group.hidden=!!q&&!found;
+      if(q&&found)group.open=true;
+      matches+=found;
+    });
+    const results=document.querySelector('#cmsSearchResults');
+    if(results)results.textContent=q?(matches?'نتائج البحث: '+matches+' حقل':'مفيش نتائج. جرّب كلمة تانية.'):'تقدر تبحث في أسماء الحقول ومحتواها.';
+    return;
   }
   if(target.closest('#appearanceForm') && /__(dark_bg|dark_text|dark_accent|light_bg|light_text|light_accent|cover_url|cover_file|font|heading_size|body_size|padding|height|shade)$/.test(target.name||'')){
     const section=target.name.split('__')[0];const flag=document.querySelector(`[name="${section}__enabled"]`);if(flag){flag.value='1';const label=flag.closest('.appearance-reset-bar')?.querySelector('.appearance-state');if(label)label.textContent='تغييرات جاهزة للحفظ — اضغط حفظ ألوان الأقسام';}
   }
+});
+$('#adminApp').addEventListener('click',e=>{
+  const toggle=e.target.closest('[data-cms-groups]');
+  if(!toggle)return;
+  const open=toggle.dataset.cmsGroups==='open';
+  document.querySelectorAll('.cms-editor-group:not([hidden])').forEach(group=>{group.open=open;});
 });
 $('#adminApp').addEventListener('click',async e=>{
   const rb=e.target.closest('[data-rich]');if(rb){
