@@ -5,7 +5,7 @@ import {PORTFOLIO_CATEGORIES, categoryFor} from './categories.js';
 let model = connected ? {...seed, projects:[], testimonials:[]} : readDemo();
 let lang = (()=>{try{return localStorage.getItem('portfolio_lang')==='en'?'en':'ar'}catch{return 'ar'}})();
 let theme = (()=>{try{return localStorage.getItem('portfolio_theme')==='light'?'light':'dark'}catch{return 'dark'}})();
-let activeCategory = '*';
+let activeCategory = (()=>{const id=new URLSearchParams(location.search).get('category');return PORTFOLIO_CATEGORIES.some(c=>c.id===id)?id:'*';})();
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const txt = () => ({...(lang === 'ar' ? ar : en), ...(model.settings?.[lang==='ar'?'content_ar':'content_en']||{})});
@@ -125,10 +125,9 @@ function setBrandContent() {
 }
 function caseUrl(project){
   const slug=String(project.slug||'').trim();
-  // Preserve legacy static case studies; database-backed projects use the CMS route.
-  const original=['glow-beauty','vanta-ai','pulse-motion','forme-brand','flash-social','solar-product','neon-ai','noir-identity','aura-fragrance','zest-beverage','kinetik-motion','frame-storyboard'].includes(slug);
-  return original ? `./projects/${encodeURIComponent(slug)}/` : `./project.html?slug=${encodeURIComponent(slug)}`;
+  return `./project.html?slug=${encodeURIComponent(slug)}`;
 }
+
 function graphicHTML(project) {
   const type = ['aurora','type','orbit','pop'].includes(project.cover_style) ? project.cover_style : 'aurora';
   const safeImage = safeUrl(project.image_url);
@@ -153,8 +152,16 @@ function renderProjects() {
 function renderServices() {
   const items = model.services.filter(s=>s.is_published).sort((a,b)=>(a.sort_order || 0)-(b.sort_order || 0));
   const icons = {diamond:'◇',sparkles:'✳',play:'▷',layout:'▦',target:'◎',brush:'✺'};
-  const serviceSlug = s => {const id=String(s.id||'');const title=String(s.title_en||'').toLowerCase();if(id==='service-edit'||/reels|podcast|video/.test(title))return 'video-motion';if(id==='service-ai'||/ai|images|video concepts/.test(title))return 'ai-creative';if(id==='service-prompts'||/prompt/.test(title))return 'prompt-engineering';if(id==='service-brand'||/brand|identity/.test(title))return 'branding';if(id==='service-ads'||/social|advertis|ads/.test(title))return 'social-media';return '';};
-  $('#servicesList').innerHTML = items.map((s,i)=>`<article class="service-item reveal"><span class="service-number">/${number(i+1)}</span><h3 class="service-title">${esc(field(s,'title'))}</h3><p class="service-desc">${esc(field(s,'description'))}</p><a href="${serviceSlug(s)?`./services/${serviceSlug(s)}/`:`#contact`}" class="service-mark" aria-label="${esc(txt().details)}: ${esc(field(s,'title'))}">${icons[s.icon] || '↗'}</a></article>`).join('');
+  const serviceCategory = service => {
+    const id=String(service.id||'').toLowerCase();
+    const name=[service.title_en,service.title_ar].join(' ').toLowerCase();
+    if(id==='service-edit'||/reels|podcast|video|مونتاج|ريلز|بودكاست/.test(name))return PORTFOLIO_CATEGORIES[1].id;
+    if(id==='service-ai'||id==='service-prompts'||/artificial|\bai\b|prompt|ذكاء|اصطناعي/.test(name))return PORTFOLIO_CATEGORIES[2].id;
+    if(id==='service-brand'||/brand|identity|هوية|براند/.test(name))return PORTFOLIO_CATEGORIES[3].id;
+    if(id==='service-ads'||/social|advertis|ads|سوشيال|إعلان/.test(name))return PORTFOLIO_CATEGORIES[0].id;
+    return '';
+  };
+  $('#servicesList').innerHTML = items.map((s,i)=>`<article class="service-item reveal"><span class="service-number">/${number(i+1)}</span><h3 class="service-title">${esc(field(s,'title'))}</h3><p class="service-desc">${esc(field(s,'description'))}</p><a href="${serviceCategory(s)?`./index.html?category=${encodeURIComponent(serviceCategory(s))}#work`:`#work`}" class="service-mark" aria-label="${esc(txt().details)}: ${esc(field(s,'title'))}">${icons[s.icon] || '↗'}</a></article>`).join('');
   observeReveal();
 }
 function showProject(id) {
