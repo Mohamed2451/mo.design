@@ -29,4 +29,11 @@ assert.match(style,/prefers-reduced-motion:reduce/,'motion styles respect access
 assert.match(homepage,/v14-motion\.js/,'motion layer is connected on homepage');
 assert.match(homepage,/v14-motion\.css/,'motion stylesheet is connected on homepage');
 assert.match(adminPage,/v14-motion\.css/,'media deletion buttons styled in admin');
+const studioCss=read('assets/v15-studio.css');
+const studioJs=read('assets/v15-studio.js');
+assert.match(studioCss,/prefers-reduced-motion:reduce/,'V15 respects reduced motion');
+assert.match(studioJs,/IntersectionObserver/,'V15 uses progressive scroll observer');
+assert.match(studioJs,/MutationObserver/,'V15 handles asynchronous project cards');
+assert.match(homepage,/v15-studio\.css/,'V15 stylesheet is loaded');
+assert.match(homepage,/v15-studio\.js/,'V15 interactions are loaded');
 console.log('V13 regression checks passed');
