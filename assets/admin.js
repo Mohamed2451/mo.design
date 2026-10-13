@@ -8,6 +8,18 @@ let currentUser = null;
 let tab = 'overview';
 let editing = null; // {table,id}
 let busy = false;
+let cmsDirty = false;
+function markCmsDirty(){
+  if(cmsDirty)return;
+  cmsDirty=true;
+  const state=document.querySelector('#cmsSaveStatus');
+  if(state)state.textContent='عندك تغييرات غير محفوظة';
+}
+window.addEventListener('beforeunload',event=>{
+  if(!cmsDirty)return;
+  event.preventDefault();
+  event.returnValue='';
+});
 
 // Dashboard always uses its own neutral dark palette; the public site's theme remains unchanged.
 const labels = {notice:'إشعارات الموقع',overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',appearance:'مظهر الأقسام',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى'};
@@ -76,7 +88,7 @@ function renderContent(){
  const controls=SECTIONS.map(([id,label])=>`<label class="cms-toggle"><input type="checkbox" name="section_${id}" ${vis[id]===false?'':'checked'}><span><strong>${esc(label)}</strong><small>${vis[id]===false?'مخفي':'يظهر على الموقع'}</small></span></label>`).join('');
  const groups={...CONTENT_GROUPS,'كل العبارات والأزرار الإضافية (تحكم موسع)':copyGroup()};
  const sections=Object.entries(groups).map(([label,fields],i)=>`<details class="cms-editor-group" ${i===0?'open':''}><summary>${esc(label)} <span>▾</span></summary><div class="admin-form-grid">${fields.map(([key,name])=>`${field('ar_'+key,`${name} — بالعربي المصري`,(settings.content_ar||{})[key]??ar[key]??'',{type:'textarea',full:true,rows:2})}${field('en_'+key,`${name} — النسخة الإنجليزية`,(settings.content_en||{})[key]??en[key]??'',{type:'textarea',full:true,rows:2})}`).join('')}</div></details>`).join('');
- return `<div class="admin-panel"><div class="admin-heading"><div><h2>إدارة كل أقسام الموقع</h2><p class="admin-note">فعّل أو اخفي أي قسم، وعدّل عناوينه ووصفه بالعربي والإنجليزي. مش هتحتاج ترجع لـ GitHub.</p></div><a class="admin-btn secondary" href="./index.html" target="_blank" rel="noopener">معاينة ↗</a></div><form data-entity="content" id="contentForm"><div class="v10-home-copy"><h3>✳ كلام الصفحة الرئيسية</h3><p class="admin-note">ده أول كلام العميل بيشوفه في الموقع. عدّله من هنا واحفظ مع باقي الأقسام.</p><div class="admin-form-grid">${field('headline_ar','العنوان الرئيسي — عربي',settings.headline_ar,{type:'textarea',required:true,rows:2})}${field('headline_en','العنوان الرئيسي — إنجليزي',settings.headline_en,{type:'textarea',required:true,rows:2})}${field('subheadline_ar','نبذة البداية — عربي',settings.subheadline_ar,{type:'textarea',rows:3})}${field('subheadline_en','نبذة البداية — إنجليزي',settings.subheadline_en,{type:'textarea',rows:3})}</div></div><h3>الأقسام اللي تظهر للزائر</h3><div class="cms-toggle-grid">${controls}</div><h3 style="margin-block:35px 15px">تحرير النصوص</h3><style id="v13-cms-search-style">.cms-search-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:15px}.cms-search-controls small{margin-inline-end:auto}.cms-search-controls .admin-btn{font-size:12px;padding:8px 10px}.cms-editor-group[hidden],.cms-editor-group .form-field[hidden]{display:none!important}</style><div class="cms-search-tools"><label class="form-field full" style="margin-block:12px 8px">ابحث عن اسم الحقل أو النص الموجود بالعربي أو الإنجليزي<input id="cmsCopySearch" type="search" placeholder="مثلاً: آراء العملاء، الزر، أو كلمات من النص نفسه" autocomplete="off"></label><div class="cms-search-controls"><small id="cmsSearchResults" role="status" aria-live="polite">تقدر تبحث في أسماء الحقول ومحتواها.</small><button class="admin-btn secondary" type="button" data-cms-groups="open">فتح كل المجموعات</button><button class="admin-btn secondary" type="button" data-cms-groups="close">طي كل المجموعات</button></div></div>${sections}<div class="admin-sticky-actions"><button type="submit" class="admin-btn">حفظ المحتوى والتغييرات ✓</button><small>المحتوى بيتحفظ على Supabase ويظهر على الموقع من غير GitHub</small></div></form></div>`;
+ return `<div class="admin-panel"><div class="admin-heading"><div><h2>إدارة كل أقسام الموقع</h2><p class="admin-note">فعّل أو اخفي أي قسم، وعدّل عناوينه ووصفه بالعربي والإنجليزي. مش هتحتاج ترجع لـ GitHub.</p></div><a class="admin-btn secondary" href="./index.html" target="_blank" rel="noopener">معاينة ↗</a></div><form data-entity="content" id="contentForm"><div class="v10-home-copy"><h3>✳ كلام الصفحة الرئيسية</h3><p class="admin-note">ده أول كلام العميل بيشوفه في الموقع. عدّله من هنا واحفظ مع باقي الأقسام.</p><div class="admin-form-grid">${field('headline_ar','العنوان الرئيسي — عربي',settings.headline_ar,{type:'textarea',required:true,rows:2})}${field('headline_en','العنوان الرئيسي — إنجليزي',settings.headline_en,{type:'textarea',required:true,rows:2})}${field('subheadline_ar','نبذة البداية — عربي',settings.subheadline_ar,{type:'textarea',rows:3})}${field('subheadline_en','نبذة البداية — إنجليزي',settings.subheadline_en,{type:'textarea',rows:3})}</div></div><h3>الأقسام اللي تظهر للزائر</h3><div class="cms-toggle-grid">${controls}</div><h3 style="margin-block:35px 15px">تحرير النصوص</h3><style id="v13-cms-search-style">.cms-search-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:15px}.cms-search-controls small{margin-inline-end:auto}.cms-search-controls .admin-btn{font-size:12px;padding:8px 10px}.cms-editor-group[hidden],.cms-editor-group .form-field[hidden]{display:none!important}</style><div class="cms-search-tools"><label class="form-field full" style="margin-block:12px 8px">ابحث عن اسم الحقل أو النص الموجود بالعربي أو الإنجليزي<input id="cmsCopySearch" type="search" placeholder="مثلاً: آراء العملاء، الزر، أو كلمات من النص نفسه" autocomplete="off"></label><div class="cms-search-controls"><small id="cmsSearchResults" role="status" aria-live="polite">تقدر تبحث في أسماء الحقول ومحتواها.</small><button class="admin-btn secondary" type="button" data-cms-groups="open">فتح كل المجموعات</button><button class="admin-btn secondary" type="button" data-cms-groups="close">طي كل المجموعات</button></div></div>${sections}<div class="admin-sticky-actions"><button type="submit" class="admin-btn">حفظ المحتوى والتغييرات ✓</button><small id="cmsSaveStatus" role="status">المحتوى بيتحفظ على Supabase ويظهر على الموقع من غير GitHub</small></div></form></div>`;
 }
 
 function renderSettings(){
@@ -425,6 +437,7 @@ async function saveForm(form){
       else data[table].push({...entry,id:`local-${Date.now()}`,slug:`project-${Date.now()}`});
       saveDemo(data);
     }
+    if(table==='content')cmsDirty=false;
     editing=null; renderPanel(); toast('تم حفظ التعديلات بنجاح ✓');
   } catch(error){console.error(error);toast(`تعذر الحفظ: ${error.message || 'Unknown error'}`);}
   finally{busy=false;}
@@ -445,6 +458,12 @@ function exportDemo(){
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='mo-design-portfolio-preview-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
+$('#adminApp').addEventListener('input',e=>{
+  if(e.target.closest('#contentForm') && e.target.id!=='cmsCopySearch')markCmsDirty();
+});
+$('#adminApp').addEventListener('change',e=>{
+  if(e.target.closest('#contentForm') && e.target.id!=='cmsCopySearch')markCmsDirty();
+});
 $('#adminApp').addEventListener('input',e=>{
   const target=e.target;
   if(target.id==='cmsCopySearch'){
@@ -483,7 +502,10 @@ $('#adminApp').addEventListener('click',async e=>{
     area.setRangeText(out,a,b,'select');area.focus();return;
   }
   const nav=e.target.closest('button[data-tab]');
-  if(nav){tab=nav.dataset.tab;editing=null;renderPanel();window.scrollTo({top:0,behavior:'smooth'});return;}
+  if(nav){
+    if(cmsDirty && !confirm('عندك تغييرات غير محفوظة في محرر الموقع. هل تريد مغادرة القسم وفقدان التعديلات؟'))return;
+    cmsDirty=false;tab=nav.dataset.tab;editing=null;renderPanel();window.scrollTo({top:0,behavior:'smooth'});return;
+  }
   const copyBtn=e.target.closest('[data-copy-url]');if(copyBtn){try{await navigator.clipboard.writeText(copyBtn.dataset.copyUrl);toast('تم نسخ الرابط ✓');}catch{toast('تعذر نسخ الرابط');}return;}
   const btn=e.target.closest('button[data-action]');if(!btn)return;
   const {action,id}=btn.dataset;
