@@ -36,4 +36,9 @@ assert.match(studioJs,/IntersectionObserver/,'V15 uses progressive scroll observ
 assert.match(studioJs,/MutationObserver/,'V15 handles asynchronous project cards');
 assert.match(homepage,/v15-studio\.css/,'V15 stylesheet is loaded');
 assert.match(homepage,/v15-studio\.js/,'V15 interactions are loaded');
+const impactCss=read('assets/v16-impact.css');
+assert.match(homepage,/v16-impact\.css/,'V16 impact CSS linked');
+assert.match(homepage,/v16-work-editorial/,'V16 editorial portfolio header exists');
+assert.match(homepage,/v16-creative-strip/,'V16 hero studio strip exists');
+assert.match(impactCss,/\.v16-work-editorial/,'V16 design rules available');
 console.log('V13 regression checks passed');
