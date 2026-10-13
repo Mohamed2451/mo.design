@@ -189,9 +189,20 @@ async function uploadLearningVideo(file){
 async function loadMedia(){
  const grid=$('#mediaGallery');if(!grid||!connected)return;
  try{
-  const db=await getClient();const [project,other]=await Promise.all(['projects','general'].map(folder=>db.storage.from('portfolio-media').list(folder,{limit:100,sortBy:{column:'created_at',order:'desc'}})));
-  const errors=[project,other].filter(r=>r.error);if(errors.length)throw errors[0].error;
-  mediaCache=[...project.data.map(x=>({folder:'projects',...x})),...other.data.map(x=>({folder:'general',...x}))].filter(x=>x.name&&!x.name.startsWith('.'));
+  const db=await getClient();
+  async function listFolder(folder){
+    const all=[];const limit=100;const maxPages=20;
+    for(let page=0;page<maxPages;page++){
+      const {data:batch,error}=await db.storage.from('portfolio-media').list(folder,{limit,offset:page*limit,sortBy:{column:'created_at',order:'desc'}});
+      if(error)throw error;
+      all.push(...(batch||[]).map(x=>({folder,...x})));
+      if(!batch||batch.length<limit)return all;
+    }
+    console.warn('Media library listing reached its 2000-file safety cap:',folder);
+    return all;
+  }
+  const lists=await Promise.all(['projects','general'].map(listFolder));
+  mediaCache=lists.flat().filter(x=>x.name&&!x.name.startsWith('.'));
   grid.innerHTML=mediaCache.map(x=>{const url=db.storage.from('portfolio-media').getPublicUrl(x.folder+'/'+x.name).data.publicUrl;return `<div class="media-card"><img src="${esc(url)}" alt="صورة من مكتبة الوسائط" loading="lazy"><small dir="ltr" title="${esc(x.name)}">${esc(x.name.slice(0,14))}...</small><div class="v13-media-actions"><button type="button" class="admin-btn secondary" data-copy-url="${esc(url)}">نسخ الرابط</button><button type="button" class="admin-btn secondary v13-media-delete" data-media-delete="${esc(x.folder+'/'+x.name)}">حذف الصورة</button></div></div>`}).join('')||'<p class="admin-empty">المكتبة فاضية، ابدأ برفع صورة.</p>';
  }catch(e){grid.innerHTML=`<p class="admin-note">تعذّر تحميل الصور: ${esc(e.message)}</p>`;}
 }
