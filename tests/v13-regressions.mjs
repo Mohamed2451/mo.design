@@ -21,6 +21,7 @@ const style=read('assets/v14-motion.css');
 const homepage=read('index.html');
 const adminPage=read('admin.html');
 assert.match(admin,/data-media-delete/,'media library offers delete button');
+assert.match(admin,/offset:page\*limit/,'media library loads pages beyond the first 100 files');
 assert.match(admin,/portfolio-media'\)\.remove\(\[path\]\)/,'media deletion uses Supabase Storage');
 assert.match(admin,/mediaCache\.some\(/,'media deletion restricted to listed files');
 assert.match(admin,/if\(referenced\)/,'media deletion guards against known content references');
