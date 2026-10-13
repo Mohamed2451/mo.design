@@ -33,4 +33,4 @@ jobs:
           find assets tests -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -r -n 1 node --check
 
       - name: Run V13 loading tests
-        run: node --test tests/v13-loading-smoke.mjs
+        run: node --test tests/v13-loading-smoke.mjs tests/v13-regressions.mjs
