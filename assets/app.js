@@ -37,7 +37,7 @@ function refreshTicker(force=false){
  track.replaceChildren(segment);
  // Repeat until one full half is wider than the complete viewport.
  let count=0;
- while(segment.getBoundingClientRect().width<viewport+160&&count<50){segment.insertAdjacentHTML('beforeend',build());count++;}
+ while(segment.getBoundingClientRect().width<viewport+160&&count<12){segment.insertAdjacentHTML('beforeend',build());count++;}
  const width=Math.ceil(segment.getBoundingClientRect().width);
  const duplicate=segment.cloneNode(true);duplicate.setAttribute('aria-hidden','true');
  track.appendChild(duplicate);
@@ -50,7 +50,7 @@ function refreshTicker(force=false){
  track.style.animation='';
 }
 window.addEventListener('resize',()=>{
- if(tickerResizePending)return;
+ if(document.hidden || tickerResizePending)return;
  tickerResizePending=true;
  requestAnimationFrame(()=>{tickerResizePending=false;refreshTicker(true);});
 },{passive:true});
@@ -242,29 +242,8 @@ function renderTools() {
 }
 
 function applyInteractiveFX(){
-  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const nodes = $$('.project-card,.process-card,.review-card,.tool-card,.service-item');
-  nodes.forEach(node=>{
-    if(node.dataset.fxBound) return;
-    node.dataset.fxBound='1';
-    node.classList.add('tilt-card');
-    node.addEventListener('pointermove',e=>{
-      if(e.pointerType==='touch')return;
-      const r=node.getBoundingClientRect();
-      const x=(e.clientX-r.left)/r.width;
-      const y=(e.clientY-r.top)/r.height;
-      const rx=(0.5-y)*8;
-      const ry=(x-0.5)*8;
-      node.style.setProperty('--mx',`${Math.round(x*100)}%`);
-      node.style.setProperty('--my',`${Math.round(y*100)}%`);
-      node.style.transform=`perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-4px)`;
-    });
-    node.addEventListener('pointerleave',()=>{
-      node.style.transform='';
-      node.style.removeProperty('--mx');
-      node.style.removeProperty('--my');
-    });
-  });
+  // Heavy per-card pointer tracking was causing unnecessary layout work.
+  // CSS hover effects remain; no pointermove listeners are registered.
 }
 
 function observeReveal() {
