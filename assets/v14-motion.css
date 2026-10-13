@@ -1,0 +1,27 @@
+/* Mo Design V14 — refined motion layer, respects theme and reduced motion */
+@media (prefers-reduced-motion:no-preference) {
+  .hero-orb,.portrait-glow{will-change:transform}
+  .hero-orb.orb-a{animation:mo14-float-a 12s ease-in-out infinite alternate}
+  .hero-orb.orb-b{animation:mo14-float-b 15s ease-in-out infinite alternate}
+  @keyframes mo14-float-a{to{transform:translate3d(24px,-25px,0) scale(1.1)}}
+  @keyframes mo14-float-b{to{transform:translate3d(-18px,22px,0) scale(.92)}}
+  .hero-art{--mo14-x:0px;--mo14-y:0px;transform:translate3d(var(--mo14-x),var(--mo14-y),0);transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+  .project-card,.feature-slide,.service-card{transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s ease}
+  .project-card:hover{transform:translateY(-7px)}
+  .project-cover img{transition:transform .75s cubic-bezier(.2,.8,.2,1)}
+  .project-card:hover .project-cover img{transform:scale(1.045)}
+  .pill-btn,.ghost-btn,.filter-pill{transition:transform .25s ease,box-shadow .25s ease,background-color .25s ease}
+  .pill-btn:hover,.ghost-btn:hover{transform:translateY(-3px)}
+  .section-title{letter-spacing:-.025em;text-wrap:balance}
+  .hero-title em{background-size:200% 100%;animation:mo14-glow 9s ease-in-out infinite alternate}
+  @keyframes mo14-glow{to{filter:brightness(1.12)}}
+}
+@media (prefers-reduced-motion:reduce){
+  .hero-orb,.portrait-glow,.hero-title em{animation:none!important}
+  .project-card,.project-cover img,.hero-art,.pill-btn,.ghost-btn{transition:none!important;transform:none!important}
+}
+@media (hover:none),(pointer:coarse){.project-card:hover{transform:none}}
+.v13-media-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
+.v13-media-actions button{flex:1 1 90px}
+.dashboard-page .v13-media-delete{color:#ffb1b1!important;border-color:#8d4c58!important}
+.dashboard-page .v13-media-delete:hover{background:#4b202b!important}
