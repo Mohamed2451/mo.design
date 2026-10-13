@@ -224,7 +224,7 @@ function renderLearningItemEditor(item){
  ${field('thumbnail_url','رابط صورة مصغرة (اختياري)',item.thumbnail_url||'',{type:'url',full:true})}
  <label class="form-field full">أو ارفع صورة مصغّرة من جهازك (JPG / PNG / WebP لحد 8 ميجابايت)<input type="file" name="lesson_thumbnail_file" accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}><small>لو اخترت صورة هنا هتترفع تلقائيًا وقت الحفظ، وتظهر على بطاقة الدرس.</small></label>
  ${field('image_urls','صور الشرح داخل الدرس — رابط HTTPS لكل صورة في سطر (اختياري)',item.image_urls||'',{type:'textarea',full:true,rows:3})}
- <label class="form-field full">ارفع صور الشرح من الكمبيوتر (حتى 15 صورة إجماليًا، 8MB للصورة)<input type="file" name="lesson_images_files" accept="image/png,image/jpeg,image/webp,image/avif" multiple ${connected?'':'disabled'}><small>كل صورة هتظهر كاملة داخل صفحة الدرس بعد الشرح، بالترتيب اللي رفعتها بيه.</small></label>
+ <label class="form-field full">ارفع صور الشرح من الكمبيوتر (حتى 15 صورة إجماليًا، 8MB للصورة)<input type="file" name="lesson_images_files" accept="image/png,image/jpeg,image/webp,image/avif" multiple ${connected?'':'disabled'}><small data-lesson-gallery-count role="status" aria-live="polite">صور الدرس: الحد الأقصى 15 صورة شامل الروابط والملفات.</small></label>
  ${field('text_font','خط المحتوى',item.text_style?.font||'Alexandria',{select:FONT_CHOICES})}${field('text_size','حجم النص بالبكسل (14–30)',item.text_style?.size||17,{type:'number'})}
  ${field('resource_links','روابط الشرح وملفات PDF أو Google Drive (كل رابط في سطر، بصيغة: اسم الملف | https://...)',item.resource_links||'',{type:'textarea',full:true,rows:4})}
  <p class="admin-note full">علشان ملفات Google Drive تفتح للزوار: افتح إعدادات المشاركة للملف واختر «أي شخص معه الرابط — مشاهد».</p>
@@ -477,6 +477,19 @@ function exportDemo(){
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='mo-design-portfolio-preview-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
+function updateLessonGalleryCount(form){
+ if(!form || form.dataset.entity!=='learning_items')return;
+ const urls=String(form.querySelector('[name="image_urls"]')?.value||'').split(/\r?\n/).filter(line=>line.trim()).length;
+ const files=form.querySelector('[name="lesson_images_files"]')?.files?.length||0;
+ const total=urls+files;
+ const label=form.querySelector('[data-lesson-gallery-count]');
+ if(label){
+  label.textContent='صور الدرس: '+total+' من 15 ('+urls+' روابط + '+files+' ملفات)';
+  label.style.color=total>15?'#ff8a8a':'';
+ }
+ const submit=form.querySelector('button[type="submit"]');
+ if(submit)submit.disabled=total>15;
+}
 function updateProjectGalleryCount(form){
  if(!form || form.dataset.entity!=='projects')return;
  const urls=String(form.querySelector('[name="gallery_urls"]')?.value||'').split(/\r?\n/).filter(line=>line.trim()).length;
@@ -492,9 +505,11 @@ function updateProjectGalleryCount(form){
 }
 $('#adminApp').addEventListener('input',e=>{
  if(e.target.name==='gallery_urls')updateProjectGalleryCount(e.target.closest('form'));
+ if(e.target.name==='image_urls')updateLessonGalleryCount(e.target.closest('form'));
 });
 $('#adminApp').addEventListener('change',e=>{
  if(e.target.name==='gallery_files')updateProjectGalleryCount(e.target.closest('form'));
+ if(e.target.name==='lesson_images_files')updateLessonGalleryCount(e.target.closest('form'));
 });
 $('#adminApp').addEventListener('input',e=>{
   if(e.target.closest('#contentForm') && e.target.id!=='cmsCopySearch')markCmsDirty();
