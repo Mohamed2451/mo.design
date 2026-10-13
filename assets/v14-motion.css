@@ -25,3 +25,7 @@
 .v13-media-actions button{flex:1 1 90px}
 .dashboard-page .v13-media-delete{color:#ffb1b1!important;border-color:#8d4c58!important}
 .dashboard-page .v13-media-delete:hover{background:#4b202b!important}
+
+.mo14-scroll-progress{position:fixed;inset:0 0 auto;z-index:9000;height:3px;pointer-events:none;transform:scaleX(0);transform-origin:left center;background:linear-gradient(90deg,#a7ed73,#ecffce);box-shadow:0 0 14px #a7ed7380;will-change:transform}
+html.light .mo14-scroll-progress{background:linear-gradient(90deg,#345e23,#85be50);box-shadow:0 0 9px #547e2a60}
+@media (prefers-reduced-motion:reduce){.mo14-scroll-progress{display:none}}
