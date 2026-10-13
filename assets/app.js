@@ -380,9 +380,17 @@ function applySectionDesign(){
  const validHex=v=>/^#[0-9a-f]{6}$/i.test(v||'')?v:'';
  for(const [id,raw] of Object.entries(design)){
   const section=document.getElementById(id);
-  if(!section || !raw || typeof raw!=='object' || raw.enabled!==true)continue;
+  if(!section || !raw || typeof raw!=='object')continue;
   const target=['cta','learn'].includes(id)?section.querySelector(id==='cta'?'.cta-statement':'.learn-panel'):section;
   if(!target)continue;
+  // Reset previously applied styles when the custom section design is disabled.
+  if(raw.enabled!==true){
+    target.classList.remove('v11-designed','v11-with-cover','v12-custom-font','v12-custom-heading','v12-custom-body');
+    for(const key of ['--v11-bg','--v11-fg','--v11-accent','--v11-pad','--v11-minh','--v11-cover','--v11-shade','--v12-section-font','--v12-heading-size','--v12-body-size']){
+      target.style.removeProperty(key);
+    }
+    continue;
+  }
   const mode=theme==='light'?'light':'dark';
   const background=validHex(raw[mode+'_bg']);
   const foreground=validHex(raw[mode+'_text']);
