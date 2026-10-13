@@ -251,6 +251,21 @@ function renderFuture(){
 
 
 const DESIGN_SECTIONS=[['home','بداية الموقع'],['featured','المشاريع المميزة'],['signature','أكتر من مجرد تصميم'],['work','معرض الأعمال'],['services','الخدمات'],['why','أسلوبي في الشغل'],['about','نبذة عني'],['process','مراحل التنفيذ'],['testimonials','آراء العملاء'],['cta','شغلك يستحق يتشاف'],['learn','الأكاديمية والمحتوى'],['contact','التواصل']];
+function refreshAppearancePreview(section){
+ const preview=document.querySelector('[data-appearance-preview="'+section+'"]');
+ const form=document.querySelector('#appearanceForm');
+ if(!preview||!form)return;
+ for(const mode of ['dark','light']){
+  const card=preview.querySelector('[data-preview-mode="'+mode+'"]');
+  if(!card)continue;
+  const get=k=>form.elements.namedItem(section+'__'+mode+'_'+k)?.value;
+  const hex=v=>/^#[0-9a-f]{6}$/i.test(v||'')?v:null;
+  const bg=hex(get('bg')),fg=hex(get('text')),accent=hex(get('accent'));
+  if(bg)card.style.backgroundColor=bg;
+  if(fg)card.style.color=fg;
+  const mark=card.querySelector('span');if(mark&&accent)mark.style.color=accent;
+ }
+}
 function renderAppearance(){
  const design=data.settings?.section_design||{};
  const fields=DESIGN_SECTIONS.map(([id,label],index)=>{
@@ -261,6 +276,10 @@ function renderAppearance(){
     <div class="full appearance-reset-bar"><span class="appearance-state">${d.enabled?'المظهر المخصص محفوظ لهذا القسم':'القسم على ألوانه الأصلية'} — أي تعديل جديد هيتفعّل عند الحفظ.</span><input type="hidden" name="${id}__enabled" value="${d.enabled?'1':'0'}"><button type="button" class="admin-btn secondary appearance-reset-button" data-action="resetAppearance" data-section="${id}">↶ إعادة الألوان والتصميم الأصلي</button></div>
     ${colorInput('dark_bg','خلفية الدارك مود','#10121a')}${colorInput('dark_text','الكتابة في الدارك مود','#f4f4f5')}${colorInput('dark_accent','اللون المميز في الدارك مود','#c6fa8a')}
     ${colorInput('light_bg','خلفية اللايت مود','#f7f5ef')}${colorInput('light_text','الكتابة في اللايت مود','#172026')}${colorInput('light_accent','اللون المميز في اللايت مود','#39671a')}
+    <div class="full v13-preview-pair" data-appearance-preview="${id}" aria-label="معاينة محلية للألوان قبل الحفظ">
+      <div class="v13-preview-mode" data-preview-mode="dark" style="background:${color('dark_bg','#10121a')};color:${color('dark_text','#f4f4f5')}"><small>Dark mode — معاينة فقط</small><strong>عنوان تجريبي للقسم</strong><span style="color:${color('dark_accent','#c6fa8a')}">نص باللون المميز ●</span><p>مثال على وضوح النص فوق الخلفية.</p></div>
+      <div class="v13-preview-mode" data-preview-mode="light" style="background:${color('light_bg','#f7f5ef')};color:${color('light_text','#172026')}"><small>Light mode — معاينة فقط</small><strong>عنوان تجريبي للقسم</strong><span style="color:${color('light_accent','#39671a')}">نص باللون المميز ●</span><p>مثال على وضوح النص فوق الخلفية.</p></div>
+    </div>
     ${field(id+'__cover_url','رابط الكافر الحالي (اختياري)',d.cover_url||'',{type:'url',full:true})}
     <label class="form-field full">ارفع كافر من جهازك لهذا القسم (اختياري)<input name="${id}__cover_file" type="file" accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}><small>حد أقصى 8 ميجابايت للصورة، وتقدر تغيّره أو تمسح الرابط في أي وقت.</small></label>
     ${field(id+'__font','خط نصوص القسم',d.font||'',{select:[['','الخط الحالي'],...FONT_CHOICES]})}
@@ -271,7 +290,7 @@ function renderAppearance(){
     ${field(id+'__shade','تعتيم صورة الكافر (من 0.1 إلى 0.92)',d.shade??0.7,{type:'text'})}
     </div></details>`;
  }).join('');
- return `<section class="admin-panel v11-appearance"><div class="admin-heading"><div><h2>تحكّم في شكل أقسام الموقع</h2><p class="admin-note">كل قسم تقدر تغيّر خلفيته ولون الكتابة واللون المميز وصورة الكافر وارتفاعه. تغيير ألوان اللايت ما يأثرش على الدارك.</p></div><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">معاينة ↗</a></div><form data-entity="appearance" id="appearanceForm"><details class="v11-section-editor" open><summary>✎ العنوان والوصف: «التفاصيل اللي بتفرق»</summary><div class="admin-form-grid">${field('reviews_title_ar','عنوان القسم بالعربي',(data.settings?.content_ar||{}).reviews_title??ar.reviews_title??'التفاصيل اللي بتفرق.',{full:true})}${field('reviews_title_en','العنوان بالإنجليزي',(data.settings?.content_en||{}).reviews_title??en.reviews_title??'The details make the difference.',{full:true})}${field('reviews_sub_ar','وصف القسم بالعربي',(data.settings?.content_ar||{}).reviews_sub??ar.reviews_sub??'',{type:'textarea',full:true})}${field('reviews_sub_en','وصف القسم بالإنجليزي',(data.settings?.content_en||{}).reviews_sub??en.reviews_sub??'',{type:'textarea',full:true})}</div></details><div class="v11-appearance-help">أي تغيير في الألوان أو الخط أو الكافر هيشتغل تلقائيًا لما تضغط حفظ. لو عايز ترجع الشكل الأصلي لقسم معين، استخدم زر «إعادة الألوان والتصميم الأصلي» الخاص بيه. متشغّلش صورة كافر إلا لو محتاجها فعلًا، وخلي الكتابة واضحة فوقها.</div>${fields}<div class="admin-sticky-actions"><button class="admin-btn" type="submit">حفظ ألوان وخلفيات الأقسام ✓</button><small>التغييرات بتظهر للزوار بعد حفظها في Supabase وتحديث الصفحة.</small></div></form></section>`;
+ return `<style>.v13-preview-pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:10px 0 18px}.v13-preview-mode{border:1px solid #80808055;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px;min-height:165px}.v13-preview-mode strong{font-size:19px}.v13-preview-mode p{margin:0;color:inherit}.v13-preview-mode small{opacity:.8}</style><section class="admin-panel v11-appearance"><div class="admin-heading"><div><h2>تحكّم في شكل أقسام الموقع</h2><p class="admin-note">كل قسم تقدر تغيّر خلفيته ولون الكتابة واللون المميز وصورة الكافر وارتفاعه. تغيير ألوان اللايت ما يأثرش على الدارك.</p></div><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">معاينة ↗</a></div><form data-entity="appearance" id="appearanceForm"><details class="v11-section-editor" open><summary>✎ العنوان والوصف: «التفاصيل اللي بتفرق»</summary><div class="admin-form-grid">${field('reviews_title_ar','عنوان القسم بالعربي',(data.settings?.content_ar||{}).reviews_title??ar.reviews_title??'التفاصيل اللي بتفرق.',{full:true})}${field('reviews_title_en','العنوان بالإنجليزي',(data.settings?.content_en||{}).reviews_title??en.reviews_title??'The details make the difference.',{full:true})}${field('reviews_sub_ar','وصف القسم بالعربي',(data.settings?.content_ar||{}).reviews_sub??ar.reviews_sub??'',{type:'textarea',full:true})}${field('reviews_sub_en','وصف القسم بالإنجليزي',(data.settings?.content_en||{}).reviews_sub??en.reviews_sub??'',{type:'textarea',full:true})}</div></details><div class="v11-appearance-help">أي تغيير في الألوان أو الخط أو الكافر هيشتغل تلقائيًا لما تضغط حفظ. لو عايز ترجع الشكل الأصلي لقسم معين، استخدم زر «إعادة الألوان والتصميم الأصلي» الخاص بيه. متشغّلش صورة كافر إلا لو محتاجها فعلًا، وخلي الكتابة واضحة فوقها.</div>${fields}<div class="admin-sticky-actions"><button class="admin-btn" type="submit">حفظ ألوان وخلفيات الأقسام ✓</button><small>التغييرات بتظهر للزوار بعد حفظها في Supabase وتحديث الصفحة.</small></div></form></section>`;
 }
 function renderNoticeEditor(){
  const s=data.settings?.site_notice||{};
@@ -485,7 +504,7 @@ $('#adminApp').addEventListener('input',e=>{
     return;
   }
   if(target.closest('#appearanceForm') && /__(dark_bg|dark_text|dark_accent|light_bg|light_text|light_accent|cover_url|cover_file|font|heading_size|body_size|padding|height|shade)$/.test(target.name||'')){
-    const section=target.name.split('__')[0];const flag=document.querySelector(`[name="${section}__enabled"]`);if(flag){flag.value='1';const label=flag.closest('.appearance-reset-bar')?.querySelector('.appearance-state');if(label)label.textContent='تغييرات جاهزة للحفظ — اضغط حفظ ألوان الأقسام';}
+    const section=target.name.split('__')[0];refreshAppearancePreview(section);const flag=document.querySelector(`[name="${section}__enabled"]`);if(flag){flag.value='1';const label=flag.closest('.appearance-reset-bar')?.querySelector('.appearance-state');if(label)label.textContent='تغييرات جاهزة للحفظ — اضغط حفظ ألوان الأقسام';}
   }
 });
 $('#adminApp').addEventListener('click',e=>{
