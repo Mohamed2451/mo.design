@@ -11,11 +11,39 @@ const txt=tr;
 const fld=k=>tField(entry,k,lang)||'';
 const route=new URLSearchParams(location.search).get('slug');
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+
+function updateProjectSEO(project) {
+  let robots = document.querySelector('meta[name="robots"]');
+
+  if (!robots) {
+    robots = document.createElement('meta');
+    robots.name = 'robots';
+    document.head.appendChild(robots);
+  }
+
+  robots.content = project ? 'index, follow' : 'noindex, follow';
+
+  let canonical = document.querySelector('link[rel="canonical"]');
+
+  if (project) {
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+
+    canonical.href = new URL(
+      './project.html?slug=' + encodeURIComponent(route),
+      location.href
+    ).href;
+  } else if (canonical) {
+    canonical.remove();
+  }
+}
 function showLoadError(message){
  $('dynamicProject').innerHTML=`<section class="case-hero case-error"><h1 class="case-title">${esc(message)}</h1><p>${tr('المشروع موجود في قاعدة البيانات غالبًا، لكن الاتصال اتأخر. جرّب تاني.','The project might be available, but loading was interrupted. Please retry.')}</p><button class="inner-primary" type="button" id="retryProject">${tr('حاول تاني ↻','Try again ↻')}</button></section>`;
  $('retryProject')?.addEventListener('click',()=>void loadProject());
 }
-
 function youtubeID(raw) {
   try {
     const u=new URL(raw);
@@ -34,7 +62,7 @@ function chrome(){
  $('dynamicLanguage').textContent=lang==='ar'?'EN':'ع';$('dynamicTheme').textContent=theme==='dark'?'☼':'☾';
  $('backLabel').textContent=tr('الأعمال','Work');$('dynamicContact').textContent=tr('ابدأ مشروعك','Start a project');
 }
-function render(){chrome();
+function render(){chrome();updateProjectSEO(entry);
  if(!entry){$('dynamicProject').innerHTML=`<section class="case-hero"><h1 class="case-title">${tr('المشروع غير متاح','Project unavailable')}</h1><a href="./index.html#work" class="inner-primary">${tr('شوف الأعمال','Explore portfolio')}</a></section>`;return;}
  document.title=`${fld('title')} | Mo Design`;
  const media=safeUrl(entry.image_url);
@@ -57,7 +85,12 @@ $('dynamicLanguage').addEventListener('click',()=>{lang=lang==='ar'?'en':'ar';lo
 $('dynamicTheme').addEventListener('click',()=>{theme=theme==='dark'?'light':'dark';localStorage.setItem('portfolio_theme',theme);render()});
 chrome();
 async function loadProject(){
- if(!route||!(/^[a-zA-Z0-9_-]{1,140}$/.test(route))){showLoadError(tr('رابط المشروع غير صحيح.','Invalid project link.'));return;}
+
+if (!route || !/^[a-zA-Z0-9_-]{1,140}$/.test(route)) {
+  updateProjectSEO(null);
+  showLoadError(tr('رابط المشروع غير صحيح.', 'Invalid project link.'));
+  return;
+}
  $('dynamicProject').innerHTML=`<section class="case-hero"><h1 class="case-title">${tr('جاري تحميل المشروع…','Loading project…')}</h1></section>`;
  if(!connected){
   const demo=readDemo();settings=demo.settings;entry=(demo.projects||[]).find(p=>p.slug===route&&p.is_published)||null;
