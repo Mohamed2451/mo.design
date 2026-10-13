@@ -29,8 +29,12 @@ function updateDocument() {
   $('#themeToggle').setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
   const ticker = document.querySelector('.ticker-track');
   if(ticker){
-    const words=lang==='ar'?['مو ديزاين','تصميم إعلانات','مونتاج فيديو','صور وفيديوهات بالذكاء الاصطناعي','برومبتات احترافية']:['MO DESIGN','GRAPHIC DESIGN','VIDEO EDITING','AI CREATIVE VISUALS','PROMPT DESIGN'];
-    ticker.innerHTML=[...words,...words].map(word=>`${esc(word)} <span aria-hidden="true">✳</span>`).join(' ');
+    const raw=String(txt().ticker_items||'');
+    const words=raw.split(/\n|\|/).map(s=>s.trim()).filter(Boolean).slice(0,20);
+    const safeWords=words.length?words:['MO DESIGN','DESIGN','VIDEO','AI'];
+    // Two perfectly identical halves. Each half is wide enough to cover desktops.
+    const chunk=Array.from({length:4},()=>safeWords).flat().map(word=>`<span class="ticker-item">${esc(word)}</span>`).join('');
+    ticker.innerHTML=`<span class="ticker-segment">${chunk}</span><span class="ticker-segment" aria-hidden="true">${chunk}</span>`;
   }
 
   $$('[data-brand-logo]').forEach(img => {img.src = safeUrl(model.settings?.[theme==='dark'?'logo_dark_url':'logo_light_url']) || `./assets/images/mo-logo-${theme === 'dark' ? 'white' : 'black'}.webp`;});
@@ -152,7 +156,7 @@ function renderFeatured() {
     return `<article class="feature-slide" data-position="${position}" data-slide-index="${i}" ${position==='active'?'':'aria-hidden="true"'}>
       <a class="feature-project-link" href="${esc(caseUrl(p))}" tabindex="${position==='active'?'0':'-1'}" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">
       ${asset ? `<img src="${esc(asset)}" alt="${esc(field(p,'title'))}" loading="${i<3?'eager':'lazy'}"/>` : `<div class="project-cover ${esc(p.cover_style||'aurora')}" style="height:100%"><div class="cover-graphic">✳</div></div>`}
-      <span class="feature-scrim" aria-hidden="true"></span><span class="feature-info"><span class="feature-tag">${esc(field(p,'category'))}</span><h3>${esc(field(p,'title'))}</h3><p>${lang==='ar'?'عمل تجريبي':'Spec concept'} · ${number(i+1)}</p></span>
+      <span class="feature-scrim" aria-hidden="true"></span><span class="feature-info"><span class="feature-tag">${esc(field(p,'category'))}</span><h3>${esc(field(p,'title'))}</h3><p>${p.project_type==='concept'||String(p.id).startsWith('demo-')?(lang==='ar'?'تصوّر إبداعي':'Concept work'):(lang==='ar'?'مشروع من أعمالي':'Portfolio project')} · ${number(i+1)}</p></span>
       </a></article>`;
   }).join('');
   $('#featureCount').textContent=`${number(featureIndex+1)} / ${number(count)}`;
@@ -170,7 +174,7 @@ function renderReviews() {
   }).join('') || `<p class="admin-empty">${esc(lang==='ar'?'قريبًا: تقييمات العملاء':'Client feedback coming soon')}</p>`;
   $('#testimonials').hidden = items.length===0;
   $('#testimonials').classList.toggle('no-reviews',items.length===0);
-  $('.reviews-note').hidden = items.length === 0;
+  $('.reviews-note').hidden = true; // Verified published client reviews need no fictional-placeholder disclaimer.
   observeReveal();
 }
 $('#featurePrev').addEventListener('click',()=>moveFeature(-1));
@@ -307,6 +311,43 @@ function renderLearning() {
   list.innerHTML=cards.join('');
 }
 
+function syncRealWorkCopy(){
+ const projects=(model.projects||[]).filter(p=>p.is_published);
+ const real=projects.some(p=>!String(p.id).startsWith('demo-') && p.project_type!=='concept');
+ const concepts=projects.some(p=>(String(p.id).startsWith('demo-') || p.project_type==='concept'));
+ const featuredConcepts=projects.some(p=>p.featured && (String(p.id).startsWith('demo-') || p.project_type==='concept'));
+ const reviews=(model.testimonials||[]).some(r=>r.is_published&&r.is_verified);
+ const copy=txt(),defaults=lang==='ar'?ar:en;
+ const original=value=>String(value||'').trim();
+ const put=(key,value)=>{const el=document.querySelector(`[data-i18n="${key}"]`);if(!el)return;
+   const saved=model.settings?.[lang==='ar'?'content_ar':'content_en']?.[key];
+   if(saved!==undefined&&original(saved)!==original(defaults[key]))return; // Honor custom text.
+   el.textContent=value;
+ };
+ const disclaimer=$('.feature-disclaimer');if(disclaimer){disclaimer.hidden=!featuredConcepts;if(featuredConcepts)disclaimer.textContent=lang==='ar'?'بعض المشاريع المميزة تصورات إبداعية وليست أعمالًا مدفوعة.':'Some featured projects are personal concepts, not client commissions.';}
+ const conceptCaption=$('.editorial-caption');if(conceptCaption){conceptCaption.hidden=!concepts;if(concepts)conceptCaption.textContent=lang==='ar'?'بعض الأعمال تصورات مستقلة ومميزة بوضوح.':'Some portfolio work is clearly labeled as an independent concept.';}
+ if(real){put('selected_sub',copy.selected_real_sub||defaults.selected_real_sub);put('feature_sub',copy.featured_real_sub||defaults.featured_real_sub);}
+ if(reviews)put('reviews_sub',copy.reviews_real_sub||defaults.reviews_real_sub);
+ const note=$('.reviews-note');if(note)note.hidden=true;
+}
+function renderNotice(){
+ const cfg=model.settings?.site_notice||{};let node=document.getElementById('moNotice');
+ if(node){clearTimeout(renderNotice.timer);node.remove();}
+ if(!cfg.enabled)return;
+ const now=Date.now(); const start=Date.parse(cfg.starts_at||'');const end=Date.parse(cfg.ends_at||'');
+ if((Number.isFinite(start)&&now<start)||(Number.isFinite(end)&&now>end))return;
+ const title=lang==='ar'?(cfg.title_ar||cfg.title_en):(cfg.title_en||cfg.title_ar);
+ const body=lang==='ar'?(cfg.message_ar||cfg.message_en):(cfg.message_en||cfg.message_ar);
+ if(!title&&!body)return;
+ const dismissKey='mo_notice_closed_'+encodeURIComponent(String(cfg.id||'')+'_'+String(cfg.starts_at||''));
+ try { if(sessionStorage.getItem(dismissKey))return; } catch {}
+ node=document.createElement('aside');node.className='mo-notice';node.id='moNotice';node.setAttribute('role','status');node.setAttribute('aria-live','polite');
+ node.innerHTML=`<button type="button" aria-label="${lang==='ar'?'إغلاق الإشعار':'Dismiss notice'}">×</button>${title?`<strong>${esc(title)}</strong>`:''}${body?`<p>${esc(body)}</p>`:''}`;
+ const dismiss=()=>{try{sessionStorage.setItem(dismissKey,'1')}catch{} node.remove()};
+ node.querySelector('button').addEventListener('click',dismiss);
+ document.body.appendChild(node);
+ renderNotice.timer=setTimeout(dismiss,Math.max(3,Math.min(120,Number(cfg.duration_seconds)||30))*1000);
+}
 function applySectionDesign(){
  const design=model.settings?.section_design||{};
  const validHex=v=>/^#[0-9a-f]{6}$/i.test(v||'')?v:'';
@@ -325,6 +366,15 @@ function applySectionDesign(){
   if(background)target.style.setProperty('--v11-bg',background);else target.style.removeProperty('--v11-bg');
   if(foreground)target.style.setProperty('--v11-fg',foreground);else target.style.removeProperty('--v11-fg');
   if(accent)target.style.setProperty('--v11-accent',accent);else target.style.removeProperty('--v11-accent');
+  const font=['Alexandria','Cairo','Readex Pro','IBM Plex Sans Arabic'].includes(raw.font)?raw.font:'';
+  target.classList.toggle('v12-custom-font',Boolean(font));
+  if(font)target.style.setProperty('--v12-section-font',`'${font}',sans-serif`);else target.style.removeProperty('--v12-section-font');
+  const heading=Math.max(0,Math.min(110,Number(raw.heading_size)||0));
+  const body=Math.max(0,Math.min(32,Number(raw.body_size)||0));
+  target.classList.toggle('v12-custom-heading',Boolean(heading));
+  if(heading)target.style.setProperty('--v12-heading-size',heading+'px');else target.style.removeProperty('--v12-heading-size');
+  target.classList.toggle('v12-custom-body',Boolean(body));
+  if(body)target.style.setProperty('--v12-body-size',body+'px');else target.style.removeProperty('--v12-body-size');
   target.style.setProperty('--v11-pad',`${Math.max(36,Math.min(220,Number(raw.padding)||90))}px`);
   target.style.setProperty('--v11-minh',`${Math.max(0,Math.min(900,Number(raw.height)||0))}px`);
   if(allowedCover){
@@ -351,6 +401,8 @@ function render() {
     ['visibility',applySectionVisibility],
     ['learning',renderLearning],
     ['appearance',applySectionDesign],
+    ['proof copy',syncRealWorkCopy],
+    ['notice',renderNotice],
     ['interactive effects',applyInteractiveFX]
   ];
   for(const [name,run] of stages) {

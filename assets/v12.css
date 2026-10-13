@@ -1,0 +1,55 @@
+/* Mo Design V12 — final overrides and admin controls */
+.rich-body{white-space:normal;overflow-wrap:anywhere;line-height:1.95;max-width:100%}
+.rich-body p{margin:0 0 1em;white-space:normal}
+.rich-body p br{display:block;content:''}
+.rich-body h2,.rich-body h3,.rich-body h4{margin:1.4em 0 .55em;line-height:1.55;font-size:1.25em;color:inherit!important;font-weight:800}
+.rich-body h3{font-size:1.12em}.rich-body h4{font-size:1em}
+.rich-body ul{padding-inline-start:1.5em;margin:.7em 0 1.3em;list-style:disc}
+.rich-body li{margin:.3em 0}.rich-body em{font-style:italic}.rich-body strong{font-weight:800}
+.case-prose{max-width:75ch}.case-content{min-width:0}.case-content-grid{min-width:0}
+.lesson-summary.rich-body{max-width:80ch}.lesson-body.rich-body{max-width:90ch}
+/* real seamless continuous ticker; both tracks have identical intrinsic width */
+.ticker{overflow:hidden}.ticker-track{display:flex;gap:0;width:max-content;direction:ltr;white-space:nowrap;animation:mo-ticker 42s linear infinite;will-change:transform}
+.ticker-track .ticker-segment{display:flex;align-items:center;gap:0;flex:0 0 auto;white-space:nowrap}
+.ticker-track .ticker-item{display:inline-flex;align-items:center;padding-inline:23px;white-space:nowrap;direction:auto}
+.ticker-track .ticker-item::after{content:'✳';padding-inline-start:35px;font-size:19px}
+@keyframes mo-ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.ticker-track{animation:none!important}}
+/* Custom appearance overrides must outrank old light-mode forced defaults */
+html.light body #testimonials.v11-designed,html.light body #testimonials.v11-designed.testimonials-section,
+html.light body #signature.v11-designed,html.light body #signature.v11-designed.editorial-section,
+html.light body #why.v11-designed,html.light body #home.v11-designed,
+html.light body #process.v11-designed,html.light body #work.v11-designed,
+html.light body #services.v11-designed,html.light body #about.v11-designed,
+html.light body #contact.v11-designed {background:var(--v11-bg)!important;color:var(--v11-fg)!important}
+html.light body #testimonials.v11-designed .section-title,html.light body #testimonials.v11-designed .section-sub,
+html.light body #testimonials.v11-designed .eyebrow,html.light body #testimonials.v11-designed [data-i18n],
+html.light body #signature.v11-designed h2,html.light body #signature.v11-designed p,
+html.light body #why.v11-designed h2,html.light body #why.v11-designed p,
+html.light body .v11-designed .section-title,html.light body .v11-designed .section-sub,
+html.light body .v11-designed h2{color:var(--v11-fg)!important;-webkit-text-fill-color:var(--v11-fg)!important}
+html.light body .v11-designed h2 em{color:var(--v11-accent)!important;-webkit-text-fill-color:var(--v11-accent)!important}
+html.light body #cta .v11-designed,html.light body #learn .v11-designed{background:var(--v11-bg)!important;color:var(--v11-fg)!important}
+html.light body #cta .v11-designed h2,html.light body #learn .v11-designed .section-title,
+html.light body #cta .v11-designed p,html.light body #learn .v11-designed p{color:var(--v11-fg)!important;-webkit-text-fill-color:var(--v11-fg)!important}
+html.light body #cta .v11-designed h2 em{color:var(--v11-accent)!important;-webkit-text-fill-color:var(--v11-accent)!important}
+/* Notice appears without blocking navigation, and closes via an accessible button */
+.mo-notice{position:fixed;inset:auto 20px 22px auto;z-index:9999;width:min(420px,calc(100vw - 40px));background:#171922;color:#fafaf7;border:1px solid #4a5463;border-inline-start:5px solid #c6fa8a;border-radius:18px;padding:20px 52px 20px 19px;box-shadow:0 20px 70px #0007;direction:rtl;animation:mo-notice-enter .35s ease both}
+.mo-notice[hidden]{display:none!important}.mo-notice strong{display:block;font-size:16px;margin-bottom:7px}.mo-notice p{margin:0;line-height:1.7;font-size:13px;color:#dce2e2}
+.mo-notice button{position:absolute;top:12px;left:12px;border:1px solid #7e8994;border-radius:999px;color:inherit;background:#303640;width:31px;height:31px;cursor:pointer}
+@keyframes mo-notice-enter{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.cms-rich-toolbar{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0}.cms-rich-toolbar button{border:1px solid #445052;border-radius:7px;background:#272b34;color:#fff;padding:7px 10px;min-width:36px;cursor:pointer;font-weight:700}
+.cms-rich-note{font-size:12px;opacity:.76;line-height:1.7}
+.cms-editor-group .form-field textarea{min-height:85px}
+.cms-field-pair{padding:8px 0;border-bottom:1px solid #ffffff16}
+@media(max-width:650px){.mo-notice{inset:auto 12px 12px 12px;width:auto}.ticker-track .ticker-item{padding-inline:18px}}
+
+/* Text size set in the CMS takes priority over legacy page-level paragraph rules. */
+.case-content .rich-body p,.lesson-body.rich-body p,.lesson-summary.rich-body p{font-size:inherit!important;line-height:inherit!important;color:inherit!important;max-width:none!important}
+.case-content .rich-body h3,.case-content .rich-body h2{font-size:1.25em!important}
+.rich-body{font-weight:400}.rich-body strong{font-weight:800}
+
+/* Optional per-section typography selected in the CMS. */
+.v11-designed.v12-custom-font{font-family:var(--v12-section-font)!important}
+.v11-designed.v12-custom-heading .section-title,.v11-designed.v12-custom-heading .editorial-intro h2,.v11-designed.v12-custom-heading h2{font-size:var(--v12-heading-size)!important}
+.v11-designed.v12-custom-body .section-sub,.v11-designed.v12-custom-body .editorial-intro p,.v11-designed.v12-custom-body p{font-size:var(--v12-body-size)!important}

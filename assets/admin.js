@@ -10,7 +10,12 @@ let editing = null; // {table,id}
 let busy = false;
 
 // Dashboard always uses its own neutral dark palette; the public site's theme remains unchanged.
-const labels = {overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',appearance:'مظهر الأقسام',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى'};
+const labels = {notice:'إشعارات الموقع',overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',appearance:'مظهر الأقسام',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى'};
+const FONT_CHOICES=[['Alexandria','Alexandria — حديث'],['Cairo','Cairo — واضح'],['Readex Pro','Readex Pro — هادي'],['IBM Plex Sans Arabic','IBM Plex Sans Arabic — احترافي']];
+const EXTRA_CONTENT_KEYS=['ticker_items','project_about_title','project_objective_title','selected_real_sub','reviews_real_sub','featured_real_sub'];
+const ALL_COPY_KEYS=()=>[...new Set([...Object.keys(ar),...Object.keys(en),...EXTRA_CONTENT_KEYS])].filter(k=>typeof ar[k]==='string'||typeof en[k]==='string');
+const copyGroup=()=>ALL_COPY_KEYS().filter(k=>!Object.values(CONTENT_GROUPS).flat().some(([key])=>key===k)).map(k=>[k,(typeof ar[k]==='string'&&ar[k].trim()?ar[k].trim().slice(0,70):k)+' ['+k+']']);
+function richField(name,label,value='',rows=6){return `<div class="cms-rich-wrap full">${field(name,label,value,{type:'textarea',full:true,rows})}<div class="cms-rich-toolbar"><button type="button" data-rich="bold" title="غامق">B</button><button type="button" data-rich="italic" title="مائل"><i>I</i></button><button type="button" data-rich="heading" title="عنوان فرعي">H2</button><button type="button" data-rich="list" title="قائمة">☷</button></div><small class="cms-rich-note">حدد نص واضغط غامق أو مائل. استخدم H2 للعناوين، وكل سطر منفصل هيظهر كما كتبته.</small></div>`;}
 const SECTIONS=[['featured','المشاريع المميزة'],['signature','عرض الأعمال الرئيسي'],['work','معرض الأعمال'],['services','الخدمات'],['tools','البرامج والأدوات'],['why','أسلوبي في الشغل'],['about','نبذة عني'],['process','مراحل تنفيذ المشاريع'],['testimonials','آراء العملاء'],['faq','الأسئلة الشائعة'],['cta','دعوة بدء مشروع'],['learn','المعرفة الجاية أقرب'],['contact','التواصل وطلب مشروع']];
 const CONTENT_GROUPS={
  'المشاريع والأعمال':[['feature_title','عنوان الأعمال المميزة'],['feature_sub','وصف الأعمال المميزة'],['selected','عنوان معرض الأعمال'],['selected_sub','وصف معرض الأعمال'],['signature_title','عنوان العرض السينمائي'],['signature_desc','وصف العرض السينمائي'],['signature_link','نص زر عرض المشروع']],
@@ -39,10 +44,10 @@ function renderLogin(error=''){
 function baseShell(){
  const groups=[
   {title:'المكتب',items:['overview','messages']},
-  {title:'إدارة المحتوى',items:['content','appearance','projects','media','services','testimonials','future']},
+  {title:'إدارة المحتوى',items:['content','appearance','projects','media','services','testimonials','future','notice']},
   {title:'الهوية والإعدادات',items:['settings']}
  ];
- const icons={overview:'◫',messages:'✉',content:'▤',appearance:'◈',projects:'▦',media:'▧',services:'◇',testimonials:'❞',future:'▷',settings:'⚙'};
+ const icons={overview:'◫',messages:'✉',content:'▤',appearance:'◈',projects:'▦',media:'▧',services:'◇',testimonials:'❞',future:'▷',notice:'♧',settings:'⚙'};
  $('#adminApp').innerHTML=`<div class="admin-layout v10-shell"><aside class="admin-sidebar">
  <div class="studio-sidebar-top"><a href="./index.html" class="brand v10-brand"><span class="brand-mark"><img src="./assets/images/mo-logo-white.webp" alt="" data-admin-brand-logo /></span><span><strong>Mo Design</strong><small>مساحة الإدارة الإبداعية</small></span></a><div class="v10-workspace-badge"><span class="v10-online-dot"></span> مساحة الإدارة الخاصة</div></div>
  <nav class="sidebar-nav" id="adminNav" aria-label="أقسام لوحة الإدارة">${groups.map(group=>`<div class="v10-nav-group"><div class="v10-nav-label">${group.title}</div>${group.items.map(key=>`<button type="button" data-tab="${key}" class="${tab===key?'active':''}"><span class="v10-nav-icon" aria-hidden="true">${icons[key]}</span><span>${labels[key]}</span><span class="v10-nav-chevron" aria-hidden="true">‹</span></button>`).join('')}</div>`).join('')}</nav>
@@ -69,8 +74,9 @@ function renderOverview(){
 function renderContent(){
  const settings=data.settings||seed.settings, vis=settings.section_visibility||{};
  const controls=SECTIONS.map(([id,label])=>`<label class="cms-toggle"><input type="checkbox" name="section_${id}" ${vis[id]===false?'':'checked'}><span><strong>${esc(label)}</strong><small>${vis[id]===false?'مخفي':'يظهر على الموقع'}</small></span></label>`).join('');
- const sections=Object.entries(CONTENT_GROUPS).map(([label,fields],i)=>`<details class="cms-editor-group" ${i===0?'open':''}><summary>${esc(label)} <span>▾</span></summary><div class="admin-form-grid">${fields.map(([key,name])=>`${field('ar_'+key,`${name} — بالعربي المصري`,(settings.content_ar||{})[key]??ar[key]??'',{type:'textarea',full:true,rows:2})}${field('en_'+key,`${name} — النسخة الإنجليزية`,(settings.content_en||{})[key]??en[key]??'',{type:'textarea',full:true,rows:2})}`).join('')}</div></details>`).join('');
- return `<div class="admin-panel"><div class="admin-heading"><div><h2>إدارة كل أقسام الموقع</h2><p class="admin-note">فعّل أو اخفي أي قسم، وعدّل عناوينه ووصفه بالعربي والإنجليزي. مش هتحتاج ترجع لـ GitHub.</p></div><a class="admin-btn secondary" href="./index.html" target="_blank" rel="noopener">معاينة ↗</a></div><form data-entity="content" id="contentForm"><div class="v10-home-copy"><h3>✳ كلام الصفحة الرئيسية</h3><p class="admin-note">ده أول كلام العميل بيشوفه في الموقع. عدّله من هنا واحفظ مع باقي الأقسام.</p><div class="admin-form-grid">${field('headline_ar','العنوان الرئيسي — عربي',settings.headline_ar,{type:'textarea',required:true,rows:2})}${field('headline_en','العنوان الرئيسي — إنجليزي',settings.headline_en,{type:'textarea',required:true,rows:2})}${field('subheadline_ar','نبذة البداية — عربي',settings.subheadline_ar,{type:'textarea',rows:3})}${field('subheadline_en','نبذة البداية — إنجليزي',settings.subheadline_en,{type:'textarea',rows:3})}</div></div><h3>الأقسام اللي تظهر للزائر</h3><div class="cms-toggle-grid">${controls}</div><h3 style="margin-block:35px 15px">تحرير النصوص</h3>${sections}<div class="admin-sticky-actions"><button type="submit" class="admin-btn">حفظ المحتوى والتغييرات ✓</button><small>المحتوى بيتحفظ على Supabase ويظهر على الموقع من غير GitHub</small></div></form></div>`;
+ const groups={...CONTENT_GROUPS,'كل العبارات والأزرار الإضافية (تحكم موسع)':copyGroup()};
+ const sections=Object.entries(groups).map(([label,fields],i)=>`<details class="cms-editor-group" ${i===0?'open':''}><summary>${esc(label)} <span>▾</span></summary><div class="admin-form-grid">${fields.map(([key,name])=>`${field('ar_'+key,`${name} — بالعربي المصري`,(settings.content_ar||{})[key]??ar[key]??'',{type:'textarea',full:true,rows:2})}${field('en_'+key,`${name} — النسخة الإنجليزية`,(settings.content_en||{})[key]??en[key]??'',{type:'textarea',full:true,rows:2})}`).join('')}</div></details>`).join('');
+ return `<div class="admin-panel"><div class="admin-heading"><div><h2>إدارة كل أقسام الموقع</h2><p class="admin-note">فعّل أو اخفي أي قسم، وعدّل عناوينه ووصفه بالعربي والإنجليزي. مش هتحتاج ترجع لـ GitHub.</p></div><a class="admin-btn secondary" href="./index.html" target="_blank" rel="noopener">معاينة ↗</a></div><form data-entity="content" id="contentForm"><div class="v10-home-copy"><h3>✳ كلام الصفحة الرئيسية</h3><p class="admin-note">ده أول كلام العميل بيشوفه في الموقع. عدّله من هنا واحفظ مع باقي الأقسام.</p><div class="admin-form-grid">${field('headline_ar','العنوان الرئيسي — عربي',settings.headline_ar,{type:'textarea',required:true,rows:2})}${field('headline_en','العنوان الرئيسي — إنجليزي',settings.headline_en,{type:'textarea',required:true,rows:2})}${field('subheadline_ar','نبذة البداية — عربي',settings.subheadline_ar,{type:'textarea',rows:3})}${field('subheadline_en','نبذة البداية — إنجليزي',settings.subheadline_en,{type:'textarea',rows:3})}</div></div><h3>الأقسام اللي تظهر للزائر</h3><div class="cms-toggle-grid">${controls}</div><h3 style="margin-block:35px 15px">تحرير النصوص</h3><label class="form-field full" style="margin-block:12px 16px">ابحث عن كلمة أو عبارة عايز تغيّرها<input id="cmsCopySearch" type="search" placeholder="مثلاً: آراء العملاء أو الزر أو العنوان" autocomplete="off"></label>${sections}<div class="admin-sticky-actions"><button type="submit" class="admin-btn">حفظ المحتوى والتغييرات ✓</button><small>المحتوى بيتحفظ على Supabase ويظهر على الموقع من غير GitHub</small></div></form></div>`;
 }
 
 function renderSettings(){
@@ -119,17 +125,18 @@ function renderItems(table){
   ${isProjects?`${field('slug','رابط المشروع المختصر (حروف لاتينية وأرقام و -)',item.slug||'',{full:true})}
   <label class="form-field full">تصنيف المشروع (من التصنيفات المعتمدة)<select name="category_id" required>${PORTFOLIO_CATEGORIES.map(c=>`<option value="${esc(c.id)}" ${categoryFor(item)?.id===c.id?'selected':''}>${esc(c.ar)} — ${esc(c.en)}</option>`).join('')}</select><small>الاسم العربي والإنجليزي بيتسجلوا تلقائيًا لتجنب التكرار في المعرض.</small></label>
   ${field('project_type','نوع المشروع',item.project_type||'concept',{select:[['concept','تصوّر إبداعي / تجربة شخصية'],['personal','عمل شخصي'],['client','مشروع عميل مصرح بنشره']]})}
-  ${field('summary_ar','شرح المشروع بالعربي',item.summary_ar,{type:'textarea',full:true})}${field('summary_en','وصف المشروع بالإنجليزي',item.summary_en,{type:'textarea',full:true})}
+  ${richField('summary_ar','شرح المشروع بالعربي',item.summary_ar,6)}${richField('summary_en','وصف المشروع بالإنجليزي',item.summary_en,6)}
   ${field('cover_style','ستايل الصورة التوضيحية',item.cover_style || 'aurora',{select:[['aurora','تدرجات فنية'],['type','حروف وتايبوجرافي'],['orbit','أشكال دائرية'],['pop','ألوان جريئة']]})}
   ${field('image_url','صورة المشروع (HTTPS أو مسار من assets/images)',item.image_url,{type:'text',full:true})}
   ${field('video_url','رابط فيديو مباشر (MP4 / WebM)',item.video_url||'',{type:'url',full:true})}
   ${field('youtube_url','رابط فيديو يوتيوب أو يوتيوب شورتس',item.youtube_url||'',{type:'url',full:true})}
   ${field('gallery_urls','صور إضافية للمعرض — رابط HTTPS في كل سطر',item.gallery_urls||'',{type:'textarea',full:true,rows:4})}
-  ${field('objective_ar','هدف المشروع بالعربي',item.objective_ar||'',{type:'textarea',full:true})}
-  ${field('objective_en','الهدف بالإنجليزي',item.objective_en||'',{type:'textarea',full:true})}
+  ${richField('objective_ar','هدف المشروع بالعربي',item.objective_ar||'',10)}
+  ${richField('objective_en','الهدف بالإنجليزي',item.objective_en||'',8)}
+  ${field('text_font','خط النص الطويل',item.text_style?.font||'Alexandria',{select:FONT_CHOICES})}${field('text_size','حجم النص بالبكسل (14–30)',item.text_style?.size||17,{type:'number'})}
   <div class="form-field full cms-tool-entry"><span>الأدوات المستخدمة في المشروع</span><div class="cms-tools-box" data-tools-box><div data-tools-tags class="cms-tools-tags"></div><input data-tool-add placeholder="اكتب Photoshop واضغط Enter" aria-label="اكتب أداة واضغط Enter" maxlength="70"></div><input type="hidden" name="tools_used" value="${esc(formatTools(item.tools_used).join(', '))}"><small>اضغط Enter بعد كل برنامج علشان يظهر في خانة مستقلة، أو اضغط × لإزالته.</small></div>
   <label class="form-field full">رفع صورة غلاف للمشروع إلى Supabase Storage (بعد التفعيل) <input type="file" name="media_file" accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'} /> <small>صورة بحد أقصى 8 MB. ترفع بصورة آمنة فقط عند تفعيل التخزين وسياسات الصلاحيات.</small></label>
-  <label class="form-field full">إضافة صور متعددة للمعرض (حتى 6 في المرة)<input type="file" name="gallery_files" multiple accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}/></label>
+  <label class="form-field full">إضافة صور متعددة للمعرض (حتى 15 صورة إضافية)<input type="file" name="gallery_files" multiple accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}/></label>
   ${field('external_url','رابط مشاهدة المشروع (HTTPS) - اختياري' ,item.external_url,{type:'url',full:true})}
   ${field('featured','مميز',item.featured,{type:'checkbox'})}`:
   `${field('description_ar','وصف الخدمة بالعربي',item.description_ar,{type:'textarea',full:true})}${field('description_en','وصف الخدمة بالإنجليزي',item.description_en,{type:'textarea',full:true})}
@@ -197,19 +204,20 @@ function renderLearningItemEditor(item){
  ${field('sort_order','ترتيب الظهور',item.sort_order??((data.learning_items||[]).length+1),{type:'number'})}
  ${field('title_ar','عنوان المحتوى بالعربي',item.title_ar||'',{required:true})}
  ${field('title_en','العنوان بالإنجليزي',item.title_en||'')}
- ${field('summary_ar','وصف قصير بالعربي',item.summary_ar||'',{type:'textarea',full:true,rows:2})}
- ${field('summary_en','الوصف بالإنجليزي',item.summary_en||'',{type:'textarea',full:true,rows:2})}
+ ${richField('summary_ar','وصف قصير بالعربي',item.summary_ar||'',3)}
+ ${richField('summary_en','الوصف بالإنجليزي',item.summary_en||'',3)}
  ${field('youtube_url','رابط فيديو YouTube أو Shorts (اختياري لو هترفع فيديو)',item.youtube_url||'',{type:'url',full:true})}
  ${field('video_url','رابط MP4 أو WebM مباشر (اختياري)',item.video_url||'',{type:'url',full:true})}
  <label class="form-field full">ارفع فيديو من جهازك (MP4 / WebM، بحد أقصى 45 ميجابايت)<input name="lesson_video_file" type="file" accept="video/mp4,video/webm" ${connected?'':'disabled'}><small>الفيديو بيترفع على Supabase Storage عند الضغط على حفظ. للفيديوهات الكبيرة استخدم يوتيوب لتوفير المساحة.</small></label>
  ${field('thumbnail_url','رابط صورة مصغرة (اختياري)',item.thumbnail_url||'',{type:'url',full:true})}
  <label class="form-field full">أو ارفع صورة مصغّرة من جهازك (JPG / PNG / WebP لحد 8 ميجابايت)<input type="file" name="lesson_thumbnail_file" accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}><small>لو اخترت صورة هنا هتترفع تلقائيًا وقت الحفظ، وتظهر على بطاقة الدرس.</small></label>
  ${field('image_urls','صور الشرح داخل الدرس — رابط HTTPS لكل صورة في سطر (اختياري)',item.image_urls||'',{type:'textarea',full:true,rows:3})}
- <label class="form-field full">ارفع صور الشرح من الكمبيوتر (حتى 12 صورة في المرة، 8MB للصورة)<input type="file" name="lesson_images_files" accept="image/png,image/jpeg,image/webp,image/avif" multiple ${connected?'':'disabled'}><small>كل صورة هتظهر كاملة داخل صفحة الدرس بعد الشرح، بالترتيب اللي رفعتها بيه.</small></label>
+ <label class="form-field full">ارفع صور الشرح من الكمبيوتر (حتى 15 صورة إجماليًا، 8MB للصورة)<input type="file" name="lesson_images_files" accept="image/png,image/jpeg,image/webp,image/avif" multiple ${connected?'':'disabled'}><small>كل صورة هتظهر كاملة داخل صفحة الدرس بعد الشرح، بالترتيب اللي رفعتها بيه.</small></label>
+ ${field('text_font','خط المحتوى',item.text_style?.font||'Alexandria',{select:FONT_CHOICES})}${field('text_size','حجم النص بالبكسل (14–30)',item.text_style?.size||17,{type:'number'})}
  ${field('resource_links','روابط الشرح وملفات PDF أو Google Drive (كل رابط في سطر، بصيغة: اسم الملف | https://...)',item.resource_links||'',{type:'textarea',full:true,rows:4})}
  <p class="admin-note full">علشان ملفات Google Drive تفتح للزوار: افتح إعدادات المشاركة للملف واختر «أي شخص معه الرابط — مشاهد».</p>
- ${field('body_ar','نص المقال بالعربي (لنوع مقال)',item.body_ar||'',{type:'textarea',full:true,rows:7})}
- ${field('body_en','نص المقال بالإنجليزي',item.body_en||'',{type:'textarea',full:true,rows:6})}
+ ${richField('body_ar','نص المقال بالعربي (لنوع مقال)',item.body_ar||'',9)}
+ ${richField('body_en','نص المقال بالإنجليزي',item.body_en||'',8)}
  ${field('is_published','انشر المحتوى على الموقع',item.is_published||false,{type:'checkbox',full:true})}
  </div>${mediaId?`<div class="v10-video-preview"><img src="https://i.ytimg.com/vi/${mediaId}/hqdefault.jpg" alt="معاينة فيديو يوتيوب"><div>معاينة الصورة المصغّرة <a href="https://www.youtube.com/watch?v=${mediaId}" target="_blank" rel="noopener noreferrer">↗ جرّب فتح الفيديو على يوتيوب</a></div></div>`:''}<div class="admin-actions">${uiButton('إلغاء','cancelLesson')}<button class="admin-btn" type="submit">${isNew?'حفظ المحتوى':'حفظ التعديلات'} ✓</button></div></form></div>`;
 }
@@ -243,6 +251,9 @@ function renderAppearance(){
     ${colorInput('light_bg','خلفية اللايت مود','#f7f5ef')}${colorInput('light_text','الكتابة في اللايت مود','#172026')}${colorInput('light_accent','اللون المميز في اللايت مود','#39671a')}
     ${field(id+'__cover_url','رابط الكافر الحالي (اختياري)',d.cover_url||'',{type:'url',full:true})}
     <label class="form-field full">ارفع كافر من جهازك لهذا القسم (اختياري)<input name="${id}__cover_file" type="file" accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}><small>حد أقصى 8 ميجابايت للصورة، وتقدر تغيّره أو تمسح الرابط في أي وقت.</small></label>
+    ${field(id+'__font','خط نصوص القسم',d.font||'',{select:[['','الخط الحالي'],...FONT_CHOICES]})}
+    ${field(id+'__heading_size','حجم العنوان الرئيسي (0 = التصميم الأساسي)',d.heading_size??0,{type:'number'})}
+    ${field(id+'__body_size','حجم الوصف (0 = التصميم الأساسي)',d.body_size??0,{type:'number'})}
     ${field(id+'__padding','المسافة الداخلية بالأعلى والأسفل (36 إلى 220)',d.padding??90,{type:'number'})}
     ${field(id+'__height','أقل ارتفاع للقسم بالبكسل (0 = تلقائي)',d.height??0,{type:'number'})}
     ${field(id+'__shade','تعتيم صورة الكافر (من 0.1 إلى 0.92)',d.shade??0.7,{type:'text'})}
@@ -250,10 +261,24 @@ function renderAppearance(){
  }).join('');
  return `<section class="admin-panel v11-appearance"><div class="admin-heading"><div><h2>تحكّم في شكل أقسام الموقع</h2><p class="admin-note">كل قسم تقدر تغيّر خلفيته ولون الكتابة واللون المميز وصورة الكافر وارتفاعه. تغيير ألوان اللايت ما يأثرش على الدارك.</p></div><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">معاينة ↗</a></div><form data-entity="appearance" id="appearanceForm"><details class="v11-section-editor" open><summary>✎ العنوان والوصف: «التفاصيل اللي بتفرق»</summary><div class="admin-form-grid">${field('reviews_title_ar','عنوان القسم بالعربي',(data.settings?.content_ar||{}).reviews_title??ar.reviews_title??'التفاصيل اللي بتفرق.',{full:true})}${field('reviews_title_en','العنوان بالإنجليزي',(data.settings?.content_en||{}).reviews_title??en.reviews_title??'The details make the difference.',{full:true})}${field('reviews_sub_ar','وصف القسم بالعربي',(data.settings?.content_ar||{}).reviews_sub??ar.reviews_sub??'',{type:'textarea',full:true})}${field('reviews_sub_en','وصف القسم بالإنجليزي',(data.settings?.content_en||{}).reviews_sub??en.reviews_sub??'',{type:'textarea',full:true})}</div></details><div class="v11-appearance-help">لتطبيق الشكل الجديد على قسم، فعّل خيار «المظهر المخصص» داخل القسم نفسه؛ الأقسام اللي مش مفعّلة هتحتفظ بشكلها الحالي. متشغّلش صورة كافر إلا لو محتاجها فعلًا، وخلي الكتابة واضحة فوقها.</div>${fields}<div class="admin-sticky-actions"><button class="admin-btn" type="submit">حفظ ألوان وخلفيات الأقسام ✓</button><small>التغييرات بتظهر للزوار بعد حفظها في Supabase وتحديث الصفحة.</small></div></form></section>`;
 }
+function renderNoticeEditor(){
+ const s=data.settings?.site_notice||{};
+ const dt=(v)=>{if(!v)return '';const d=new Date(v);if(Number.isNaN(d.getTime()))return '';const t=new Date(d.getTime()-d.getTimezoneOffset()*60000);return t.toISOString().slice(0,16)};
+ return `<section class="admin-panel"><div class="admin-heading"><div><h2>إشعار يظهر للزوار</h2><p class="admin-note">رسالة واحدة مؤقتة. تقدر تحدد فترة ظهورها ومدة بقائها على الشاشة أو توقفها فورًا.</p></div></div>
+ <form data-entity="notice" id="noticeForm"><div class="admin-form-grid">
+ ${field('notice_enabled','تفعيل الإشعار',s.enabled||false,{type:'checkbox',full:true})}
+ ${field('notice_title_ar','عنوان الإشعار بالعربي',s.title_ar||'')}${field('notice_title_en','العنوان بالإنجليزي',s.title_en||'')}
+ ${field('notice_message_ar','النص بالعربي',s.message_ar||'',{type:'textarea',rows:3})}${field('notice_message_en','النص بالإنجليزي',s.message_en||'',{type:'textarea',rows:3})}
+ ${field('notice_duration','مدة ظهور الإشعار بالثواني (3 إلى 120)',s.duration_seconds??30,{type:'number'})}
+ <label class="form-field">يبدأ من (اختياري)<input name="notice_starts" type="datetime-local" value="${esc(dt(s.starts_at))}"></label>
+ <label class="form-field">ينتهي في (اختياري)<input name="notice_ends" type="datetime-local" value="${esc(dt(s.ends_at))}"></label>
+ </div><div class="admin-actions"><button type="submit" class="admin-btn">حفظ الإشعار ✓</button>${uiButton('إخفاء ومسح الإشعار','clearNotice','','danger')}</div></form>
+ <p class="admin-note">لو الزائر قفل الإشعار من ×، مش هيظهر تاني في نفس تبويب المتصفح. لإعادة عرضه للزوار بعد تعديل الإشعار، احفظ نسخة جديدة منه.</p></section>`;
+}
 function renderPanel(){
   if(!data)return;
   const main=$('#adminMain'); if(!main) return;
-  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,services:()=>renderItems('services'),testimonials:()=>renderItems('testimonials'),messages:renderMessages,future:renderFuture})[tab]();
+  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,services:()=>renderItems('services'),testimonials:()=>renderItems('testimonials'),messages:renderMessages,future:renderFuture,notice:renderNoticeEditor})[tab]();
   main.innerHTML=`<header class="admin-heading v10-page-head"><div><span class="v10-page-path">Mo Design <span>/</span> مساحة العمل <span>/</span> ${esc(labels[tab])}</span><h1>${esc(labels[tab])}</h1><p>أدواتك ومحتواك وطلبات الشغل في مكان واحد.</p></div><div class="v10-page-actions"><span class="admin-badge">${connected?`<span class="v10-online-dot"></span> متصل`:'◌ وضع تجربة محلية'}</span><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">↗ شوف الموقع</a></div></header>${!connected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
   document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
   if(tab==='media')void loadMedia();
@@ -276,7 +301,7 @@ function getFields(form,table){
   const get=k=>String(f.get(k)||'').trim();
   if(table==='content'){
     const content_ar={...(data.settings?.content_ar||{})},content_en={...(data.settings?.content_en||{})};
-    Object.values(CONTENT_GROUPS).flat().forEach(([key])=>{content_ar[key]=get('ar_'+key);content_en[key]=get('en_'+key);});
+    [...Object.values(CONTENT_GROUPS).flat(),...copyGroup()].forEach(([key])=>{content_ar[key]=get('ar_'+key);content_en[key]=get('en_'+key);});
     const section_visibility={...(data.settings?.section_visibility||{})};SECTIONS.forEach(([id])=>section_visibility[id]=f.has('section_'+id));
     return {content_ar,content_en,section_visibility,headline_ar:get('headline_ar'),headline_en:get('headline_en'),subheadline_ar:get('subheadline_ar'),subheadline_en:get('subheadline_en')};
   }
@@ -286,6 +311,9 @@ function getFields(form,table){
       const current={...(section_design[id]||{})};
       current.enabled=f.has(id+'__enabled');
       for(const key of ['dark_bg','dark_text','dark_accent','light_bg','light_text','light_accent'])current[key]=get(id+'__'+key);
+      current.font=get(id+'__font');
+      current.heading_size=Math.max(0,Math.min(110,Number(get(id+'__heading_size'))||0));
+      current.body_size=Math.max(0,Math.min(32,Number(get(id+'__body_size'))||0));
       current.cover_url=get(id+'__cover_url');
       current.padding=Math.max(36,Math.min(220,Number(get(id+'__padding'))||90));
       current.height=Math.max(0,Math.min(900,Number(get(id+'__height'))||0));
@@ -302,13 +330,18 @@ function getFields(form,table){
     ['learn_title','learn_desc','learn_tag','learn_live_title','learn_live_desc','learn_live_tag'].forEach(key=>{content_ar[key]=get('ar_'+key);content_en[key]=get('en_'+key);});
     return {education_mode:mode,content_ar,content_en,section_visibility:{...(data.settings?.section_visibility||{}),learn:mode!=='hidden'}};
   }
-  if(table==='learning_items')return {image_urls:get('image_urls'),content_type:get('content_type')==='article'?'article':'video',title_ar:get('title_ar'),title_en:get('title_en'),summary_ar:get('summary_ar'),summary_en:get('summary_en'),body_ar:get('body_ar'),body_en:get('body_en'),youtube_url:get('youtube_url'),video_url:get('video_url'),thumbnail_url:get('thumbnail_url'),resource_links:get('resource_links'),sort_order:Number(get('sort_order'))||0,is_published:f.has('is_published')};
+  if(table==='learning_items')return {text_style:{font:get('text_font')||'Alexandria',size:Math.max(14,Math.min(30,Number(get('text_size'))||17))},image_urls:get('image_urls'),content_type:get('content_type')==='article'?'article':'video',title_ar:get('title_ar'),title_en:get('title_en'),summary_ar:get('summary_ar'),summary_en:get('summary_en'),body_ar:get('body_ar'),body_en:get('body_en'),youtube_url:get('youtube_url'),video_url:get('video_url'),thumbnail_url:get('thumbnail_url'),resource_links:get('resource_links'),sort_order:Number(get('sort_order'))||0,is_published:f.has('is_published')};
+  if(table==='notice'){
+    const old=data.settings?.site_notice||{};
+    const iso=key=>{const val=get(key);return val?new Date(val).toISOString():null;};
+    return {site_notice:{enabled:f.has('notice_enabled'),title_ar:get('notice_title_ar'),title_en:get('notice_title_en'),message_ar:get('notice_message_ar'),message_en:get('notice_message_en'),duration_seconds:Math.max(3,Math.min(120,Number(get('notice_duration'))||30)),starts_at:iso('notice_starts'),ends_at:iso('notice_ends'),id:Date.now().toString(36)}};
+  }
   if(table==='settings'){
     return {brand_ar:get('brand_ar'),brand_en:get('brand_en'),personal_name:get('personal_name'),role_ar:get('role_ar'),role_en:get('role_en'),headline_ar:get('headline_ar'),headline_en:get('headline_en'),subheadline_ar:get('subheadline_ar'),subheadline_en:get('subheadline_en'),bio_ar:get('bio_ar'),bio_en:get('bio_en'),profile_image_url:get('profile_image_url'),logo_dark_url:get('logo_dark_url'),logo_light_url:get('logo_light_url'),contact_email:get('contact_email'),instagram_url:get('instagram_url'),behance_url:get('behance_url'),linkedin_url:get('linkedin_url'),whatsapp_url:get('whatsapp_url'),tiktok_url:get('tiktok_url'),facebook_url:get('facebook_url'),community_url:get('community_url'),availability:f.has('availability'),stats_projects:Math.max(0,Number(get('stats_projects'))||0),stats_years:Math.max(0,Number(get('stats_years'))||0),stats_satisfaction:Math.max(0,Math.min(100,Number(get('stats_satisfaction'))||0)),stats_verified:f.has('stats_verified')};
   }
   const common={sort_order:Number(get('sort_order'))||0,is_published:f.has('is_published')};
   if(table==='testimonials')return {...common,author_ar:get('author_ar'),author_en:get('author_en'),job_ar:get('job_ar'),job_en:get('job_en'),quote_ar:get('quote_ar'),quote_en:get('quote_en'),rating:Math.max(0,Math.min(5,Number(get('rating'))||0)),is_verified:f.has('is_verified')};
-  if(table==='projects'){const category=PORTFOLIO_CATEGORIES.find(c=>c.id===get('category_id'))||PORTFOLIO_CATEGORIES[0];return {...common,title_ar:get('title_ar'),title_en:get('title_en'),category_ar:category.ar,category_en:category.en,summary_ar:get('summary_ar'),summary_en:get('summary_en'),cover_style:get('cover_style'),image_url:get('image_url'),external_url:get('external_url'),featured:f.has('featured'),video_url:get('video_url'),gallery_urls:get('gallery_urls'),objective_ar:get('objective_ar'),objective_en:get('objective_en'),tools_used:get('tools_used'),youtube_url:get('youtube_url'),project_type:get('project_type'),slug:get('slug') || `project-${Date.now()}`};}
+  if(table==='projects'){const category=PORTFOLIO_CATEGORIES.find(c=>c.id===get('category_id'))||PORTFOLIO_CATEGORIES[0];return {...common,text_style:{font:get('text_font')||'Alexandria',size:Math.max(14,Math.min(30,Number(get('text_size'))||17))},title_ar:get('title_ar'),title_en:get('title_en'),category_ar:category.ar,category_en:category.en,summary_ar:get('summary_ar'),summary_en:get('summary_en'),cover_style:get('cover_style'),image_url:get('image_url'),external_url:get('external_url'),featured:f.has('featured'),video_url:get('video_url'),gallery_urls:get('gallery_urls'),objective_ar:get('objective_ar'),objective_en:get('objective_en'),tools_used:get('tools_used'),youtube_url:get('youtube_url'),project_type:get('project_type'),slug:get('slug') || `project-${Date.now()}`};}
   return {...common,title_ar:get('title_ar'),title_en:get('title_en'),description_ar:get('description_ar'),description_en:get('description_en'),icon:get('icon')};
 }
 async function saveForm(form){
@@ -317,6 +350,8 @@ async function saveForm(form){
   const entry=getFields(form,table);
   const id=form.dataset.editId;
   if(table==='learning_items'){
+    const imageCount=String(entry.image_urls||'').split(/\r?\n/).filter(Boolean).length+(form.querySelector('input[name="lesson_images_files"]')?.files?.length||0);
+    if(imageCount>15){toast('يسمح بحد أقصى 15 صورة شرح في الدرس.');return;}
     if(entry.title_ar.length<2){toast('اكتب عنوان عربي من حرفين على الأقل.');return;}
     if(entry.content_type==='video' && !youtubeId(entry.youtube_url) && !(/^https:\/\//.test(entry.video_url)||form.querySelector('input[name="lesson_video_file"]')?.files?.length)){toast('اربط فيديو يوتيوب أو ارفع فيديو MP4 / WebM من جهازك.');return;}
     if(entry.youtube_url && !youtubeId(entry.youtube_url)){toast('رابط يوتيوب مش صحيح.');return;}
@@ -326,6 +361,8 @@ async function saveForm(form){
     if(entry.resource_links && entry.resource_links.split(/\r?\n/).some(v=>{if(!v.trim())return false;const url=v.split('|').pop().trim();return !/^https:\/\//i.test(url)})){toast('رابط الملف لازم يبدأ بـ https://، واكتب كل ملف في سطر.');return;}
   }
   if(table==='projects') {
+    const imageCount=String(entry.gallery_urls||'').split(/\r?\n/).filter(Boolean).length+(form.querySelector('input[name="gallery_files"]')?.files?.length||0);
+    if(imageCount>15){toast('يسمح بحد أقصى 15 صورة إضافية للمشروع.');return;}
     if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(entry.slug)){toast('رابط المشروع يجب أن يكون إنجليزيًا بحروف صغيرة وشرطات فقط.');return;}
     if(entry.image_url && !(/^https:\/\//i.test(entry.image_url) || /^\.\/assets\/images\/[\w.-]+$/i.test(entry.image_url))) {toast('استخدم رابط HTTPS أو صورة من مجلد assets/images.');return;}
     if(entry.external_url && !/^https:\/\//i.test(entry.external_url)){toast('رابط المشروع يجب أن يبدأ بـ HTTPS');return;}
@@ -349,7 +386,7 @@ async function saveForm(form){
       const thumbnail=form.querySelector('input[name="lesson_thumbnail_file"]')?.files?.[0];
       if(thumbnail)entry.thumbnail_url=await uploadImage(thumbnail,'learning');
       const lessonImages=[...(form.querySelector('[name="lesson_images_files"]')?.files||[])];
-      if(lessonImages.length>12)throw new Error('ارفع 12 صورة شرح بحد أقصى في المرة.');
+      if(lessonImages.length+String(entry.image_urls||'').split(/\r?\n/).filter(Boolean).length>15)throw new Error('الحد الأقصى للصور في الدرس 15 صورة. احذف صور قديمة أولًا.');
       const images=String(entry.image_urls||'').split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
       for(const picture of lessonImages)images.push(await uploadImage(picture,'learning'));
       entry.image_urls=images.join('\n');
@@ -364,7 +401,7 @@ async function saveForm(form){
       const file=form.querySelector('input[name="media_file"]')?.files?.[0];
       if(file)entry.image_url=await uploadImage(file,'projects');
       const images=[...(form.querySelector('input[name="gallery_files"]')?.files||[])];
-      if(images.length>6)throw new Error('ارفع 6 صور إضافية بحد أقصى في كل مرة.');
+      if(images.length+String(entry.gallery_urls||'').split(/\r?\n/).filter(Boolean).length>15)throw new Error('الحد الأقصى لصور المشروع 15 صورة. احذف صور قديمة أولًا.');
       if(images.length){
         const urls=(entry.gallery_urls||'').split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
         for(const photo of images)urls.push(await uploadImage(photo,'projects'));
@@ -373,7 +410,7 @@ async function saveForm(form){
     }
     if(connected){
       const db=await getClient(); let result;
-      if(['settings','content','future','appearance'].includes(table))result=await db.from('site_settings').update(entry).eq('id',1);
+      if(['settings','content','future','appearance','notice'].includes(table))result=await db.from('site_settings').update(entry).eq('id',1);
       else {
         const payload={...entry};
         if(id)payload.id=id;
@@ -383,7 +420,7 @@ async function saveForm(form){
       if(result.error)throw result.error;
       data=await getAdminContent();
     } else {
-      if(['settings','content','future','appearance'].includes(table))data.settings={...data.settings,...entry};
+      if(['settings','content','future','appearance','notice'].includes(table))data.settings={...data.settings,...entry};
       else if(id){const index=data[table].findIndex(x=>x.id===id);if(index!==-1)data[table][index]={...data[table][index],...entry};}
       else data[table].push({...entry,id:`local-${Date.now()}`,slug:`project-${Date.now()}`});
       saveDemo(data);
@@ -408,12 +445,32 @@ function exportDemo(){
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='mo-design-portfolio-preview-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
+$('#adminApp').addEventListener('input',e=>{
+  const target=e.target;
+  if(target.id==='cmsCopySearch'){const q=target.value.trim().toLocaleLowerCase();
+    document.querySelectorAll('.cms-editor-group').forEach(group=>{let found=0;group.querySelectorAll('.form-field').forEach(el=>{const ok=!q||el.textContent.toLocaleLowerCase().includes(q);el.hidden=!ok;if(ok)found++;});group.hidden=!!q&&!found;if(q&&found)group.open=true;});return;
+  }
+  if(target.closest('#appearanceForm') && /__(dark_bg|dark_text|dark_accent|light_bg|light_text|light_accent|cover_url|cover_file|font|heading_size|body_size|padding|height|shade)$/.test(target.name||'')){
+    const section=target.name.split('__')[0];const flag=document.querySelector(`[name="${section}__enabled"]`);if(flag)flag.checked=true;
+  }
+});
 $('#adminApp').addEventListener('click',async e=>{
+  const rb=e.target.closest('[data-rich]');if(rb){
+    const area=rb.closest('.cms-rich-wrap')?.querySelector('textarea');if(!area)return;
+    const a=area.selectionStart,b=area.selectionEnd,selected=area.value.slice(a,b)||'النص';
+    const out=rb.dataset.rich==='bold'?`**${selected}**`:rb.dataset.rich==='italic'?`*${selected}*`:rb.dataset.rich==='heading'?`## ${selected}`:`- ${selected}`;
+    area.setRangeText(out,a,b,'select');area.focus();return;
+  }
   const nav=e.target.closest('button[data-tab]');
   if(nav){tab=nav.dataset.tab;editing=null;renderPanel();window.scrollTo({top:0,behavior:'smooth'});return;}
   const copyBtn=e.target.closest('[data-copy-url]');if(copyBtn){try{await navigator.clipboard.writeText(copyBtn.dataset.copyUrl);toast('تم نسخ الرابط ✓');}catch{toast('تعذر نسخ الرابط');}return;}
   const btn=e.target.closest('button[data-action]');if(!btn)return;
   const {action,id}=btn.dataset;
+  if(action==='clearNotice'){
+    const form=document.getElementById('noticeForm');if(!form)return;
+    for(const k of ['notice_title_ar','notice_title_en','notice_message_ar','notice_message_en','notice_starts','notice_ends']){const el=form.elements.namedItem(k);if(el)el.value='';}
+    form.elements.namedItem('notice_enabled').checked=false;form.requestSubmit();return;
+  }
   if(action==='goto'){tab=id;editing=null;renderPanel();window.scrollTo({top:0});return;}
   if(action==='themeToggle'){const light=document.documentElement.classList.toggle('light');localStorage.setItem('portfolio_theme',light?'light':'dark');refreshAdminLogos();renderPanel();return;}
   if(action==='newlesson'){tab='future';editing={table:'learning_items',id:null};renderPanel();$('#lessonEditor')?.scrollIntoView({behavior:'smooth'});return;}
