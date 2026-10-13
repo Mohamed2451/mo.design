@@ -15,6 +15,8 @@ assert.match(admin,/function updateProjectGalleryCount\(/,'project gallery count
 assert.match(admin,/function updateLessonGalleryCount\(/,'academy gallery count exists');
 assert.match(admin,/function markCmsDirty\(/,'unsaved CMS changes warning exists');
 assert.match(admin,/function refreshAppearancePreview\(/,'local theme preview exists');
+assert.match(admin,/إعادة التصميم الأصلي جاهزة/,'appearance reset is staged before save');
+assert.doesNotMatch(admin,/if\(action==='resetAppearance'\)\{[\s\S]*?db\.from\('site_settings'\)/,'reset button does not save directly');
 assert.match(css,/V13: keep CMS project images consistent/,'responsive images CSS exists');
 const motion=read('assets/v14-motion.js');
 const style=read('assets/v14-motion.css');
