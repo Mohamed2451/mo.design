@@ -567,10 +567,14 @@ $('#adminApp').addEventListener('click',async e=>{
     if(!mediaCache.some(x=>x.folder+'/'+x.name===path))return;
     const db=await getClient();
     const url=db.storage.from('portfolio-media').getPublicUrl(path).data.publicUrl;
-    const referenced=(data.projects||[]).some(p=>p.image_url===url||String(p.gallery_urls||'').split(/\r?\n/).some(x=>x.trim()===url))
-      ||(data.learning_items||[]).some(p=>p.thumbnail_url===url||String(p.image_urls||'').split(/\r?\n/).some(x=>x.trim()===url))
-      ||Object.values(data.settings||{}).some(v=>v===url)
-      ||Object.values(data.settings?.section_design||{}).some(v=>v?.cover_url===url);
+    // Look through all loaded CMS records to prevent deleting an in-use image.
+    const referenced=JSON.stringify({
+      settings:data.settings||{},
+      projects:data.projects||[],
+      learning_items:data.learning_items||[],
+      services:data.services||[],
+      testimonials:data.testimonials||[]
+    }).includes(url);
     if(referenced){toast('الصورة مستخدمة حاليًا في محتوى الموقع. غيّرها من القسم المرتبط أولًا ثم احذفها.');return;}
     if(!confirm('تحذف الصورة نهائيًا من مكتبة Supabase؟ الإجراء لا يمكن التراجع عنه.'))return;
     deleteMedia.disabled=true;deleteMedia.textContent='جارٍ الحذف...';
