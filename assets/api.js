@@ -14,23 +14,43 @@ export async function getClient() {
   }
   return clientPromise;
 }
+
+// A temporary problem in one content table must not block other public sections.
 export async function getPublicContent() {
   if (!connected) return readDemo();
   const db = await getClient();
-  const [s,p,v] = await Promise.all([
-    db.from('site_settings').select('*').eq('id',1).single(),
-    db.from('projects').select('*').eq('is_published', true).order('sort_order'),
-    db.from('services').select('*').eq('is_published', true).order('sort_order')
+
+  async function safelyRead(label, query) {
+    try {
+      const result = await query();
+      if (result?.error) {
+        console.warn(`Mo Design: could not load ${label}:`, result.error.message);
+        return null;
+      }
+      return result?.data ?? null;
+    } catch (error) {
+      console.warn(`Mo Design: ${label} request failed:`, error);
+      return null;
+    }
+  }
+
+  const [settings, projects, services, reviews, lessons] = await Promise.all([
+    safelyRead('site settings', () => db.from('site_settings').select('*').eq('id',1).single()),
+    safelyRead('projects', () => db.from('projects').select('*').eq('is_published', true).order('sort_order')),
+    safelyRead('services', () => db.from('services').select('*').eq('is_published', true).order('sort_order')),
+    safelyRead('testimonials', () => db.from('testimonials').select('*').eq('is_published',true).eq('is_verified',true).order('sort_order')),
+    safelyRead('learning items', () => db.from('learning_items').select('*').eq('is_published',true).order('sort_order').order('created_at',{ascending:false}))
   ]);
-  if (s.error || p.error || v.error) throw new Error(s.error?.message || p.error?.message || v.error?.message);
-  const [reviews,lessons] = await Promise.all([
-    db.from('testimonials').select('*').eq('is_published',true).eq('is_verified',true).order('sort_order'),
-    db.from('learning_items').select('*').eq('is_published',true).order('sort_order').order('created_at',{ascending:false})
-  ]);
-  if(reviews.error)console.warn('Testimonials are not available:',reviews.error.message);
-  if(lessons.error)console.warn('Learning studio not installed yet: run migration 005:',lessons.error.message);
-  return {settings:s.data || seed.settings,projects:p.data || [],services:v.data || [],testimonials:reviews.data || [],learning_items:lessons.data || []};
+
+  return {
+    settings: settings || seed.settings,
+    projects: Array.isArray(projects) ? projects : [],
+    services: Array.isArray(services) ? services : (seed.services || []),
+    testimonials: Array.isArray(reviews) ? reviews : [],
+    learning_items: Array.isArray(lessons) ? lessons : []
+  };
 }
+
 export async function sendInquiry(details) {
   if (!connected) return {mode:'email'};
   const db = await getClient();
