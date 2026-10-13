@@ -1,6 +1,21 @@
 /* Progressive motion; decorative only, safe if content fails to load. */
 (() => {
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const progress=document.createElement('div');
+  progress.className='mo14-scroll-progress';
+  progress.setAttribute('aria-hidden','true');
+  document.body.appendChild(progress);
+  let scrollPending=false;
+  const updateProgress=()=>{
+    scrollPending=false;
+    const max=document.documentElement.scrollHeight-window.innerHeight;
+    progress.style.transform='scaleX('+(max>0?Math.min(1,Math.max(0,window.scrollY/max)):0)+')';
+  };
+  window.addEventListener('scroll',()=>{
+    if(!scrollPending){scrollPending=true;requestAnimationFrame(updateProgress);}
+  },{passive:true});
+  window.addEventListener('resize',updateProgress,{passive:true});
+  updateProgress();
   if(!window.matchMedia('(hover: hover) and (pointer: fine)').matches)return;
   const hero=document.querySelector('.hero');
   const art=document.querySelector('.hero-art');
