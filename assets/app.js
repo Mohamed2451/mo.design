@@ -425,12 +425,6 @@ for(const [id,dir] of [['learningPrev',-1],['learningNext',1]]){
   list.scrollBy({left:dir*step,behavior:'smooth'});
  });
 }
-document.querySelector('.learn-action-link')?.addEventListener('click',e=>{
- window.location.href='./learning.html';return;
- const area=document.getElementById('learningCarouselWrap');
- if(!area || area.hidden){e.preventDefault();return;}
- e.preventDefault();area.scrollIntoView({behavior:'smooth',block:'center'});
-});
 $('#learningList').addEventListener('click',e=>{
  const button=e.target.closest('[data-lesson]');if(!button)return;
  const item=(model.learning_items||[]).find(x=>String(x.id)===button.dataset.lesson&&x.is_published);
