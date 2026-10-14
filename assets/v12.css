@@ -121,3 +121,9 @@ html.light body #cta .v11-designed h2 em{color:var(--v11-accent)!important;-webk
   .case-main .case-stacked-media{grid-template-columns:minmax(0,1fr)}
   .case-main .case-stacked-media .case-artframe{width:100%;min-width:0}
 }
+
+/* Seamless three-copy ticker: each copy has identical content and width. */
+.ticker-track{display:flex!important;width:max-content!important;gap:0!important;direction:ltr!important;animation:mo-ticker-triplicate var(--mo-ticker-time,40s) linear infinite!important}
+.ticker-track .ticker-segment{flex:0 0 auto!important;width:max-content;white-space:nowrap}
+@keyframes mo-ticker-triplicate{from{transform:translate3d(0,0,0)}to{transform:translate3d(-33.3333333333%,0,0)}}
+@media(prefers-reduced-motion:reduce){.ticker-track{animation:none!important}}
