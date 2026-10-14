@@ -29,31 +29,30 @@ function refreshTicker(force=false){
  const selected=words.length?words:['مو ديزاين','تصميم إعلانات','مونتاج فيديو','ذكاء اصطناعي'];
  const signature=selected.join('|')+'::'+lang;
  const viewport=Math.max(shell.clientWidth,window.innerWidth||0,320);
- if(!force && signature===tickerSignature && Number(track.dataset.forWidth)>=viewport)return;
+ if(!force&&signature===tickerSignature&&Number(track.dataset.forWidth)>=viewport)return;
  tickerSignature=signature;
- const build=()=>selected.map(word=>`<span class="ticker-item">${esc(word)}</span>`).join('');
- const first=document.createElement('span');
- first.className='ticker-segment';
- first.innerHTML=build();
- track.replaceChildren(first);
- // Each identical sequence covers the full visible strip, including during the seam.
- let count=0;
- while(first.getBoundingClientRect().width<viewport+160 && count<30){
-   first.insertAdjacentHTML('beforeend',build());count++;
+ const html=selected.map(word=>`<span class="ticker-item">${esc(word)}</span>`).join('');
+ const segment=document.createElement('div');
+ segment.className='ticker-segment';
+ segment.innerHTML=html;
+ track.replaceChildren(segment);
+ // Expand one identical set until it exceeds the widest visible viewport.
+ let attempts=0;
+ while(segment.scrollWidth<viewport+160&&attempts<40){segment.insertAdjacentHTML('beforeend',html);attempts++;}
+ // Offset width is measured after the font is ready; CSS animates that exact pixel distance.
+ const distance=segment.offsetWidth;
+ for(let i=0;i<3;i++){
+  const clone=segment.cloneNode(true);
+  clone.setAttribute('aria-hidden','true');
+  track.appendChild(clone);
  }
- // Three exactly matching segments. Moving by one third of the track is seamless,
- // independent of fonts, fractional pixel sizes or right-to-left page direction.
- for(let i=0;i<2;i++){
-   const clone=first.cloneNode(true);
-   clone.setAttribute('aria-hidden','true');
-   track.appendChild(clone);
- }
+ track.style.setProperty('--mo-ticker-step',distance+'px');
+ track.style.setProperty('--mo-ticker-time',Math.max(16,distance/85)+'s');
  track.dataset.forWidth=String(viewport);
- const distance=first.getBoundingClientRect().width;
- track.style.setProperty('--mo-ticker-time',Math.max(18,distance/85)+'s');
- track.style.animation='none';
+ // Reset animation without waiting for a visible seam.
+ track.classList.remove('ticker-ready');
  void track.offsetWidth;
- track.style.animation='';
+ track.classList.add('ticker-ready');
 }
 window.addEventListener('resize',()=>{
  if(document.hidden||tickerResizePending)return;
