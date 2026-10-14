@@ -43,7 +43,7 @@ assert.match(homepage,/v15-studio\.js/,'V15 interactions are loaded');
 assert.doesNotMatch(homepage,/v16-impact|v16-work-editorial|v16-creative-strip/,'disliked V16 layout is removed');
 assert.match(projects,/esc\(copy\.case_cta_title\|\|txt/,'project CTA title escapes CMS text');
 assert.match(projects,/esc\(copy\.case_cta_button\|\|txt/,'project CTA button escapes CMS text');
-assert.match(app,/index\.html\?category=\$\{encodeURIComponent\(serviceCategory\(s\)\)\}/,'service links open filtered live work');
+assert.match(app,/\.\/services\/\$\{servicePage\(s\)\}/,'service links open CMS-driven service pages');
 assert.match(app,/new URLSearchParams\(location\.search\)\.get\('category'\)/,'URL category is restored on page load');
 assert.match(app,/return \`\.\/project\.html\?slug=/,'CMS projects use their own dynamic detail page');
 assert.doesNotMatch(app,/\.\/services\/\$\{serviceSlug/,'legacy static service pages are no longer navigation target');
