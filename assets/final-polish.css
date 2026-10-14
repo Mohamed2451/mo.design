@@ -54,9 +54,5 @@
 .about-section .about-story-copy span{font-size:12px;color:#bdf987}
 .about-section .about-story-copy strong{font-size:clamp(15px,2vw,25px);line-height:1.5}
 .about-section .about-ribbon{z-index:3}
-/* Keep featured cards lively on desktop and retain the existing carousel transforms. */
-@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
- #featureStage .feature-slide[data-position="active"]{translate:var(--feature-mouse-x,0px) var(--feature-mouse-y,0px);transition:transform .65s cubic-bezier(.2,.8,.2,1),translate .18s linear,opacity .5s ease}
- #featureStage .feature-slide[data-position="prev"]{translate:var(--feature-mouse-x,0px) var(--feature-mouse-y,0px);transition:transform .7s ease,translate .3s ease}
- #featureStage .feature-slide[data-position="next"]{translate:var(--feature-mouse-x,0px) var(--feature-mouse-y,0px);transition:transform .7s ease,translate .3s ease}
-}
+
+/* Featured carousel uses its pre-existing transform animation, without pointer overrides. */
