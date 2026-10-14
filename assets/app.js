@@ -281,7 +281,8 @@ function renderLearning() {
   header.textContent=live?copy.learn_live_title|| (lang==='ar'?'بدأت أنشر محتوى جديد':'New content is live'):copy.learn_title;
   intro.textContent=live?copy.learn_live_desc||'':copy.learn_desc;
   badge.textContent=live?copy.learn_live_tag||'':copy.learn_tag;
-  list.hidden=!live;
+  const carousel=$('#learningCarouselWrap');
+  if(carousel)carousel.hidden=!live;
   if(!live)return;
   const published=(model.learning_items||[]).filter(item=>item.is_published);
   if(!published.length) {
@@ -301,6 +302,7 @@ function renderLearning() {
     </a>`;
   });
   list.innerHTML=cards.join('');
+  list.scrollLeft=0;
 }
 
 function syncRealWorkCopy(){
@@ -414,6 +416,20 @@ function render() {
   }
 }
 
+for(const [id,dir] of [['learningPrev',-1],['learningNext',1]]){
+ document.getElementById(id)?.addEventListener('click',()=>{
+  const list=document.getElementById('learningList');
+  if(!list)return;
+  const card=list.querySelector('.learning-card');
+  const step=(card?.getBoundingClientRect().width||280)+20;
+  list.scrollBy({left:dir*step,behavior:'smooth'});
+ });
+}
+document.querySelector('.learn-action-link')?.addEventListener('click',e=>{
+ const area=document.getElementById('learningCarouselWrap');
+ if(!area || area.hidden){e.preventDefault();return;}
+ e.preventDefault();area.scrollIntoView({behavior:'smooth',block:'center'});
+});
 $('#learningList').addEventListener('click',e=>{
  const button=e.target.closest('[data-lesson]');if(!button)return;
  const item=(model.learning_items||[]).find(x=>String(x.id)===button.dataset.lesson&&x.is_published);
