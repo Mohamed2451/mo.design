@@ -426,6 +426,7 @@ for(const [id,dir] of [['learningPrev',-1],['learningNext',1]]){
  });
 }
 document.querySelector('.learn-action-link')?.addEventListener('click',e=>{
+ window.location.href='./learning.html';return;
  const area=document.getElementById('learningCarouselWrap');
  if(!area || area.hidden){e.preventDefault();return;}
  e.preventDefault();area.scrollIntoView({behavior:'smooth',block:'center'});
