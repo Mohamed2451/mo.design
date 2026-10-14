@@ -32,7 +32,7 @@ function normalizeMediaCaptions(value){return value&&typeof value==='object'&&!A
 function mediaCaptionsEditor(kind,captions,urls){
  const data=normalizeMediaCaptions(captions);const list=String(urls||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
  const fields=list.map((url,i)=>`<div class="cms-caption-entry"><small>الصورة الموجودة ${i+1}</small><textarea name="${kind}_existing_caption_${i}" rows="3" placeholder="شرح اختياري تحت هذه الصورة بالعربي">${esc(data[url]?.ar||'')}</textarea><textarea name="${kind}_existing_caption_en_${i}" rows="2" placeholder="English caption (optional)">${esc(data[url]?.en||'')}</textarea><input type="hidden" name="${kind}_existing_url_${i}" value="${esc(url)}"></div>`).join('');
- return `<div class="full cms-caption-editor"><h3>شرح مستقل لكل صورة — اختياري</h3><p class="admin-note">يمكن كتابة نص طويل جدًا تحت كل صورة. الصور الموجودة بالأسفل لها شرح مستقل؛ وعند اختيار صور جديدة اكتب شروحها بنفس ترتيب اختيار الملفات، سطر لكل صورة (اترك السطر فارغًا إذا لا تحتاج شرحًا).</p>${fields}<label class="form-field">شروح الصور الجديدة بالعربي (كل صورة في سطر)<textarea name="${kind}_new_captions_ar" rows="4"></textarea></label><label class="form-field">New image captions in English (one per line)<textarea name="${kind}_new_captions_en" rows="3"></textarea></label></div>`;
+ return `<div class="full cms-caption-editor"><h3>شرح مستقل لكل صورة — اختياري</h3><p class="admin-note">يمكن كتابة نص طويل جدًا تحت كل صورة. الصور الموجودة بالأسفل لها شرح مستقل؛ وعند اختيار صور جديدة اكتب شروحها بنفس ترتيب اختيار الملفات، سطر لكل صورة (اترك السطر فارغًا إذا لا تحتاج شرحًا).</p>${fields}<div class="full" data-new-captions="${kind}"><small>اختر الصور من خانة الرفع أولًا، وستظهر هنا خانة شرح مستقلة لكل صورة، ويمكن كتابة شرح طويل متعدد الفقرات.</small></div></div>`;
 }
 function readMediaCaptions(form,kind){
  const map={...normalizeMediaCaptions(kind==='gallery'?(data.projects||[]).find(p=>p.id===form.dataset.editId)?.gallery_captions:(data.learning_items||[]).find(p=>p.id===form.dataset.editId)?.image_captions)};
@@ -45,10 +45,20 @@ function readMediaCaptions(form,kind){
  return map;
 }
 function linkNewCaptions(entry,kind,files,urls,field){
- const ar=String(new FormData(document.querySelector(`form[data-entity="${kind==='gallery'?'projects':'learning_items'}"]`)).get(kind+'_new_captions_ar')||'').split(/\r?\n/);
- const en=String(new FormData(document.querySelector(`form[data-entity="${kind==='gallery'?'projects':'learning_items'}"]`)).get(kind+'_new_captions_en')||'').split(/\r?\n/);
- files.forEach((file,i)=>{if((ar[i]||'').trim()||(en[i]||'').trim())entry[field][urls[i]]={ar:ar[i]||'',en:en[i]||''};});
+ const form=document.querySelector(`form[data-entity="${kind==='gallery'?'projects':'learning_items'}"]`);
+ files.forEach((file,i)=>{
+  const ar=form?.querySelector(`[name="${kind}_new_caption_ar_${i}"]`)?.value||'';
+  const en=form?.querySelector(`[name="${kind}_new_caption_en_${i}"]`)?.value||'';
+  if(ar.trim()||en.trim())entry[field][urls[i]]={ar,en};
+ });
 }
+function refreshNewCaptionInputs(input){
+ const kind=input.name==='gallery_files'?'gallery':'lesson';
+ const host=input.closest('form')?.querySelector(`[data-new-captions="${kind}"]`);
+ if(!host)return;
+ host.innerHTML=[...(input.files||[])].map((file,i)=>`<div class="cms-caption-entry"><strong>الصورة الجديدة ${i+1}: ${esc(file.name)}</strong><label>الشرح بالعربي<textarea name="${kind}_new_caption_ar_${i}" rows="5" placeholder="اكتب شرحًا اختياريًا مهما كان طوله"></textarea></label><label>English caption<textarea name="${kind}_new_caption_en_${i}" rows="3"></textarea></label></div>`).join('')||'<small>اختَر صورًا من جهازك لكتابة شرح مستقل لكل صورة.</small>';
+}
+
 const SECTIONS=[['featured','المشاريع المميزة'],['signature','عرض الأعمال الرئيسي'],['work','معرض الأعمال'],['services','الخدمات'],['tools','البرامج والأدوات'],['why','أسلوبي في الشغل'],['about','نبذة عني'],['process','مراحل تنفيذ المشاريع'],['testimonials','آراء العملاء'],['faq','الأسئلة الشائعة'],['cta','دعوة بدء مشروع'],['learn','المعرفة الجاية أقرب'],['contact','التواصل وطلب مشروع']];
 const CONTENT_GROUPS={
  'المشاريع والأعمال':[['feature_title','عنوان الأعمال المميزة'],['feature_sub','وصف الأعمال المميزة'],['selected','عنوان معرض الأعمال'],['selected_sub','وصف معرض الأعمال'],['signature_title','عنوان العرض السينمائي'],['signature_desc','وصف العرض السينمائي'],['signature_link','نص زر عرض المشروع']],
@@ -705,6 +715,7 @@ $('#adminApp').addEventListener('input',e=>{
    document.querySelectorAll('.inbox-item').forEach(item=>item.hidden=!!(query&&!item.dataset.search.includes(query) || status&&item.dataset.status!==status));
  }
 });
+$('#adminApp').addEventListener('change',e=>{if(e.target.matches('[name="gallery_files"],[name="lesson_images_files"]'))refreshNewCaptionInputs(e.target);});
 $('#adminApp').addEventListener('change',e=>{
  if(e.target.matches('#inboxFilter')){
   const q=($('#inboxSearch')?.value||'').trim().toLowerCase(), status=e.target.value;
