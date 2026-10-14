@@ -411,7 +411,7 @@ function getFields(form,table){
     ['learn_title','learn_desc','learn_tag','learn_live_title','learn_live_desc','learn_live_tag'].forEach(key=>{content_ar[key]=get('ar_'+key);content_en[key]=get('en_'+key);});
     return {education_mode:mode,content_ar,content_en,section_visibility:{...(data.settings?.section_visibility||{}),learn:mode!=='hidden'}};
   }
-  if(table==='learning_items')return {image_captions:readMediaCaptions(f,'lesson'),text_style:{font:get('text_font')||'Alexandria',size:Math.max(14,Math.min(30,Number(get('text_size'))||17))},image_urls:get('image_urls'),content_type:get('content_type')==='article'?'article':'video',title_ar:get('title_ar'),title_en:get('title_en'),summary_ar:get('summary_ar'),summary_en:get('summary_en'),body_ar:get('body_ar'),body_en:get('body_en'),youtube_url:get('youtube_url'),video_url:get('video_url'),thumbnail_url:get('thumbnail_url'),resource_links:get('resource_links'),sort_order:Number(get('sort_order'))||0,is_published:f.has('is_published')};
+  if(table==='learning_items')return {image_captions:readMediaCaptions(form,'lesson'),text_style:{font:get('text_font')||'Alexandria',size:Math.max(14,Math.min(30,Number(get('text_size'))||17))},image_urls:get('image_urls'),content_type:get('content_type')==='article'?'article':'video',title_ar:get('title_ar'),title_en:get('title_en'),summary_ar:get('summary_ar'),summary_en:get('summary_en'),body_ar:get('body_ar'),body_en:get('body_en'),youtube_url:get('youtube_url'),video_url:get('video_url'),thumbnail_url:get('thumbnail_url'),resource_links:get('resource_links'),sort_order:Number(get('sort_order'))||0,is_published:f.has('is_published')};
   if(table==='notice'){
     const old=data.settings?.site_notice||{};
     const iso=key=>{const val=get(key);return val?new Date(val).toISOString():null;};
@@ -422,13 +422,15 @@ function getFields(form,table){
   }
   const common={sort_order:Number(get('sort_order'))||0,is_published:f.has('is_published')};
   if(table==='testimonials')return {...common,author_ar:get('author_ar'),author_en:get('author_en'),job_ar:get('job_ar'),job_en:get('job_en'),quote_ar:get('quote_ar'),quote_en:get('quote_en'),rating:Math.max(0,Math.min(5,Number(get('rating'))||0)),is_verified:f.has('is_verified')};
-  if(table==='projects'){const category=PORTFOLIO_CATEGORIES.find(c=>c.id===get('category_id'))||PORTFOLIO_CATEGORIES[0];return {...common,gallery_captions:readMediaCaptions(f,'gallery'),text_style:{font:get('text_font')||'Alexandria',size:Math.max(14,Math.min(30,Number(get('text_size'))||17))},title_ar:get('title_ar'),title_en:get('title_en'),category_ar:category.ar,category_en:category.en,summary_ar:get('summary_ar'),summary_en:get('summary_en'),cover_style:get('cover_style'),image_url:get('image_url'),external_url:get('external_url'),featured:f.has('featured'),video_url:get('video_url'),gallery_urls:get('gallery_urls'),objective_ar:get('objective_ar'),objective_en:get('objective_en'),tools_used:get('tools_used'),youtube_url:get('youtube_url'),project_type:get('project_type'),slug:get('slug') || `project-${Date.now()}-${Math.random().toString(36).slice(2,7)}`};}
+  if(table==='projects'){const category=PORTFOLIO_CATEGORIES.find(c=>c.id===get('category_id'))||PORTFOLIO_CATEGORIES[0];return {...common,gallery_captions:readMediaCaptions(form,'gallery'),text_style:{font:get('text_font')||'Alexandria',size:Math.max(14,Math.min(30,Number(get('text_size'))||17))},title_ar:get('title_ar'),title_en:get('title_en'),category_ar:category.ar,category_en:category.en,summary_ar:get('summary_ar'),summary_en:get('summary_en'),cover_style:get('cover_style'),image_url:get('image_url'),external_url:get('external_url'),featured:f.has('featured'),video_url:get('video_url'),gallery_urls:get('gallery_urls'),objective_ar:get('objective_ar'),objective_en:get('objective_en'),tools_used:get('tools_used'),youtube_url:get('youtube_url'),project_type:get('project_type'),slug:get('slug') || `project-${Date.now()}-${Math.random().toString(36).slice(2,7)}`};}
   return {...common,title_ar:get('title_ar'),title_en:get('title_en'),description_ar:get('description_ar'),description_en:get('description_en'),icon:get('icon')};
 }
 async function saveForm(form){
   const table=form.dataset.entity;
   if(busy){formStatus(form,"جاري حفظ طلب سابق، انتظر اكتماله.");return;} if(!form.checkValidity()){const invalid=form.querySelector(':invalid');formStatus(form,'لا يمكن الحفظ: راجع الحقل '+(invalid?.closest('label')?.textContent?.trim().slice(0,110)||invalid?.name||'حقل مطلوب')+'. افتح الإعدادات المتقدمة لو الحقل بداخلها.',true);invalid?.closest('details')?.setAttribute('open','');invalid?.focus();return;}
-  const entry=getFields(form,table);
+  let entry;
+  try { entry=getFields(form,table); }
+  catch(error){console.error('Mo Design: form preparation failed',error);formStatus(form,'تعذر تجهيز بيانات الحفظ: '+(error.message||'خطأ غير معروف')+'. احتفظ بالبيانات المفتوحة ولا تحدث الصفحة.',true);return;}
   const id=form.dataset.editId;
   if(table==='learning_items'){
     const imageCount=String(entry.image_urls||'').split(/\r?\n/).filter(Boolean).length+(form.querySelector('input[name="lesson_images_files"]')?.files?.length||0);
