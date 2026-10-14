@@ -57,7 +57,7 @@ assert.match(servicePageJs,/\.from\('projects'\)/,'service pages query published
 assert.match(servicePageJs,/categoryFor\(p\)/,'service pages filter actual CMS categories');
 assert.match(servicePageJs,/sort_order/,'service pages respect project order');
 assert.match(servicePageJs,/project\.html\?slug=/,'service projects link to live project details');
-assert.match(admin,/إدارة صفحات الخدمات المرتبطة بالمشاريع/,'dashboard shows service page management');
+assert.match(admin,/دليل صفحات الخدمات الفعلية/,'dashboard shows accurate service page management');
 
 // V13 usability: real service descriptions, mobile arrows and optional captions
 const lessons=read('assets/lesson.js');
