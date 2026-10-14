@@ -51,7 +51,7 @@ assert.match(admin,/archiveInquiry/,'inquiries offer archive action');
 assert.match(admin,/deleteInquiry/,'inquiries offer delete action');
 assert.match(admin,/restoreInquiry/,'inquiries offer restore action');
 assert.match(admin,/تم تحديث حالة الطلب والعداد/,'inquiry status updates the counter');
-assert.doesNotMatch(app,/node\.addEventListener\('pointermove'/,'costly card-wide pointer tracking is removed');
+assert.match(app,/if\(frame\)return;/,'restored original card pointer motion is frame-throttled');
 const servicePageJs=read('assets/service-dynamic.js');
 assert.match(servicePageJs,/\.from\('projects'\)/,'service pages query published CMS projects');
 assert.match(servicePageJs,/categoryFor\(p\)/,'service pages filter actual CMS categories');
