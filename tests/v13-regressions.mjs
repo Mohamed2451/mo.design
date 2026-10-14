@@ -75,4 +75,9 @@ assert.match(baseStyle,/V13 mobile carousel and safe long image captions/,'mobil
 assert.match(admin,/readMediaCaptions\(form,'gallery'\)/,'project captions use actual form DOM element');
 assert.match(admin,/readMediaCaptions\(form,'lesson'\)/,'lesson captions use actual form DOM element');
 assert.doesNotMatch(admin,/readMediaCaptions\(f,'gallery'\)/,'do not pass FormData to caption parser');
+const captionsCss=read('assets/v12.css');
+assert.match(captionsCss,/case-stacked-media \\.case-artframe/, 'project gallery caption card layout is overridden');
+assert.match(captionsCss,/aspect-ratio:auto!important/, 'gallery cards grow with captions');
+assert.match(captionsCss,/max-height:none!important/, 'long captions are not clipped by a height cap');
+assert.match(read('project.html'),/caption-fix-20261014/, 'project stylesheet cache is refreshed');
 console.log('V13 regression checks passed');
