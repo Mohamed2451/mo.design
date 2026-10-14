@@ -28,32 +28,39 @@ function refreshTicker(force=false){
  const words=String(txt().ticker_items||'').split(/\n|\|/).map(w=>w.trim()).filter(Boolean).slice(0,20);
  const selected=words.length?words:['مو ديزاين','تصميم إعلانات','مونتاج فيديو','ذكاء اصطناعي'];
  const signature=selected.join('|')+'::'+lang;
- const viewport=Math.max(window.innerWidth||0,shell.getBoundingClientRect().width,320);
- if(!force && signature===tickerSignature && Number(track.dataset.forWidth)>=viewport) return;
+ const viewport=Math.max(shell.clientWidth,window.innerWidth||0,320);
+ if(!force && signature===tickerSignature && Number(track.dataset.forWidth)>=viewport)return;
  tickerSignature=signature;
  const build=()=>selected.map(word=>`<span class="ticker-item">${esc(word)}</span>`).join('');
- const segment=document.createElement('span');segment.className='ticker-segment';
- segment.innerHTML=build();
- track.replaceChildren(segment);
- // Repeat until one full half is wider than the complete viewport.
+ const first=document.createElement('span');
+ first.className='ticker-segment';
+ first.innerHTML=build();
+ track.replaceChildren(first);
+ // Each identical sequence covers the full visible strip, including during the seam.
  let count=0;
- while(segment.getBoundingClientRect().width<viewport+160&&count<12){segment.insertAdjacentHTML('beforeend',build());count++;}
- const width=Math.ceil(segment.getBoundingClientRect().width);
- const duplicate=segment.cloneNode(true);duplicate.setAttribute('aria-hidden','true');
- track.appendChild(duplicate);
+ while(first.getBoundingClientRect().width<viewport+160 && count<30){
+   first.insertAdjacentHTML('beforeend',build());count++;
+ }
+ // Three exactly matching segments. Moving by one third of the track is seamless,
+ // independent of fonts, fractional pixel sizes or right-to-left page direction.
+ for(let i=0;i<2;i++){
+   const clone=first.cloneNode(true);
+   clone.setAttribute('aria-hidden','true');
+   track.appendChild(clone);
+ }
  track.dataset.forWidth=String(viewport);
- track.style.setProperty('--mo-ticker-distance',width+'px');
- track.style.setProperty('--mo-ticker-time',Math.max(18,width/80)+'s');
+ const distance=first.getBoundingClientRect().width;
+ track.style.setProperty('--mo-ticker-time',Math.max(18,distance/85)+'s');
  track.style.animation='none';
- // Force browser to apply the new track size before restarting the seamless loop.
  void track.offsetWidth;
  track.style.animation='';
 }
 window.addEventListener('resize',()=>{
- if(document.hidden || tickerResizePending)return;
+ if(document.hidden||tickerResizePending)return;
  tickerResizePending=true;
  requestAnimationFrame(()=>{tickerResizePending=false;refreshTicker(true);});
 },{passive:true});
+if(document.fonts?.ready)document.fonts.ready.then(()=>refreshTicker(true)).catch(()=>{});
 function updateDocument() {
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
