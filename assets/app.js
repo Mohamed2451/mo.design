@@ -21,7 +21,7 @@ function toast(message) {
 }
 // The ticker is independently managed by assets/ticker-loop.js.
 // Keep this compatibility hook for language / CMS copy updates.
-function refreshTicker(){window.dispatchEvent(new Event('mo:ticker-content-changed'));}
+function refreshTicker(){window.moTickerWords=String(txt().ticker_items||'').split(/\n|\|/).map(x=>x.trim()).filter(Boolean).slice(0,20);window.dispatchEvent(new Event('mo:ticker-content-changed'));}
 function updateDocument() {
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
