@@ -35,3 +35,11 @@
  .reveal.will-reveal:not(.visible){opacity:0;transform:translateY(17px);transition:opacity .6s ease,transform .6s ease}
  .reveal.visible{opacity:1;transform:translateY(0);transition:opacity .6s ease,transform .6s ease}
 }
+
+/* The lesson figures are direct children of .lesson-image-gallery. */
+.v11-lesson-page .lesson-image-gallery{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.v11-lesson-page .lesson-image-gallery>h2{grid-column:1/-1}
+.v11-lesson-page .lesson-image-gallery>.lesson-figure{width:100%;max-width:none!important;margin:0!important;aspect-ratio:auto!important;overflow:visible!important;min-height:0!important;height:auto!important}
+.v11-lesson-page .lesson-image-gallery>.lesson-figure img{width:100%;height:auto!important;max-height:none!important;object-fit:contain!important}
+@media(max-width:600px){.v11-lesson-page .lesson-image-gallery{gap:10px;grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:400px){.v11-lesson-page .lesson-image-gallery{grid-template-columns:1fr}}
