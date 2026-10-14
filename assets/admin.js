@@ -194,7 +194,7 @@ function renderItems(table){
   ${field('icon','رمز الخدمة',item.icon || 'sparkles',{select:[['diamond','◇ Diamond'],['sparkles','✳ Sparkles'],['play','▷ Editing'],['layout','▦ Web'],['target','◎ Strategy'],['brush','✺ Design']]})}`}
   ${field('sort_order','الترتيب',item.sort_order ?? arr.length+1,{type:'number'})}${field('is_published','منشور على الموقع',item.is_published ?? false,{type:'checkbox'})}`;
   const preview=isProjects?`<div class="cms-project-preview" id="cmsProjectPreview"><div class="cms-preview-art">${safeUrl(item.image_url)?`<img id="previewImage" src="${esc(safeUrl(item.image_url))}" alt="معاينة الغلاف">`:`<span id="previewFallback">✳</span>`}</div><div><small>معاينة سريعة قبل النشر</small><h3 id="previewTitle">${esc(item.title_ar||'اسم مشروعك الجديد')}</h3><p id="previewCategory">${esc(item.category_ar||'تصنيف المشروع')}</p>${item.slug&&item.is_published?`<a href="./project.html?slug=${esc(item.slug)}" target="_blank" rel="noopener">فتح المشروع المنشور ↗</a>`:''}</div></div>`:'';
-  return `<div class="admin-panel" id="editorPanel"><h2>${isNew?`إضافة ${noun}`:`تعديل ${noun}`}</h2><form data-entity="${table}" data-edit-id="${esc(item.id || '')}"><div class="admin-form-grid">${main}</div>${preview}<div class="admin-actions"><div data-save-status role="status" aria-live="polite" hidden style="width:100%;padding:12px;border:1px solid #79b943;border-radius:10px;white-space:normal"></div>${uiButton('إلغاء','cancel')}<button class="admin-btn" type="submit">حفظ ${noun}</button></div></form></div>`+list;
+  return `<div class="admin-panel" id="editorPanel"><h2>${isNew?`إضافة ${noun}`:`تعديل ${noun}`}</h2><form data-entity="${table}" data-edit-id="${esc(item.id || '')}" novalidate><div class="admin-form-grid">${main}</div>${preview}<div class="admin-actions"><div data-save-status role="status" aria-live="polite" hidden style="width:100%;padding:12px;border:1px solid #79b943;border-radius:10px;white-space:normal"></div>${uiButton('إلغاء','cancel')}<button class="admin-btn" type="button" data-direct-save>حفظ ${noun}</button></div></form></div>`+list;
 }
 function renderMessages(){
  if(!connected)return `<div class="admin-panel"><h2>رسائل العملاء</h2><p class="admin-note">الرسائل تحتاج توصيل Supabase. على النسخة غير المتصلة، الطلبات تفتح واتساب ومش بتتحفظ هنا.</p></div>`;
@@ -427,7 +427,7 @@ function getFields(form,table){
 }
 async function saveForm(form){
   const table=form.dataset.entity;
-  if(busy){formStatus(form,"جاري حفظ طلب سابق، انتظر اكتماله.");return;} if(!form.reportValidity()){const invalid=form.querySelector(':invalid');formStatus(form,'راجع الحقل المطلوب أو غير الصحيح: '+(invalid?.closest('label')?.textContent?.trim().slice(0,110)||invalid?.name||'حقل مطلوب'),true);return;}
+  if(busy){formStatus(form,"جاري حفظ طلب سابق، انتظر اكتماله.");return;} if(!form.checkValidity()){const invalid=form.querySelector(':invalid');formStatus(form,'لا يمكن الحفظ: راجع الحقل '+(invalid?.closest('label')?.textContent?.trim().slice(0,110)||invalid?.name||'حقل مطلوب')+'. افتح الإعدادات المتقدمة لو الحقل بداخلها.',true);invalid?.closest('details')?.setAttribute('open','');invalid?.focus();return;}
   const entry=getFields(form,table);
   const id=form.dataset.editId;
   if(table==='learning_items'){
@@ -452,7 +452,7 @@ async function saveForm(form){
     if(entry.gallery_urls && !entry.gallery_urls.split(/\r?\n/).filter(Boolean).every(x=>/^https:\/\//i.test(x))){toast('كل صورة إضافية لازم تكون رابط HTTPS في سطر مستقل.');return;}
   }
   busy=true;
-  const submitButton=form.querySelector('button[type="submit"]');if(submitButton){submitButton.disabled=true;submitButton.textContent='جاري الحفظ...';}
+  const submitButton=form.querySelector('[data-direct-save],button[type="submit"]');if(submitButton){submitButton.disabled=true;submitButton.textContent='جاري الحفظ...';}
   formStatus(form,'جارٍ تجهيز البيانات للحفظ. لا تغلق الصفحة أثناء رفع الصور.');
   try {
     if(connected && table==='settings'){
@@ -736,6 +736,16 @@ $('#adminApp').addEventListener('invalid',e=>{
  const form=e.target.closest('form[data-entity]');
  if(form)formStatus(form,'الحفظ لم يبدأ بسبب حقل غير صحيح: '+(e.target.closest('label')?.textContent?.trim().slice(0,120)||e.target.name||'حقل مطلوب'),true);
 },true);
+// A direct click ensures the editor save handler runs even when the browser blocks native form submission.
+$('#adminApp').addEventListener('click',async e=>{
+ const button=e.target.closest('[data-direct-save]');
+ if(!button)return;
+ e.preventDefault();
+ const form=button.closest('form[data-entity]');
+ if(!form)return;
+ formStatus(form,'تم استقبال الضغط على حفظ. جاري مراجعة الحقول والملفات...');
+ await saveForm(form);
+});
 $('#adminApp').addEventListener('submit',async e=>{
   e.preventDefault();
   const form=e.target;
