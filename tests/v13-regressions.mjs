@@ -101,7 +101,7 @@ assert.match(academyScript,/data-position/, 'learning cards use positional featu
 assert.match(aboutMarkup,/about-story-logo/, 'about section retains real owner logo');
 assert.match(aboutMarkup,/about-photo-mini/, 'about section retains owner portrait');
 assert.match(aboutMarkup,/href="\.\/learning\.html"/, 'academy CTA opens the dedicated page');
-assert.match(mouseEffects,/feature-mouse-x/, 'featured cards react to mouse movement');
+assert.doesNotMatch(mouseEffects,/feature-mouse-x/, 'new mouse override removed so original featured carousel motion is preserved');
 assert.match(admin,/about_story_value/, 'additional about copy is editable');
 assert.match(admin,/footer_copyright/, 'footer copyright is editable');
 console.log('V13 regression checks passed');
