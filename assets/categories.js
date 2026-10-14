@@ -6,6 +6,8 @@ export const PORTFOLIO_CATEGORIES = Object.freeze([
   {id:'Branding & Identity',ar:'براندينج وهوية بصرية',en:'Branding & Identity'}
 ]);
 export function categoryFor(project){
+  const exact=PORTFOLIO_CATEGORIES.find(c=>c.id===project?.category_en||c.ar===project?.category_ar);
+  if(exact)return exact;
   const raw=[project?.category_en,project?.category_ar].filter(Boolean).join(' ').toLowerCase().replace(/\s+/g,' ');
   if(/social|advert|campaign|سوشيال|إعلانات|اعلان/.test(raw)) return PORTFOLIO_CATEGORIES[0];
   if(/reels|podcast|editing|motion|مونتاج|ريلز|بودكاست|موشن/.test(raw))return PORTFOLIO_CATEGORIES[1];
