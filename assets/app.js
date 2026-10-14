@@ -220,8 +220,34 @@ function renderTools() {
 }
 
 function applyInteractiveFX(){
-  // Heavy per-card pointer tracking was causing unnecessary layout work.
-  // CSS hover effects remain; no pointermove listeners are registered.
+ if(window.matchMedia('(prefers-reduced-motion: reduce), (pointer: coarse)').matches)return;
+ const selectors='.project-card,.process-card,.review-card,.tool-card,.service-item,.feature-slide[data-position="active"]';
+ $$(selectors).forEach(node=>{
+  if(node.dataset.fxBound)return;
+  node.dataset.fxBound='1';
+  node.classList.add('tilt-card');
+  let frame=0,eventX=0,eventY=0;
+  node.addEventListener('pointermove',e=>{
+   if(e.pointerType==='touch')return;
+   const rect=node.getBoundingClientRect();
+   if(!rect.width||!rect.height)return;
+   eventX=(e.clientX-rect.left)/rect.width;
+   eventY=(e.clientY-rect.top)/rect.height;
+   if(frame)return;
+   frame=requestAnimationFrame(()=>{
+    frame=0;
+    node.style.setProperty('--mx',Math.round(eventX*100)+'%');
+    node.style.setProperty('--my',Math.round(eventY*100)+'%');
+    node.style.setProperty('--tilt-x',((.5-eventY)*6).toFixed(2)+'deg');
+    node.style.setProperty('--tilt-y',((eventX-.5)*6).toFixed(2)+'deg');
+   });
+  },{passive:true});
+  node.addEventListener('pointerleave',()=>{
+   if(frame)cancelAnimationFrame(frame);
+   frame=0;node.style.removeProperty('--tilt-x');node.style.removeProperty('--tilt-y');
+   node.style.removeProperty('--mx');node.style.removeProperty('--my');
+  });
+ });
 }
 
 function observeReveal() {
