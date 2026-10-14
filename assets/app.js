@@ -227,7 +227,7 @@ function renderTools() {
 
 function applyInteractiveFX(){
  if(window.matchMedia('(prefers-reduced-motion: reduce), (pointer: coarse)').matches)return;
- const selectors='.project-card,.process-card,.review-card,.tool-card,.service-item,.feature-slide[data-position="active"]';
+ const selectors='.project-card,.process-card,.review-card,.tool-card,.service-item,.editorial-tile,.feature-slide';
  $$(selectors).forEach(node=>{
   if(node.dataset.fxBound)return;
   node.dataset.fxBound='1';
