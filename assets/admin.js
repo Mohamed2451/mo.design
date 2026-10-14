@@ -68,6 +68,13 @@ const CONTENT_GROUPS={
  'الأسئلة الشائعة':[['faq_title','عنوان الأسئلة الشائعة'],['faq_desc','مقدمة الأسئلة'],['faq_q1','السؤال الأول'],['faq_a1','إجابة السؤال الأول'],['faq_q2','السؤال الثاني'],['faq_a2','إجابة السؤال الثاني'],['faq_q3','السؤال الثالث'],['faq_a3','إجابة السؤال الثالث'],['faq_q4','السؤال الرابع'],['faq_a4','إجابة السؤال الرابع']]
 };
 let mediaCache=[];
+function formStatus(form,message,error=false){
+ const node=form?.querySelector('[data-save-status]');
+ if(!node)return;
+ node.hidden=false;node.textContent=message;node.style.color=error?'#ffb3a9':'#c9ff90';
+ node.style.borderColor=error?'#bc4b48':'#79b943';
+ node.setAttribute('role',error?'alert':'status');
+}
 function toast(message){const el=$('#toast'); el.textContent=message; el.classList.add('show'); clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),4000);}
 function uiButton(label,action,id='',className='secondary') {return `<button type="button" class="admin-btn ${className}" data-action="${esc(action)}" data-id="${esc(id)}">${esc(label)}</button>`;}
 function field(name,label,value='',options={}){
@@ -187,7 +194,7 @@ function renderItems(table){
   ${field('icon','رمز الخدمة',item.icon || 'sparkles',{select:[['diamond','◇ Diamond'],['sparkles','✳ Sparkles'],['play','▷ Editing'],['layout','▦ Web'],['target','◎ Strategy'],['brush','✺ Design']]})}`}
   ${field('sort_order','الترتيب',item.sort_order ?? arr.length+1,{type:'number'})}${field('is_published','منشور على الموقع',item.is_published ?? false,{type:'checkbox'})}`;
   const preview=isProjects?`<div class="cms-project-preview" id="cmsProjectPreview"><div class="cms-preview-art">${safeUrl(item.image_url)?`<img id="previewImage" src="${esc(safeUrl(item.image_url))}" alt="معاينة الغلاف">`:`<span id="previewFallback">✳</span>`}</div><div><small>معاينة سريعة قبل النشر</small><h3 id="previewTitle">${esc(item.title_ar||'اسم مشروعك الجديد')}</h3><p id="previewCategory">${esc(item.category_ar||'تصنيف المشروع')}</p>${item.slug&&item.is_published?`<a href="./project.html?slug=${esc(item.slug)}" target="_blank" rel="noopener">فتح المشروع المنشور ↗</a>`:''}</div></div>`:'';
-  return `<div class="admin-panel" id="editorPanel"><h2>${isNew?`إضافة ${noun}`:`تعديل ${noun}`}</h2><form data-entity="${table}" data-edit-id="${esc(item.id || '')}"><div class="admin-form-grid">${main}</div>${preview}<div class="admin-actions">${uiButton('إلغاء','cancel')}<button class="admin-btn" type="submit">حفظ ${noun}</button></div></form></div>`+list;
+  return `<div class="admin-panel" id="editorPanel"><h2>${isNew?`إضافة ${noun}`:`تعديل ${noun}`}</h2><form data-entity="${table}" data-edit-id="${esc(item.id || '')}"><div class="admin-form-grid">${main}</div>${preview}<div class="admin-actions"><div data-save-status role="status" aria-live="polite" hidden style="width:100%;padding:12px;border:1px solid #79b943;border-radius:10px;white-space:normal"></div>${uiButton('إلغاء','cancel')}<button class="admin-btn" type="submit">حفظ ${noun}</button></div></form></div>`+list;
 }
 function renderMessages(){
  if(!connected)return `<div class="admin-panel"><h2>رسائل العملاء</h2><p class="admin-note">الرسائل تحتاج توصيل Supabase. على النسخة غير المتصلة، الطلبات تفتح واتساب ومش بتتحفظ هنا.</p></div>`;
@@ -420,7 +427,7 @@ function getFields(form,table){
 }
 async function saveForm(form){
   const table=form.dataset.entity;
-  if(!form.reportValidity() || busy)return;
+  if(busy){formStatus(form,"جاري حفظ طلب سابق، انتظر اكتماله.");return;} if(!form.reportValidity()){formStatus(form,"يوجد حقل مطلوب أو رابط غير صحيح. راجع الحقل المحدد أعلى النموذج.",true);return;}
   const entry=getFields(form,table);
   const id=form.dataset.editId;
   if(table==='learning_items'){
@@ -436,8 +443,8 @@ async function saveForm(form){
   }
   if(table==='projects') {
     const imageCount=String(entry.gallery_urls||'').split(/\r?\n/).filter(Boolean).length+(form.querySelector('input[name="gallery_files"]')?.files?.length||0);
-    if(imageCount>15){toast('يسمح بحد أقصى 15 صورة إضافية للمشروع.');return;}
-    if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(entry.slug)){toast('رابط المشروع يجب أن يكون إنجليزيًا بحروف صغيرة وشرطات فقط.');return;}
+    if(imageCount>15){formStatus(form,`عدد الصور الإجمالي ${imageCount}، والمسموح 15 فقط. الصور المكتوبة كرابط تُحسب أيضًا. احذف الصور الزائدة قبل الحفظ.`,true);return;}
+    if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(entry.slug)){formStatus(form,'رابط المشروع غير صحيح. اتركه فارغًا ليتولد تلقائيًا أو اكتب حروف إنجليزية صغيرة وأرقام وشرطات فقط.',true);return;}
     if(entry.image_url && !(/^https:\/\//i.test(entry.image_url) || /^\.\/assets\/images\/[\w.-]+$/i.test(entry.image_url))) {toast('استخدم رابط HTTPS أو صورة من مجلد assets/images.');return;}
     if(entry.external_url && !/^https:\/\//i.test(entry.external_url)){toast('رابط المشروع يجب أن يبدأ بـ HTTPS');return;}
     if(entry.youtube_url && !/^https:\/\/(www\.)?(youtube\.com|youtu\.be|m\.youtube\.com)\//i.test(entry.youtube_url)){toast('حط رابط يوتيوب أو شورتس صحيح.');return;}
@@ -445,6 +452,8 @@ async function saveForm(form){
     if(entry.gallery_urls && !entry.gallery_urls.split(/\r?\n/).filter(Boolean).every(x=>/^https:\/\//i.test(x))){toast('كل صورة إضافية لازم تكون رابط HTTPS في سطر مستقل.');return;}
   }
   busy=true;
+  const submitButton=form.querySelector('button[type="submit"]');if(submitButton){submitButton.disabled=true;submitButton.textContent='جاري الحفظ...';}
+  formStatus(form,'جارٍ تجهيز البيانات للحفظ. لا تغلق الصفحة أثناء رفع الصور.');
   try {
     if(connected && table==='settings'){
       const file=form.querySelector('input[name="profile_file"]')?.files?.[0];
@@ -462,7 +471,7 @@ async function saveForm(form){
       const lessonImages=[...(form.querySelector('[name="lesson_images_files"]')?.files||[])];
       if(lessonImages.length+String(entry.image_urls||'').split(/\r?\n/).filter(Boolean).length>15)throw new Error('الحد الأقصى للصور في الدرس 15 صورة. احذف صور قديمة أولًا.');
       const images=String(entry.image_urls||'').split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
-      const newlyUploaded=[];for(const picture of lessonImages){const url=await uploadImage(picture,'learning');images.push(url);newlyUploaded.push(url);}linkNewCaptions(entry,'lesson',lessonImages,newlyUploaded,'image_captions');
+      const newlyUploaded=[];for(let i=0;i<lessonImages.length;i++){formStatus(form,`جاري رفع صورة الدرس ${i+1} من ${lessonImages.length}...`);const url=await uploadImage(lessonImages[i],'learning');images.push(url);newlyUploaded.push(url);}linkNewCaptions(entry,'lesson',lessonImages,newlyUploaded,'image_captions');
       entry.image_urls=images.join('\n');
     }
     if(connected && table==='appearance'){
@@ -478,11 +487,12 @@ async function saveForm(form){
       if(images.length+String(entry.gallery_urls||'').split(/\r?\n/).filter(Boolean).length>15)throw new Error('الحد الأقصى لصور المشروع 15 صورة. احذف صور قديمة أولًا.');
       if(images.length){
         const urls=(entry.gallery_urls||'').split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
-        const newlyUploaded=[];for(const photo of images){const url=await uploadImage(photo,'projects');urls.push(url);newlyUploaded.push(url);}linkNewCaptions(entry,'gallery',images,newlyUploaded,'gallery_captions');
+        const newlyUploaded=[];for(let i=0;i<images.length;i++){formStatus(form,`جاري رفع صورة المشروع ${i+1} من ${images.length}... لا تغلق الصفحة.`);const url=await uploadImage(images[i],'projects');urls.push(url);newlyUploaded.push(url);}linkNewCaptions(entry,'gallery',images,newlyUploaded,'gallery_captions');
         entry.gallery_urls=urls.join('\n');
       }
     }
     if(connected){
+      formStatus(form,'اكتمل رفع الملفات، جاري تسجيل المشروع والبيانات في Supabase...');
       const db=await getClient(); let result;
       if(['settings','content','future','appearance','notice'].includes(table))result=await db.from('site_settings').update(entry).eq('id',1);
       else {
@@ -501,8 +511,8 @@ async function saveForm(form){
     }
     if(table==='content')cmsDirty=false;
     editing=null; renderPanel(); toast('تم حفظ التعديلات بنجاح ✓');
-  } catch(error){console.error(error);toast(`تعذر الحفظ: ${error.message || 'Unknown error'}`);}
-  finally{busy=false;}
+  } catch(error){console.error(error);const message=`تعذر الحفظ: ${error.message || 'خطأ غير معروف'}. البيانات ما زالت في النموذج، لا تحدث الصفحة.`;formStatus(form,message,true);toast(message);}
+  finally{busy=false;if(submitButton?.isConnected){submitButton.disabled=false;submitButton.textContent=table==='projects'?'حفظ مشروع':table==='learning_items'?'حفظ المحتوى':'حفظ التعديلات';}}
 }
 async function deleteItem(table,id){
   if(!confirm('هل أنت متأكد من حذف هذا العنصر؟'))return;
