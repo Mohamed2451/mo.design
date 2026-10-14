@@ -576,13 +576,14 @@ $('#adminApp').addEventListener('change',e=>{
 $('#adminApp').addEventListener('input',e=>{
   const target=e.target;
   if(target.id==='cmsCopySearch'){
-    const q=target.value.trim().toLocaleLowerCase();let matches=0;
+    const normalizeQuery=v=>String(v||'').toLocaleLowerCase().replace(/[\u064b-\u065f\u0670]/g,'').replace(/[ـ]/g,'').replace(/[–—-]/g,' ').replace(/\s+/g,' ').trim();
+    const q=normalizeQuery(target.value);let matches=0;
     document.querySelectorAll('.cms-editor-group').forEach(group=>{
       let found=0;
       group.querySelectorAll('.form-field').forEach(el=>{
         const input=el.querySelector('input,textarea,select');
         const searchText=[el.textContent,input?.value||'',input?.name||'',group.querySelector('summary')?.textContent||''].join(' ').toLocaleLowerCase();
-        const ok=!q||searchText.includes(q);
+        const ok=!q||normalizeQuery(searchText).includes(q)||((q.includes('استوديو مو ديزاين')||q.includes('mo design'))&&['hero_side','hero_year'].some(k=>input?.name?.endsWith('_'+k)))||((q.includes('2026')||q.includes('حقوق'))&&['portrait_copyright','footer_copyright','hero_year'].some(k=>input?.name?.endsWith('_'+k)));
         el.hidden=!ok;if(ok)found++;
       });
       group.hidden=!!q&&!found;
