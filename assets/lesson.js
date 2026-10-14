@@ -16,7 +16,7 @@ function ytId(value){
  return /^[A-Za-z0-9_-]{11}$/.test(id)?id:'';
  }catch{return ''}
 }
-function lessonImages(value,captions={}){return String(value||'').split(/\r?\n/).map(v=>safeUrl(v.trim())).filter(u=>u&&u.startsWith('https://')).slice(0,15).map((url,i)=>`<figure class="lesson-figure"><img src="${esc(url)}" loading="lazy" alt="${lang==='ar'?'صورة شرح':'Lesson illustration'} ${i+1}"><figcaption class="media-long-caption rich-body">${(captions[url]?.[lang]||captions[url]?.ar)?renderRich(captions[url]?.[lang]||captions[url]?.ar):(lang==='ar'?'صورة شرح':'Lesson image')+' '+(i+1)}</figcaption></figure>`).join('')}
+function lessonImages(value,captions={}){return String(value||'').split(/\r?\n/).map(v=>safeUrl(v.trim())).filter(u=>u&&u.startsWith('https://')).slice(0,15).map((url,i)=>`<figure class="lesson-figure ${((captions[url]?.[lang]||captions[url]?.ar)||'').trim()?'has-caption':'no-caption'}"><img src="${esc(url)}" loading="lazy" alt="${lang==='ar'?'صورة شرح':'Lesson illustration'} ${i+1}">${((captions[url]?.[lang]||captions[url]?.ar)||'').trim()?`<figcaption class="media-long-caption rich-body">${renderRich(captions[url]?.[lang]||captions[url]?.ar)}</figcaption>`:''}</figure>`).join('')}
 function resLinks(value){return String(value||'').split(/\r?\n/).map(line=>{
  const parts=line.split('|'); const url=safeUrl(parts.pop()?.trim()||'');if(!url||!url.startsWith('https://'))return '';
  const label=(parts.join('|').trim()||new URL(url).hostname).slice(0,120);
