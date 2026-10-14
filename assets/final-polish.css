@@ -94,3 +94,25 @@
  #featureStage .feature-slide[data-position="prev"]{transform:translateX(-106%) scale(.73)!important}
  #featureStage .feature-slide[data-position="next"]{transform:translateX(6%) scale(.73)!important}
 }
+
+/* Integrated second beat of the introduction: no repeated full-height About section. */
+.hero-about-continuation{position:relative;z-index:2;margin:-25px auto 0;padding:0 max(20px,calc((100vw - 1190px)/2));background:var(--bg)}
+.hero-about-continuation .about-section{border-top:1px solid var(--line);padding:26px 0 32px!important;background:transparent}
+.hero-about-continuation .about-grid{display:grid;grid-template-columns:minmax(180px,300px) 1fr;gap:clamp(16px,3vw,40px);align-items:center}
+.hero-about-continuation .about-art{width:100%;max-width:300px}
+.hero-about-continuation .about-frame{min-height:210px!important;max-height:230px!important}
+.hero-about-continuation .about-content .section-title{font-size:clamp(24px,2.6vw,38px)!important;line-height:1.35!important;margin:8px 0}
+.hero-about-continuation .about-description{font-size:13px;line-height:1.8;max-width:690px}
+.hero-about-continuation .about-features{margin-block:12px}
+.hero-about-continuation .about-story-logo{width:30%;height:42%}
+@media(max-width:700px){.hero-about-continuation{margin:0;padding:0 18px}.hero-about-continuation .about-grid{grid-template-columns:1fr}.hero-about-continuation .about-art{max-width:260px;margin:auto}.hero-about-continuation .about-frame{min-height:200px!important}.hero-about-continuation .about-section{padding-block:24px!important}}
+/* Stable editorial and portfolio rows; no item-based stagger. */
+.work-section .work-grid{align-items:start}
+.work-section .work-grid>.project-card{margin-top:0!important;align-self:start}
+.editorial-gallery{align-items:center!important}
+.editorial-gallery>.editorial-tile{margin-top:0!important;align-self:center!important}
+/* Re-enable soft pointer light and lift in the remaining interactive categories. */
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+.review-card.tilt-card,.editorial-tile.tilt-card{transform:perspective(1100px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg));transition:transform .16s ease-out}
+.feature-slide.tilt-card .feature-project-link{background:radial-gradient(340px circle at var(--mx,50%) var(--my,50%),rgba(200,250,138,.07),transparent 80%)}
+}
