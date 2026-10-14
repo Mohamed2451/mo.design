@@ -70,3 +70,9 @@
 .about-section .about-frame{min-height:275px;max-height:340px}
 .about-section .about-story-logo{width:33%;height:42%}
 @media(max-width:800px){.about-section{padding-block:38px 48px!important}.services-section .services-intro .section-title{font-size:clamp(27px,7vw,43px)!important}}
+
+/* Restored V13 pointer-depth effect, while preserving featured carousel positioning. */
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+ .project-card.tilt-card,.process-card.tilt-card,.tool-card.tilt-card,.service-item.tilt-card{transform:perspective(1000px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg));transition:transform .16s ease-out}
+ .feature-slide.tilt-card::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;opacity:.7;background:radial-gradient(290px circle at var(--mx,50%) var(--my,50%),rgba(198,250,138,.11),transparent 72%)}
+}
