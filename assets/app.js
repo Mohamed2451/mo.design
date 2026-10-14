@@ -155,26 +155,32 @@ function featuredItems() {
   return model.projects.filter(p => p.is_published && p.featured).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
 }
 function renderFeatured() {
-  const projects=featuredItems();
-  const count=projects.length;
-  const stage=$('#featureStage');
-  if(!count){$('#featured').hidden=true;$('#featureCards').innerHTML='';$('#featureCount').textContent='00 / 00';$('#featureDots').innerHTML='';return;}
-  $('#featured').hidden=false;
-  featureIndex=((featureIndex%count)+count)%count;
-  const dist=(a,b)=>((a-b+count)%count);
-  $('#featureCards').innerHTML=projects.map((p,i)=>{
-    const d=dist(i,featureIndex), reverse=dist(featureIndex,i);
-    const position=d===0?'active':reverse===1?'prev':d===1?'next':reverse===2?'far-prev':d===2?'far-next':'hidden';
-    const asset=safeUrl(p.image_url);
-    return `<article class="feature-slide" data-position="${position}" data-slide-index="${i}" ${position==='active'?'':'aria-hidden="true"'}>
-      <a class="feature-project-link" href="${esc(caseUrl(p))}" tabindex="${position==='active'?'0':'-1'}" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">
-      ${asset ? `<img src="${esc(asset)}" alt="${esc(field(p,'title'))}" loading="${i<3?'eager':'lazy'}"/>` : `<div class="project-cover ${esc(p.cover_style||'aurora')}" style="height:100%"><div class="cover-graphic">✳</div></div>`}
-      <span class="feature-scrim" aria-hidden="true"></span><span class="feature-info"><span class="feature-tag">${esc(field(p,'category'))}</span><h3>${esc(field(p,'title'))}</h3><p>${p.project_type==='concept'||String(p.id).startsWith('demo-')?(lang==='ar'?'تصوّر إبداعي':'Concept work'):(lang==='ar'?'مشروع من أعمالي':'Portfolio project')} · ${number(i+1)}</p></span>
-      </a></article>`;
+ const projects=featuredItems(),count=projects.length,stage=$('#featureStage'),cards=$('#featureCards');
+ if(!count){$('#featured').hidden=true;cards.innerHTML='';cards.dataset.renderKey='';$('#featureCount').textContent='00 / 00';$('#featureDots').innerHTML='';return;}
+ $('#featured').hidden=false;
+ featureIndex=((featureIndex%count)+count)%count;
+ // Keep existing DOM slides when navigating: CSS can animate position changes.
+ const key=lang+'|'+projects.map(p=>[p.id,field(p,'title'),p.image_url,p.category_id].join(':')).join('|');
+ if(cards.dataset.renderKey!==key){
+  cards.innerHTML=projects.map((p,i)=>{
+   const asset=safeUrl(p.image_url);
+   return `<article class="feature-slide" data-slide-index="${i}"><a class="feature-project-link" href="${esc(caseUrl(p))}" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">${asset?`<img src="${esc(asset)}" alt="${esc(field(p,'title'))}" loading="${i<3?'eager':'lazy'}">`:`<div class="project-cover ${esc(p.cover_style||'aurora')}" style="height:100%"><div class="cover-graphic">✳</div></div>`}<span class="feature-scrim" aria-hidden="true"></span><span class="feature-info"><span class="feature-tag">${esc(field(p,'category'))}</span><h3>${esc(field(p,'title'))}</h3><p>${p.project_type==='concept'||String(p.id).startsWith('demo-')?(lang==='ar'?'تصوّر إبداعي':'Concept work'):(lang==='ar'?'مشروع من أعمالي':'Portfolio project')} · ${number(i+1)}</p></span></a></article>`;
   }).join('');
-  $('#featureCount').textContent=`${number(featureIndex+1)} / ${number(count)}`;
-  $('#featureDots').innerHTML=projects.map((p,i)=>`<button type="button" class="feature-dot" data-feature-to="${i}" aria-label="${lang==='ar'?'الذهاب إلى مشروع':'Go to project'} ${i+1}" aria-current="${i===featureIndex}"></button>`).join('');
-  stage.querySelectorAll('.feature-slide').forEach(el=>{el.inert=el.dataset.position!=='active';});
+  cards.dataset.renderKey=key;
+  // Bind the original pointer light on new slide nodes; never change their transform.
+  applyInteractiveFX();
+ }
+ const dist=(a,b)=>(a-b+count)%count;
+ cards.querySelectorAll('.feature-slide').forEach((slide,i)=>{
+  const d=dist(i,featureIndex),reverse=dist(featureIndex,i);
+  const position=d===0?'active':reverse===1?'prev':d===1?'next':reverse===2?'far-prev':d===2?'far-next':'hidden';
+  slide.dataset.position=position;
+  slide.inert=position!=='active';
+  slide.setAttribute('aria-hidden',String(position!=='active'));
+  const link=slide.querySelector('.feature-project-link');if(link)link.tabIndex=position==='active'?0:-1;
+ });
+ $('#featureCount').textContent=`${number(featureIndex+1)} / ${number(count)}`;
+ $('#featureDots').innerHTML=projects.map((p,i)=>`<button type="button" class="feature-dot" data-feature-to="${i}" aria-label="${lang==='ar'?'الذهاب إلى مشروع':'Go to project'} ${i+1}" aria-current="${i===featureIndex}"></button>`).join('');
 }
 function moveFeature(delta){const a=featuredItems();if(!a.length)return;featureIndex=(featureIndex+delta+a.length)%a.length;renderFeatured();}
 function renderReviews() {
