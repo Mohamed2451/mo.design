@@ -19,6 +19,5 @@ html[dir="rtl"] .ticker,html[dir="ltr"] .ticker,.ticker{
  margin-inline:0!important;
  left:0!important;
  right:auto!important;
- inset-inline:auto!important;
  transform-origin:left center!important;
 }
