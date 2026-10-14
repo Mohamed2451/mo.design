@@ -72,4 +72,7 @@ assert.match(projectDetails,/gallery_captions/,'project image captions render');
 assert.match(lessons,/image_captions/,'lesson image captions render');
 assert.match(baseStyle,/V13 mobile carousel and safe long image captions/,'mobile arrows and long captions styles available');
 
+assert.match(admin,/readMediaCaptions\(form,'gallery'\)/,'project captions use actual form DOM element');
+assert.match(admin,/readMediaCaptions\(form,'lesson'\)/,'lesson captions use actual form DOM element');
+assert.doesNotMatch(admin,/readMediaCaptions\(f,'gallery'\)/,'do not pass FormData to caption parser');
 console.log('V13 regression checks passed');
