@@ -1,0 +1,37 @@
+/* Mo Design final polish: compact CTA, learning carousel, content-first image grids. */
+.cta-marquee-section{padding:36px 0 26px!important}
+.cta-marquee-section .cta-statement{max-width:1000px!important;min-height:0!important;padding:38px 30px!important;margin-inline:auto}
+.cta-marquee-section .cta-statement h2{font-size:clamp(30px,4.3vw,66px)!important;line-height:1.18!important;margin:12px auto!important}
+.cta-marquee-section .cta-statement p{font-size:clamp(13px,1.2vw,17px)!important;max-width:650px;margin:8px auto 20px}
+.cta-marquee-section .cta-asterisk{font-size:24px!important}
+.tools-last-section{padding:35px 0 60px}
+.tools-last-section .tools-showcase{margin:0!important}
+.about-section .about-creative-symbol{position:absolute;inset:12% 10%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px;font-size:clamp(90px,13vw,180px);color:#c6fb88;line-height:1}
+.about-creative-symbol span{font:800 clamp(13px,1.5vw,22px)/1.5 'DM Sans',sans-serif;letter-spacing:.16em;text-align:center;color:#fff}
+.about-section .about-frame{min-height:340px}
+.learn-action-link{display:inline-flex;align-items:center;gap:8px;text-decoration:none;cursor:pointer;width:max-content}
+.learning-carousel-wrap{position:relative;display:flex;align-items:center;gap:10px;margin:28px auto 0;max-width:100%;min-width:0}
+.learning-carousel-wrap[hidden]{display:none!important}
+.learning-carousel-wrap .learning-list{display:flex!important;align-items:stretch;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;min-width:0;width:100%;padding:8px 4px 18px}
+.learning-carousel-wrap .learning-list::-webkit-scrollbar{display:none}
+.learning-carousel-wrap .learning-card{flex:0 0 clamp(240px,38%,390px);scroll-snap-align:start;min-width:0;margin:0!important}
+.learning-arrow{flex:0 0 42px;width:42px;height:42px;border-radius:50%;border:1px solid #ffffff44;background:#171a20;color:inherit;font-size:19px;cursor:pointer}
+.learning-arrow:hover{border-color:#c6fa8a;color:#c6fa8a}
+.v11-lesson-page .lesson-gallery{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.v11-lesson-page .lesson-figure{width:100%;min-width:0;max-width:none!important;display:flex;flex-direction:column;margin:0!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible}
+.v11-lesson-page .lesson-figure img{display:block;width:100%;height:auto!important;max-height:none!important;object-fit:contain;border-radius:9px}
+.v11-lesson-page .lesson-figure.no-caption figcaption{display:none!important}
+.v11-lesson-page .lesson-figure.has-caption figcaption{height:auto!important;max-height:none!important;overflow:visible!important}
+@media(max-width:650px){
+ .cta-marquee-section{padding:28px 0 20px!important}
+ .cta-marquee-section .cta-statement{padding:26px 18px!important}
+ .learning-carousel-wrap{gap:5px}
+ .learning-arrow{flex-basis:34px;width:34px;height:34px}
+ .learning-carousel-wrap .learning-card{flex-basis:80%}
+ .v11-lesson-page .lesson-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+}
+@media(max-width:420px){.v11-lesson-page .lesson-gallery{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:no-preference){
+ .reveal.will-reveal:not(.visible){opacity:0;transform:translateY(17px);transition:opacity .6s ease,transform .6s ease}
+ .reveal.visible{opacity:1;transform:translateY(0);transition:opacity .6s ease,transform .6s ease}
+}
