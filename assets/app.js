@@ -19,47 +19,9 @@ function toast(message) {
   clearTimeout(toast.timeout);
   toast.timeout = setTimeout(() => el.classList.remove('show'), 5000);
 }
-let tickerSignature='';
-let tickerResizePending=false;
-function refreshTicker(force=false){
- const track=document.querySelector('.ticker-track');
- const shell=track?.closest('.ticker');
- if(!track||!shell)return;
- const words=String(txt().ticker_items||'').split(/\n|\|/).map(w=>w.trim()).filter(Boolean).slice(0,20);
- const selected=words.length?words:['مو ديزاين','تصميم إعلانات','مونتاج فيديو','ذكاء اصطناعي'];
- const signature=selected.join('|')+'::'+lang;
- const viewport=Math.max(shell.clientWidth,window.innerWidth||0,320);
- if(!force&&signature===tickerSignature&&Number(track.dataset.forWidth)>=viewport)return;
- tickerSignature=signature;
- const html=selected.map(word=>`<span class="ticker-item">${esc(word)}</span>`).join('');
- const segment=document.createElement('div');
- segment.className='ticker-segment';
- segment.innerHTML=html;
- track.replaceChildren(segment);
- // Expand one identical set until it exceeds the widest visible viewport.
- let attempts=0;
- while(segment.scrollWidth<viewport+160&&attempts<40){segment.insertAdjacentHTML('beforeend',html);attempts++;}
- // Offset width is measured after the font is ready; CSS animates that exact pixel distance.
- const distance=segment.offsetWidth;
- for(let i=0;i<3;i++){
-  const clone=segment.cloneNode(true);
-  clone.setAttribute('aria-hidden','true');
-  track.appendChild(clone);
- }
- track.style.setProperty('--mo-ticker-step',distance+'px');
- track.style.setProperty('--mo-ticker-time',Math.max(16,distance/85)+'s');
- track.dataset.forWidth=String(viewport);
- // Reset animation without waiting for a visible seam.
- track.classList.remove('ticker-ready');
- void track.offsetWidth;
- track.classList.add('ticker-ready');
-}
-window.addEventListener('resize',()=>{
- if(document.hidden||tickerResizePending)return;
- tickerResizePending=true;
- requestAnimationFrame(()=>{tickerResizePending=false;refreshTicker(true);});
-},{passive:true});
-if(document.fonts?.ready)document.fonts.ready.then(()=>refreshTicker(true)).catch(()=>{});
+// The ticker is independently managed by assets/ticker-loop.js.
+// Keep this compatibility hook for language / CMS copy updates.
+function refreshTicker(){window.dispatchEvent(new Event('mo:ticker-content-changed'));}
 function updateDocument() {
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
