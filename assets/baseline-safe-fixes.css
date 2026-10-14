@@ -1,0 +1,14 @@
+/* Minimal, non-destructive layout corrections on top of the approved visual baseline. */
+.work-section .project-card{margin-top:0!important;align-self:start}
+.work-section .work-grid{align-items:start}
+.editorial-gallery>.editorial-tile{margin-top:0!important;align-self:center}
+.feature-stage{direction:ltr}
+.feature-cards{direction:ltr}
+.feature-slide{left:50%;right:auto}
+/* Avoid re-introducing transformed carousel slides via card hover tracking. */
+.feature-slide{transform-origin:center center}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+.review-card,.service-item,.process-card,.editorial-tile{will-change:transform}
+}
+/* Academy link behaves like a real link, never an in-page pseudo-button. */
+.learn-action-link{display:inline-flex;align-items:center;cursor:pointer;text-decoration:none}
