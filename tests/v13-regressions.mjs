@@ -104,4 +104,14 @@ assert.match(aboutMarkup,/href="\.\/learning\.html"/, 'academy CTA opens the ded
 assert.doesNotMatch(mouseEffects,/feature-mouse-x/, 'new mouse override removed so original featured carousel motion is preserved');
 assert.match(admin,/about_story_value/, 'additional about copy is editable');
 assert.match(admin,/footer_copyright/, 'footer copyright is editable');
+const updatedHome=read('index.html');
+const updatedAcademy=read('learning.html');
+const updatedCss=read('assets/final-polish.css');
+assert.match(app,/cards\.dataset\.renderKey!==key/, 'featured slides persist between navigation clicks');
+assert.match(app,/slide\.dataset\.position=position/, 'featured positions animate on same DOM nodes');
+assert.match(app,/\.editorial-tile,\.feature-slide/, 'editorial and featured cards receive pointer effects');
+assert.ok(updatedHome.indexOf('hero-about-continuation') < updatedHome.indexOf('class="ticker"'), 'about is integrated immediately following hero');
+assert.match(updatedCss,/work-grid>\.project-card\{margin-top:0!important/, 'work cards have equal row alignment');
+assert.match(updatedAcademy,/academy-carousel-shell/, 'academy arrows are structurally outside slide stage');
+assert.match(admin,/normalizeQuery\(searchText\)/, 'search normalizes Arabic and punctuation');
 console.log('V13 regression checks passed');
