@@ -6,3 +6,19 @@
 .ticker .mo-ticker-word::after{content:'✳';display:inline-block;padding-inline-start:34px;font-size:17px}
 @keyframes mo-loop-only{from{transform:translate3d(0,0,0)}to{transform:translate3d(calc(-1 * var(--mo-loop-step,800px)),0,0)}}
 @media(prefers-reduced-motion:reduce){.ticker .ticker-track.mo-loop-active{animation:none!important}}
+
+/* Align the moving strip to the physical LEFT edge, even when HTML is RTL.
+   Otherwise a max-content-wide track starts at the right edge and moves out of view. */
+html[dir="rtl"] .ticker,html[dir="ltr"] .ticker,.ticker{
+ direction:ltr!important;
+ text-align:left!important;
+ display:block!important;
+}
+.ticker .ticker-track{
+ margin:0!important;
+ margin-inline:0!important;
+ left:0!important;
+ right:auto!important;
+ inset-inline:auto!important;
+ transform-origin:left center!important;
+}
