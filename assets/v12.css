@@ -127,3 +127,10 @@ html.light body #cta .v11-designed h2 em{color:var(--v11-accent)!important;-webk
 .ticker-track .ticker-segment{flex:0 0 auto!important;width:max-content;white-space:nowrap}
 @keyframes mo-ticker-triplicate{from{transform:translate3d(0,0,0)}to{transform:translate3d(-33.3333333333%,0,0)}}
 @media(prefers-reduced-motion:reduce){.ticker-track{animation:none!important}}
+
+/* Definitive ticker fix: exact one-segment pixel motion, no percentage rounding. */
+.ticker .ticker-track{animation:none!important;display:flex!important;gap:0!important;justify-content:flex-start!important;direction:ltr!important;max-width:none!important;min-width:max-content!important}
+.ticker .ticker-track.ticker-ready{animation:mo-ticker-precise var(--mo-ticker-time,40s) linear infinite!important}
+.ticker .ticker-segment{box-sizing:content-box;display:flex!important;flex:0 0 auto!important;flex-wrap:nowrap!important;gap:0!important;white-space:nowrap;min-width:max-content}
+@keyframes mo-ticker-precise{from{transform:translate3d(0,0,0)}to{transform:translate3d(calc(-1 * var(--mo-ticker-step,800px)),0,0)}}
+@media(prefers-reduced-motion:reduce){.ticker .ticker-track.ticker-ready{animation:none!important}}
