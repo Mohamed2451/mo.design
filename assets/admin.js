@@ -427,7 +427,7 @@ function getFields(form,table){
 }
 async function saveForm(form){
   const table=form.dataset.entity;
-  if(busy){formStatus(form,"جاري حفظ طلب سابق، انتظر اكتماله.");return;} if(!form.reportValidity()){formStatus(form,"يوجد حقل مطلوب أو رابط غير صحيح. راجع الحقل المحدد أعلى النموذج.",true);return;}
+  if(busy){formStatus(form,"جاري حفظ طلب سابق، انتظر اكتماله.");return;} if(!form.reportValidity()){const invalid=form.querySelector(':invalid');formStatus(form,'راجع الحقل المطلوب أو غير الصحيح: '+(invalid?.closest('label')?.textContent?.trim().slice(0,110)||invalid?.name||'حقل مطلوب'),true);return;}
   const entry=getFields(form,table);
   const id=form.dataset.editId;
   if(table==='learning_items'){
@@ -540,8 +540,8 @@ function updateLessonGalleryCount(form){
   label.textContent='صور الدرس: '+total+' من 15 ('+urls+' روابط + '+files+' ملفات)';
   label.style.color=total>15?'#ff8a8a':'';
  }
- const submit=form.querySelector('button[type="submit"]');
- if(submit)submit.disabled=total>15;
+ if(total>15)formStatus(form,'إجمالي الصور '+total+' (روابط سابقة + صور جديدة)، والحد الأقصى 15. قلّل العدد ثم احفظ. لم تُحذف أي صور.',true);
+ else {const status=form.querySelector('[data-save-status]');if(status?.textContent?.startsWith('إجمالي الصور'))status.hidden=true;}
 }
 function updateProjectGalleryCount(form){
  if(!form || form.dataset.entity!=='projects')return;
@@ -553,8 +553,8 @@ function updateProjectGalleryCount(form){
    label.textContent='صور المعرض: '+total+' من 15 ('+urls+' روابط + '+files+' ملفات)';
    label.style.color=total>15?'#ff8a8a':'';
  }
- const submit=form.querySelector('button[type="submit"]');
- if(submit)submit.disabled=total>15;
+ if(total>15)formStatus(form,'إجمالي الصور '+total+' (روابط سابقة + صور جديدة)، والحد الأقصى 15. قلّل العدد ثم احفظ. لم تُحذف أي صور.',true);
+ else {const status=form.querySelector('[data-save-status]');if(status?.textContent?.startsWith('إجمالي الصور'))status.hidden=true;}
 }
 $('#adminApp').addEventListener('input',e=>{
  if(e.target.name==='gallery_urls')updateProjectGalleryCount(e.target.closest('form'));
@@ -732,6 +732,10 @@ $('#adminApp').addEventListener('change',e=>{
   document.querySelectorAll('.inbox-item').forEach(item=>item.hidden=!!(q&&!item.dataset.search.includes(q) || status&&item.dataset.status!==status));
  }
 });
+$('#adminApp').addEventListener('invalid',e=>{
+ const form=e.target.closest('form[data-entity]');
+ if(form)formStatus(form,'الحفظ لم يبدأ بسبب حقل غير صحيح: '+(e.target.closest('label')?.textContent?.trim().slice(0,120)||e.target.name||'حقل مطلوب'),true);
+},true);
 $('#adminApp').addEventListener('submit',async e=>{
   e.preventDefault();
   const form=e.target;
