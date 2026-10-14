@@ -80,4 +80,16 @@ assert.match(captionsCss,/case-stacked-media .case-artframe/, 'project gallery c
 assert.match(captionsCss,/aspect-ratio:auto!important/, 'gallery cards grow with captions');
 assert.match(captionsCss,/max-height:none!important/, 'long captions are not clipped by a height cap');
 assert.match(read('project.html'),/caption-fix-20261014/, 'project stylesheet cache is refreshed');
+const landing=read('index.html');
+const lessonPage=read('assets/lesson.js');
+const finalPolish=read('assets/final-polish.css');
+assert.match(lessonPage,/no-caption/, 'caption-free lesson images get an explicit gallery style');
+assert.match(lessonPage,/has-caption/, 'only supplied captions are rendered as captions');
+assert.match(finalPolish,/lesson-image-gallery/, 'lesson gallery supports a compact side-by-side layout');
+assert.match(landing,/learningCarouselWrap/, 'learning carousel has its own container');
+assert.match(app,/learningPrev/, 'learning carousel has working arrow handlers');
+assert.match(landing,/learn-action-link/, 'learning CTA is an actual link');
+assert.ok(landing.indexOf('id="tools"')>landing.indexOf('id="learn"')&&landing.indexOf('id="tools"')<landing.indexOf('id="contact"'), 'tools moved near the end before contact');
+assert.match(admin,/portrait_copyright/, 'hero copyright can be edited from CMS');
+assert.match(finalPolish,/cta-marquee-section/, 'call to action uses compact sizing');
 console.log('V13 regression checks passed');
