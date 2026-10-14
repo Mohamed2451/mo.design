@@ -76,3 +76,21 @@
  .project-card.tilt-card,.process-card.tilt-card,.tool-card.tilt-card,.service-item.tilt-card{transform:perspective(1000px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg));transition:transform .16s ease-out}
  .feature-slide.tilt-card::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;opacity:.7;background:radial-gradient(290px circle at var(--mx,50%) var(--my,50%),rgba(198,250,138,.11),transparent 72%)}
 }
+
+/* Stable centered featured carousel: positional transforms win over generic tilt and RTL. */
+#featureStage{direction:ltr!important;overflow:hidden!important}
+#featureStage .feature-cards{direction:ltr!important}
+#featureStage .feature-slide{left:50%!important;right:auto!important;transform-origin:center center}
+#featureStage .feature-slide[data-position="active"]{transform:translateX(-50%) scale(1)!important}
+#featureStage .feature-slide[data-position="prev"]{transform:translateX(-124%) scale(.78) rotateY(-8deg)!important}
+#featureStage .feature-slide[data-position="next"]{transform:translateX(24%) scale(.78) rotateY(8deg)!important}
+#featureStage .feature-slide[data-position="far-prev"]{transform:translateX(-179%) scale(.64)!important}
+#featureStage .feature-slide[data-position="far-next"]{transform:translateX(79%) scale(.64)!important}
+@media(max-width:950px){
+ #featureStage .feature-slide[data-position="prev"]{transform:translateX(-114%) scale(.79)!important}
+ #featureStage .feature-slide[data-position="next"]{transform:translateX(14%) scale(.79)!important}
+}
+@media(max-width:620px){
+ #featureStage .feature-slide[data-position="prev"]{transform:translateX(-106%) scale(.73)!important}
+ #featureStage .feature-slide[data-position="next"]{transform:translateX(6%) scale(.73)!important}
+}
