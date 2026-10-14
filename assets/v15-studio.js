@@ -34,17 +34,6 @@
   };
   observeBlocks();
   if(coarse||!window.matchMedia('(hover:hover)').matches)return;
-  const featured=document.getElementById('featureStage');
-  featured?.addEventListener('pointermove',e=>{
-    const rect=featured.getBoundingClientRect();
-    if(!rect.width||!rect.height)return;
-    featured.style.setProperty('--feature-mouse-x',(((e.clientX-rect.left)/rect.width-.5)*16).toFixed(2)+'px');
-    featured.style.setProperty('--feature-mouse-y',(((e.clientY-rect.top)/rect.height-.5)*12).toFixed(2)+'px');
-  },{passive:true});
-  featured?.addEventListener('pointerleave',()=>{
-    featured.style.setProperty('--feature-mouse-x','0px');
-    featured.style.setProperty('--feature-mouse-y','0px');
-  });
   document.querySelectorAll('.hero-ctas .pill-btn,.hero-ctas .ghost-btn').forEach(button=>{
     button.classList.add('v15-magnetic');
     button.addEventListener('pointermove',e=>{
