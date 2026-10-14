@@ -72,3 +72,52 @@ html.light body #cta .v11-designed h2 em{color:var(--v11-accent)!important;-webk
  .case-lead-media,.case-stacked-media,.case-artframe{max-width:100%}
  .case-lead-media img,.case-artframe img{max-height:none}
 }
+
+
+/* Project gallery captions: content-driven height, no clipping or fixed aspect ratio. */
+.case-main .case-stacked-media{align-items:start}
+.case-main .case-stacked-media .case-artframe,
+.case-main .case-stacked-media .case-artframe:nth-child(2){
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  align-self:start;
+  aspect-ratio:auto!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+  box-sizing:border-box;
+}
+.case-main .case-stacked-media .case-artframe img{
+  display:block!important;
+  width:100%!important;
+  height:auto!important;
+  max-height:none!important;
+  aspect-ratio:auto!important;
+  object-fit:contain!important;
+  flex:none;
+}
+.case-main .case-stacked-media .case-artframe .media-long-caption{
+  display:block!important;
+  flex:none;
+  width:100%;
+  min-height:0;
+  max-height:none!important;
+  height:auto!important;
+  overflow:visible!important;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  white-space:normal;
+  padding:18px 12px 8px;
+  line-height:2;
+  text-align:start;
+  box-sizing:border-box;
+}
+.case-main .case-stacked-media .media-long-caption p{margin:0 0 1em}
+.case-main .case-stacked-media .media-long-caption p:last-child{margin-bottom:0}
+@media(max-width:650px){
+  .case-main .case-stacked-media{grid-template-columns:minmax(0,1fr)}
+  .case-main .case-stacked-media .case-artframe{width:100%;min-width:0}
+}
