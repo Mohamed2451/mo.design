@@ -24,9 +24,10 @@ window.addEventListener('beforeunload',event=>{
 // Dashboard always uses its own neutral dark palette; the public site's theme remains unchanged.
 const labels = {notice:'إشعارات الموقع',overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',appearance:'مظهر الأقسام',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى'};
 const FONT_CHOICES=[['Alexandria','Alexandria — حديث'],['Cairo','Cairo — واضح'],['Readex Pro','Readex Pro — هادي'],['IBM Plex Sans Arabic','IBM Plex Sans Arabic — احترافي']];
-const EXTRA_CONTENT_KEYS=['ticker_items','project_about_title','project_objective_title','selected_real_sub','reviews_real_sub','featured_real_sub'];
+const EXTRA_CONTENT_KEYS=['ticker_items','project_about_title','project_objective_title','selected_real_sub','reviews_real_sub','featured_real_sub','portrait_copyright','hero_year','footer_copyright'];
 const ALL_COPY_KEYS=()=>[...new Set([...Object.keys(ar),...Object.keys(en),...EXTRA_CONTENT_KEYS])].filter(k=>typeof ar[k]==='string'||typeof en[k]==='string');
-const copyGroup=()=>ALL_COPY_KEYS().filter(k=>!Object.values(CONTENT_GROUPS).flat().some(([key])=>key===k)).map(k=>[k,(typeof ar[k]==='string'&&ar[k].trim()?ar[k].trim().slice(0,70):k)+' ['+k+']']);
+const CUSTOM_LABELS={portrait_copyright:'حقوق التصميم على صورة البداية',hero_year:'السنة في عبارة استوديو مو ديزاين',footer_copyright:'حقوق النشر في الفوتر'};
+const copyGroup=()=>ALL_COPY_KEYS().filter(k=>!Object.values(CONTENT_GROUPS).flat().some(([key])=>key===k)).map(k=>[k,CUSTOM_LABELS[k]||((typeof ar[k]==='string'&&ar[k].trim()?ar[k].trim().slice(0,70):k)+' ['+k+']')]);
 function richField(name,label,value='',rows=6){return `<div class="cms-rich-wrap full">${field(name,label,value,{type:'textarea',full:true,rows})}<div class="cms-rich-toolbar"><button type="button" data-rich="bold" title="غامق">B</button><button type="button" data-rich="italic" title="مائل"><i>I</i></button><button type="button" data-rich="heading" title="عنوان فرعي">H2</button><button type="button" data-rich="list" title="قائمة">☷</button></div><small class="cms-rich-note">حدد نص واضغط غامق أو مائل. استخدم H2 للعناوين، وكل سطر منفصل هيظهر كما كتبته.</small></div>`;}
 function normalizeMediaCaptions(value){return value&&typeof value==='object'&&!Array.isArray(value)?value:{};}
 function mediaCaptionsEditor(kind,captions,urls){
