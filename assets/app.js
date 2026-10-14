@@ -161,7 +161,17 @@ function renderServices() {
     if(id==='service-ads'||/social|advertis|ads|سوشيال|إعلان/.test(name))return PORTFOLIO_CATEGORIES[0].id;
     return '';
   };
-  $('#servicesList').innerHTML = items.map((s,i)=>`<article class="service-item reveal"><span class="service-number">/${number(i+1)}</span><h3 class="service-title"><a href="${serviceCategory(s)?`./index.html?category=${encodeURIComponent(serviceCategory(s))}#work`:`#work`}" style="color:inherit;text-decoration:none">${esc(field(s,'title'))}</a></h3><p class="service-desc">${esc(field(s,'description'))}</p><a href="${serviceCategory(s)?`./index.html?category=${encodeURIComponent(serviceCategory(s))}#work`:`#work`}" class="service-mark" aria-label="${esc(txt().details)}: ${esc(field(s,'title'))}">${icons[s.icon] || '↗'}</a></article>`).join('');
+  const servicePage = service => {
+    const id=String(service.id||'').toLowerCase();
+    const name=[service.title_en,service.title_ar].join(' ').toLowerCase();
+    if(id==='service-prompts'||/prompt|برومبت/.test(name))return 'prompt-engineering';
+    if(id==='service-edit'||/reels|podcast|video|مونتاج|ريلز|بودكاست/.test(name))return 'video-motion';
+    if(id==='service-ai'||/artificial|\\bai\\b|ذكاء|اصطناعي/.test(name))return 'ai-creative';
+    if(id==='service-brand'||/brand|identity|هوية|براند/.test(name))return 'branding';
+    if(id==='service-ads'||/social|advertis|ads|سوشيال|إعلان/.test(name))return 'social-media';
+    return '';
+  };
+  $('#servicesList').innerHTML = items.map((s,i)=>`<article class="service-item reveal"><span class="service-number">/${number(i+1)}</span><h3 class="service-title"><a href="${servicePage(s)?`./services/${servicePage(s)}/`:`./index.html?category=${encodeURIComponent(serviceCategory(s)||"")}#work`}" style="color:inherit;text-decoration:none">${esc(field(s,'title'))}</a></h3><p class="service-desc">${esc(field(s,'description'))}</p><a href="${servicePage(s)?`./services/${servicePage(s)}/`:`./index.html?category=${encodeURIComponent(serviceCategory(s)||"")}#work`}" class="service-mark" aria-label="${esc(txt().details)}: ${esc(field(s,'title'))}">${icons[s.icon] || '↗'}</a></article>`).join('');
   observeReveal();
 }
 function showProject(id) {
