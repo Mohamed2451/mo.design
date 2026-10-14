@@ -6,3 +6,13 @@
 .academy-controls #learningPrev{left:0}
 .academy-controls #learningNext{right:0}
 @media(max-width:650px){.academy-controls #learningPrev,.academy-controls #learningNext{top:-260px}}
+
+/* Explicitly separate academy slides from the navigation buttons. */
+.academy-carousel-shell{position:relative;max-width:1260px;margin:40px auto 0;padding-inline:64px}
+.academy-carousel-shell .academy-stage{margin:0 auto;overflow:hidden!important;direction:ltr}
+.academy-carousel-shell .academy-outside-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:10;width:46px;height:46px;border:1px solid #ffffff55;border-radius:50%;background:#171a20;color:#fff;font-size:24px;cursor:pointer}
+.academy-carousel-shell .academy-left{left:4px}
+.academy-carousel-shell .academy-right{right:4px}
+.academy-carousel-shell .academy-outside-arrow:hover{border-color:#c8ff83;color:#c8ff83}
+.academy-controls{margin:8px auto 0;position:static}
+@media(max-width:650px){.academy-carousel-shell{padding-inline:42px;margin:25px auto 0}.academy-carousel-shell .academy-outside-arrow{width:35px;height:35px;font-size:18px}.academy-carousel-shell .academy-stage{height:450px}}
