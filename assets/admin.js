@@ -383,7 +383,13 @@ function getFields(form,table){
   const get=k=>String(f.get(k)||'').trim();
   if(table==='content'){
     const content_ar={...(data.settings?.content_ar||{})},content_en={...(data.settings?.content_en||{})};
-    [...Object.values(CONTENT_GROUPS).flat(),...copyGroup()].forEach(([key])=>{content_ar[key]=get('ar_'+key);content_en[key]=get('en_'+key);});
+    // Save only fields actually present in the editor, including the special
+    // copyright/studio-year group excluded from copyGroup().
+    for(const [key] of [...Object.values(CONTENT_GROUPS).flat(),...copyGroup(),
+      ['portrait_copyright'],['hero_side'],['hero_year'],['footer_copyright']]){
+      if(f.has('ar_'+key))content_ar[key]=get('ar_'+key);
+      if(f.has('en_'+key))content_en[key]=get('en_'+key);
+    }
     const section_visibility={...(data.settings?.section_visibility||{})};SECTIONS.forEach(([id])=>section_visibility[id]=f.has('section_'+id));
     return {content_ar,content_en,section_visibility,headline_ar:get('headline_ar'),headline_en:get('headline_en'),subheadline_ar:get('subheadline_ar'),subheadline_en:get('subheadline_en')};
   }
