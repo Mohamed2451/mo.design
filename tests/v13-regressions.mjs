@@ -97,4 +97,15 @@ assert.match(read('index.html'),/data-i18n="portrait_copyright"/, 'portrait copy
 assert.match(read('index.html'),/data-i18n="hero_year"/, 'studio year displayed from editable field');
 assert.match(app,/txt\(\)\.footer_copyright/, 'footer copyright displayed from editable field');
 assert.match(admin,/f\.has\('ar_'\+key\)/, 'special CMS fields only save when present');
+const heroMerged=read('index.html');
+const heroSource=read('assets/data.js');
+const heroCSS=read('assets/baseline-safe-fixes.css');
+assert.match(heroMerged,/id="about" data-i18n="hero_intro"/,'About anchor moved into hero introduction');
+assert.doesNotMatch(heroMerged,/section class="section about-section"/,'duplicated About section is removed');
+assert.match(heroMerged,/hero-identity-points/,'three brand strengths are visible in hero');
+assert.match(heroSource,/hero_merged_description/,'combined bio has bilingual defaults');
+assert.match(app,/txt\(\)\.hero_merged_description/,'CMS combined biography drives hero text');
+assert.doesNotMatch(app,/\$\('#aboutDescription'\)/,'renderer does not refer to removed About paragraph');
+assert.match(admin,/\['hero_merged_description'\]/,'CMS saves combined biography');
+assert.match(heroCSS,/hero-identity-points/,'responsive styling exists for merged introduction');
 console.log('V13 regression checks passed');
