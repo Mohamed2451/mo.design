@@ -142,6 +142,23 @@ Object.assign(en,{ticker_items:'MO DESIGN | GRAPHIC DESIGN | VIDEO EDITING | AI 
 // Editable copies for the visual identity story and footer.
 Object.assign(ar,{about_story_label:'من الفكرة للتنفيذ',about_story_value:'تفاصيل بتصنع الفرق.',portrait_copyright:'© MO DESIGN / 2026',hero_year:'2026',footer_copyright:'© 2026 Mo Design / Mohamed Mahmoud. جميع الحقوق محفوظة'});
 Object.assign(en,{about_story_label:'From idea to execution',about_story_value:'Details make the difference.',portrait_copyright:'© MO DESIGN / 2026',hero_year:'2026',footer_copyright:'© 2026 Mo Design / Mohamed Mahmoud. All rights reserved.'});
+// One unified introduction in the hero; all copy remains editable through the CMS.
+Object.assign(ar,{
+ hero_intro:'أنا محمد محمود، وكل فكرة ليها حكاية.',
+ hero_merged_role:'مصمم جرافيك ومونتير | إعلانات • فيديوهات AI • برومبتات',
+ hero_merged_description:'أنا محمد محمود، مصمم جرافيك ومونتير شغوف بدمج الإبداع البصري مع أحدث أدوات الذكاء الاصطناعي التوليدي. بساعد البراندات وأصحاب الأعمال يحوّلوا أفكارهم لهويات وحملات إعلانية وتصاميم وفيديوهات إبداعية بتلفت الانتباه، وتسيب أثر، وتزيد التفاعل، وتخدم أهدافهم ومبيعاتهم.',
+ hero_point_1:'فهم حقيقي للبراند',
+ hero_point_2:'تنفيذ منظم ومرن',
+ hero_point_3:'إبداع بشري بمساعدة الذكاء الاصطناعي'
+});
+Object.assign(en,{
+ hero_intro:'I’m Mohamed Mahmoud. Every idea has a story.',
+ hero_merged_role:'Graphic Designer & Video Editor | Advertising • AI Videos • Prompts',
+ hero_merged_description:'I’m Mohamed Mahmoud, a graphic designer and video editor passionate about combining visual creativity with generative AI. I help brands and businesses turn ideas into distinctive identities, campaigns, designs and videos that capture attention, make an impact and support engagement and business goals.',
+ hero_point_1:'A real understanding of the brand',
+ hero_point_2:'Organized and flexible execution',
+ hero_point_3:'Human creativity powered by AI'
+});
 export function tField(obj,base,lang) {return obj?.[`${base}_${lang}`] || obj?.[`${base}_${lang==='ar'?'en':'ar'}`] || '';}
 export function safeUrl(value) {if(!value)return '';try{const u=new URL(value,window.location.href);return ['https:','http:','mailto:'].includes(u.protocol)?u.href:'';}catch{return '';}}
 export function escapeHTML(s='') {return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
