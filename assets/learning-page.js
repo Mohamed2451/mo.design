@@ -1,41 +1,65 @@
 import {getPublicContent} from './api.js';
 import {safeUrl,escapeHTML as esc,tField} from './data.js';
-let lang=localStorage.getItem('portfolio_lang')==='en'?'en':'ar',items=[],index=0;
-const $=s=>document.querySelector(s);
-const choose=(p,k)=>tField(p,k,lang);
-const yt=(url)=>{try{const u=new URL(url);return u.hostname.includes('youtu.be')?u.pathname.slice(1):u.searchParams.get('v')||u.pathname.match(/\/(?:shorts|embed)\/([^/]+)/)?.[1]||''}catch{return ''}};
+
+let lang=(()=>{try{return localStorage.getItem('portfolio_lang')==='en'?'en':'ar'}catch{return 'ar'}})();
+let items=[],filter='all';
+const $=selector=>document.querySelector(selector);
+const choose=(item,key)=>tField(item,key,lang);
+const youtubeId=value=>{
+ try{
+  const u=new URL(value);
+  if(['youtu.be','www.youtu.be'].includes(u.hostname))return u.pathname.split('/')[1]||'';
+  if(['youtube.com','www.youtube.com','m.youtube.com'].includes(u.hostname))return u.searchParams.get('v')||u.pathname.match(/^\/(?:shorts|embed)\/([^/]+)/)?.[1]||'';
+ }catch{}
+ return '';
+};
+const copy={
+ ar:{title:'المعرفة للجميع',intro:'دروس ومقالات وفيديوهات عن التصميم والمونتاج والذكاء الاصطناعي.',back:'↗ العودة للموقع',filters:{all:'كل المحتوى',video:'فيديوهات',article:'مقالات'},empty:'لا يوجد محتوى منشور في القسم ده حاليًا.',loading:'جاري تحميل المحتوى...',error:'تعذر تحميل المحتوى حاليًا. حاول تفتح الصفحة مرة تانية.'},
+ en:{title:'Learning for everyone',intro:'Articles and videos about design, editing and AI.',back:'↗ Back to site',filters:{all:'All content',video:'Videos',article:'Articles'},empty:'No published content in this category yet.',loading:'Loading content...',error:'Could not load the content. Please try again.'}
+};
 function render(){
- document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+ const t=copy[lang];
+ document.documentElement.lang=lang;
+ document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+ document.title=t.title+' | Mo Design';
  $('#learningLang').textContent=lang==='ar'?'EN':'ع';
- $('#learningHeading').textContent=lang==='ar'?'المعرفة للجميع':'Learning for everyone';
- $('#learningIntro').textContent=lang==='ar'?'دروس ومقالات وفيديوهات عن التصميم والمونتاج وصناعة المحتوى بالذكاء الاصطناعي.':'Articles and videos on design, editing and AI.';
- $('#learningBack').textContent=lang==='ar'?'↗ العودة للموقع':'↗ Back to site';
- const stage=$('#learningStage'),dots=$('#learningDots'),count=items.length;
- if(!count){stage.innerHTML='<p class="academy-empty">'+(lang==='ar'?'لا يوجد محتوى منشور حاليًا.':'No published content yet.')+'</p>';stage.dataset.renderKey='';dots.innerHTML='';$('#learningCount').textContent='00 / 00';$('#learningPrev').disabled=true;$('#learningNext').disabled=true;return;}
- index=(index+count)%count;
- const key=lang+'|'+items.map(p=>[p.id,choose(p,'title'),p.thumbnail_url].join(':')).join('|');
- if(stage.dataset.renderKey!==key){
-  stage.innerHTML=items.map((p,i)=>{
-   const id=yt(p.youtube_url),image=safeUrl(p.thumbnail_url)||(id?'https://i.ytimg.com/vi/'+id+'/hqdefault.jpg':'');
-   return '<article class="academy-slide" data-index="'+i+'"><a href="./lesson.html?id='+encodeURIComponent(p.id)+'">'+(image?'<img src="'+esc(image)+'" alt="" loading="lazy">':'<div class="academy-fallback">✳</div>')+'<span class="academy-slide-copy"><small>'+(p.content_type==='video'?(lang==='ar'?'فيديو':'Video'):(lang==='ar'?'مقال':'Article'))+'</small><strong>'+esc(choose(p,'title'))+'</strong><span>'+esc(choose(p,'summary'))+'</span></span></a></article>';
-  }).join('');
-  stage.dataset.renderKey=key;
+ $('#learningHeading').textContent=t.title;
+ $('#learningIntro').textContent=t.intro;
+ $('#learningBack').textContent=t.back;
+ $('#learningFilters').setAttribute('aria-label',lang==='ar'?'تصفية المحتوى':'Filter content');
+ for(const b of $('#learningFilters').querySelectorAll('[data-filter]')){
+  b.textContent=t.filters[b.dataset.filter];
+  b.classList.toggle('is-active',b.dataset.filter===filter);
+  b.setAttribute('aria-pressed',String(b.dataset.filter===filter));
  }
- stage.querySelectorAll('.academy-slide').forEach((slide,i)=>{
-  const d=(i-index+count)%count,r=(index-i+count)%count;
-  const position=d===0?'active':r===1?'prev':d===1?'next':'hidden';
-  slide.dataset.position=position;slide.setAttribute('aria-hidden',String(position!=='active'));slide.inert=position!=='active';
-  slide.querySelector('a').tabIndex=position==='active'?0:-1;
- });
- dots.innerHTML=items.map((_,i)=>'<button type="button" data-index="'+i+'" aria-label="'+(lang==='ar'?'المحتوى ':'Item ')+(i+1)+'" aria-current="'+(i===index)+'"></button>').join('');
- $('#learningCount').textContent=String(index+1).padStart(2,'0')+' / '+String(count).padStart(2,'0');
- $('#learningPrev').disabled=count<2;$('#learningNext').disabled=count<2;
+ const visible=items.filter(item=>filter==='all'||(filter==='video'?item.content_type==='video':item.content_type==='article'));
+ const grid=$('#learningGrid');
+ grid.setAttribute('aria-busy','false');
+ if(!visible.length){grid.innerHTML='<p class="academy-empty">'+esc(t.empty)+'</p>';return}
+ grid.innerHTML=visible.map(item=>{
+  const title=choose(item,'title'),video=item.content_type==='video';
+  const id=video?youtubeId(item.youtube_url):'';
+  const image=safeUrl(item.thumbnail_url)||(id?'https://i.ytimg.com/vi/'+encodeURIComponent(id)+'/hqdefault.jpg':'');
+  return '<article class="academy-card"><a href="./lesson.html?id='+encodeURIComponent(item.id)+'" aria-label="'+esc(title)+'">'+
+   '<span class="academy-card-image">'+(image?'<img loading="lazy" src="'+esc(image)+'" alt="">':'<span class="academy-placeholder" aria-hidden="true">✳</span>')+'</span>'+
+   '<strong class="academy-card-title">'+esc(title)+'</strong></a></article>';
+ }).join('');
 }
-function move(n){if(!items.length)return;index=(index+n+items.length)%items.length;render()}
-$('#learningPrev').onclick=()=>move(-1);$('#learningNext').onclick=()=>move(1);
-$('#learningDots').onclick=e=>{const b=e.target.closest('[data-index]');if(b){index=Number(b.dataset.index);render()}};
-$('#learningLang').onclick=()=>{lang=lang==='ar'?'en':'ar';localStorage.setItem('portfolio_lang',lang);render()};
-let x=0;$('#learningStage').addEventListener('touchstart',e=>x=e.changedTouches[0].clientX,{passive:true});
-$('#learningStage').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-x;if(Math.abs(dx)>45)move(dx<0?1:-1)},{passive:true});
-$('#learningStage').addEventListener('keydown',e=>{if(e.key==='ArrowRight')move(1);if(e.key==='ArrowLeft')move(-1)});
-getPublicContent().then(data=>{items=(data.learning_items||[]).filter(p=>p.is_published).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));render()}).catch(err=>{console.error(err);$('#learningStage').textContent=lang==='ar'?'تعذر تحميل المحتوى':'Content unavailable'});
+$('#learningFilters').addEventListener('click',event=>{
+ const b=event.target.closest('button[data-filter]');if(!b)return;
+ filter=b.dataset.filter;render();
+});
+$('#learningLang').addEventListener('click',()=>{
+ lang=lang==='ar'?'en':'ar';
+ try{localStorage.setItem('portfolio_lang',lang)}catch{}
+ render();
+});
+getPublicContent().then(data=>{
+ if(data._loadWarnings?.includes('learning items'))throw new Error('Academy content temporarily unavailable');
+ items=(data.learning_items||[]).filter(item=>item.is_published).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0));
+ render();
+}).catch(error=>{
+ console.error('Mo Design: academy loading failed',error);
+ $('#learningGrid').setAttribute('aria-busy','false');
+ $('#learningGrid').innerHTML='<p class="academy-empty">'+esc(copy[lang].error)+'</p>';
+});
