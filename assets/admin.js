@@ -287,6 +287,13 @@ function renderLearningItemEditor(item){
  <form data-entity="learning_items" data-edit-id="${esc(item.id||'')}"><div class="admin-form-grid">
  ${field('content_type','نوع المحتوى',item.content_type||'video',{select:[['video','فيديو يوتيوب / شورتس'],['article','مقال أو شرح مكتوب']]})}
  ${field('sort_order','ترتيب الظهور',item.sort_order??((data.learning_items||[]).length+1),{type:'number'})}
+  <fieldset class="form-field full" style="border:1px solid #ffffff2b;border-radius:12px;padding:14px">
+    <legend>اختار تصنيف المحتوى</legend>
+    <p class="admin-note">كل المحتوى تلقائي، وفيديوهات/مقالات حسب نوع المحتوى فوق. اختار قسمًا إضافيًا أو أكتر لو حابب.</p>
+    <div class="admin-form-grid">
+      ${getAcademyCategories(data.settings).filter(c=>c.enabled).map(cat=>`<label class="form-field checkbox"><input type="checkbox" name="lesson_category" value="${esc(cat.id)}" ${(getAcademyMembership(data.settings)[String(item.id)]||[]).includes(cat.id)?'checked':''}>${esc(cat.ar||cat.en)}</label>`).join('')||'<p class="admin-note">لسه مفيش أقسام إضافية. أضفها من «إدارة أقسام الأكاديمية» أسفل الصفحة.</p>'}
+    </div>
+  </fieldset>
  ${field('title_ar','عنوان المحتوى بالعربي',item.title_ar||'',{required:true})}
  ${field('title_en','العنوان بالإنجليزي',item.title_en||'')}
  ${richField('summary_ar','وصف قصير بالعربي',item.summary_ar||'',3)}
@@ -474,6 +481,7 @@ async function saveForm(form){
   try { entry=getFields(form,table); }
   catch(error){console.error('Mo Design: form preparation failed',error);formStatus(form,'تعذر تجهيز بيانات الحفظ: '+(error.message||'خطأ غير معروف')+'. احتفظ بالبيانات المفتوحة ولا تحدث الصفحة.',true);return;}
   const id=form.dataset.editId;
+  const selectedLessonCategories=table==='learning_items'?[...form.querySelectorAll('[name="lesson_category"]:checked')].map(x=>x.value):[];
   if(table==='learning_items'){
     const imageCount=String(entry.image_urls||'').split(/\r?\n/).filter(Boolean).length+(form.querySelector('input[name="lesson_images_files"]')?.files?.length||0);
     if(imageCount>15){toast('يسمح بحد أقصى 15 صورة شرح في الدرس.');return;}
@@ -586,9 +594,19 @@ async function saveForm(form){
         const payload={...entry};
         if(id)payload.id=id;
         else if(table==='projects')payload.slug=entry.slug || `project-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
-        result=await db.from(table).upsert(payload);
+        result=table==='learning_items'?await db.from(table).upsert(payload).select('id').single():await db.from(table).upsert(payload);
       }
       if(result.error)throw result.error;
+      if(table==='learning_items'){
+        const savedId=String(result.data?.id||id||'');
+        if(!savedId)throw new Error('تم حفظ المحتوى لكن تعذر معرفة رقمه لحفظ التصنيفات. افتح المحتوى من القائمة وحاول تاني.');
+        form.dataset.editId=savedId;
+        const allowed=new Set(getAcademyCategories(data.settings).map(c=>c.id));
+        const memberships={...getAcademyMembership(data.settings),[savedId]:[...new Set(selectedLessonCategories.filter(cat=>allowed.has(cat)))]};
+        const content_ar={...(data.settings?.content_ar||{}),[ACADEMY_MEMBERSHIP_KEY]:JSON.stringify(memberships)};
+        const linked=await db.from('site_settings').update({content_ar}).eq('id',1);
+        if(linked.error)throw new Error('المحتوى اتحفظ، لكن ربط التصنيفات فشل: '+linked.error.message+'. حاول تحفظ من نفس النموذج تاني.');
+      }
       data=await getAdminContent();
     } else {
       if(['settings','content','future','appearance','notice'].includes(table))data.settings={...data.settings,...entry};
