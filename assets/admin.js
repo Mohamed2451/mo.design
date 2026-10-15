@@ -2,6 +2,7 @@ import { seed, readDemo, saveDemo, escapeHTML as esc, safeUrl, ar, en } from './
 import { connected, getClient, adminAuthenticated, getAdminContent } from './api.js';
 import {PORTFOLIO_CATEGORIES, categoryFor, formatTools} from './categories.js';
 import {getToolsCatalog,TOOLS_CATALOG_KEY} from './tools-catalog.js';
+import {getAcademyCategories,getAcademyMembership,ACADEMY_CATEGORIES_KEY,ACADEMY_MEMBERSHIP_KEY,ACADEMY_TEXT_KEYS,academyText} from './academy-config.js';
 
 const $ = s => document.querySelector(s);
 let data = connected ? null : readDemo();
@@ -25,9 +26,9 @@ window.addEventListener('beforeunload',event=>{
 // Dashboard always uses its own neutral dark palette; the public site's theme remains unchanged.
 const labels = {notice:'إشعارات الموقع',overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',appearance:'مظهر الأقسام',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى',tools:'إدارة الأدوات'};
 const FONT_CHOICES=[['Alexandria','Alexandria — حديث'],['Cairo','Cairo — واضح'],['Readex Pro','Readex Pro — هادي'],['IBM Plex Sans Arabic','IBM Plex Sans Arabic — احترافي']];
-const EXTRA_CONTENT_KEYS=['hero_intro','hero_merged_role','hero_merged_description','hero_point_1','hero_point_2','hero_point_3','about_story_label','about_story_value','about_kicker','about_ribbon','portrait_tag','portrait_pill','hero_side','footer_line','learn_eyebrow','learn_big1','learn_big2','cta_kicker','tool_kicker','tools_eyebrow','ticker_items','project_about_title','project_objective_title','selected_real_sub','reviews_real_sub','featured_real_sub','portrait_copyright','hero_year','footer_copyright'];
+const EXTRA_CONTENT_KEYS=[...ACADEMY_TEXT_KEYS.map(x=>x[0]),'hero_intro','hero_merged_role','hero_merged_description','hero_point_1','hero_point_2','hero_point_3','about_story_label','about_story_value','about_kicker','about_ribbon','portrait_tag','portrait_pill','hero_side','footer_line','learn_eyebrow','learn_big1','learn_big2','cta_kicker','tool_kicker','tools_eyebrow','ticker_items','project_about_title','project_objective_title','selected_real_sub','reviews_real_sub','featured_real_sub','portrait_copyright','hero_year','footer_copyright'];
 const ALL_COPY_KEYS=()=>[...new Set([...Object.keys(ar),...Object.keys(en),...EXTRA_CONTENT_KEYS])].filter(k=>EXTRA_CONTENT_KEYS.includes(k)||typeof ar[k]==='string'||typeof en[k]==='string');
-const CUSTOM_LABELS={hero_intro:'تعريف بداية الموقع — أنا محمد محمود وكل فكرة ليها حكاية',hero_merged_role:'المسمى والخدمات في بداية الموقع',hero_merged_description:'النبذة التعريفية المدمجة في بداية الموقع',hero_point_1:'الميزة الأولى في البداية',hero_point_2:'الميزة الثانية في البداية',hero_point_3:'الميزة الثالثة في البداية',about_story_label:'عبارة بطاقة من وراء الشغل',about_story_value:'عنوان بطاقة من وراء الشغل',about_kicker:'عنوان بطاقة وراء الكواليس',about_ribbon:'شريط بطاقة التعريف',portrait_tag:'وسم صورة بداية الموقع',portrait_pill:'عبارة صورة البداية',hero_side:'استوديو مو ديزاين — 2026 | العبارة الجانبية',footer_line:'النص أسفل الموقع',learn_eyebrow:'عنوان المعرفة للجميع المصغر',learn_big1:'كلمة اتعلم',learn_big2:'كلمة ابتكر',cta_kicker:'عبارة شغلك يستحق يبان',tools_eyebrow:'عنوان الأدوات',portrait_copyright:'حقوق التصميم على صورة البداية',hero_year:'السنة في عبارة استوديو مو ديزاين',footer_copyright:'حقوق النشر في الفوتر'};
+const CUSTOM_LABELS={...Object.fromEntries(ACADEMY_TEXT_KEYS.map(x=>[x[0],x[1]])),hero_intro:'تعريف بداية الموقع — أنا محمد محمود وكل فكرة ليها حكاية',hero_merged_role:'المسمى والخدمات في بداية الموقع',hero_merged_description:'النبذة التعريفية المدمجة في بداية الموقع',hero_point_1:'الميزة الأولى في البداية',hero_point_2:'الميزة الثانية في البداية',hero_point_3:'الميزة الثالثة في البداية',about_story_label:'عبارة بطاقة من وراء الشغل',about_story_value:'عنوان بطاقة من وراء الشغل',about_kicker:'عنوان بطاقة وراء الكواليس',about_ribbon:'شريط بطاقة التعريف',portrait_tag:'وسم صورة بداية الموقع',portrait_pill:'عبارة صورة البداية',hero_side:'استوديو مو ديزاين — 2026 | العبارة الجانبية',footer_line:'النص أسفل الموقع',learn_eyebrow:'عنوان المعرفة للجميع المصغر',learn_big1:'كلمة اتعلم',learn_big2:'كلمة ابتكر',cta_kicker:'عبارة شغلك يستحق يبان',tools_eyebrow:'عنوان الأدوات',portrait_copyright:'حقوق التصميم على صورة البداية',hero_year:'السنة في عبارة استوديو مو ديزاين',footer_copyright:'حقوق النشر في الفوتر'};
 const copyGroup=()=>ALL_COPY_KEYS().filter(k=>!Object.values(CONTENT_GROUPS).flat().some(([key])=>key===k)).map(k=>[k,CUSTOM_LABELS[k]||((typeof ar[k]==='string'&&ar[k].trim()?ar[k].trim().slice(0,70):k)+' ['+k+']')]);
 function richField(name,label,value='',rows=6){return `<div class="cms-rich-wrap full">${field(name,label,value,{type:'textarea',full:true,rows})}<div class="cms-rich-toolbar"><button type="button" data-rich="bold" title="غامق">B</button><button type="button" data-rich="italic" title="مائل"><i>I</i></button><button type="button" data-rich="heading" title="عنوان فرعي">H2</button><button type="button" data-rich="list" title="قائمة">☷</button></div><small class="cms-rich-note">حدد نص واضغط غامق أو مائل. استخدم H2 للعناوين، وكل سطر منفصل هيظهر كما كتبته.</small></div>`;}
 function normalizeMediaCaptions(value){return value&&typeof value==='object'&&!Array.isArray(value)?value:{};}
@@ -305,6 +306,16 @@ function renderLearningItemEditor(item){
  ${field('is_published','انشر المحتوى على الموقع',item.is_published||false,{type:'checkbox',full:true})}
  </div>${mediaId?`<div class="v10-video-preview"><img src="https://i.ytimg.com/vi/${mediaId}/hqdefault.jpg" alt="معاينة فيديو يوتيوب"><div>معاينة الصورة المصغّرة <a href="https://www.youtube.com/watch?v=${mediaId}" target="_blank" rel="noopener noreferrer">↗ جرّب فتح الفيديو على يوتيوب</a></div></div>`:''}<div class="admin-actions">${uiButton('إلغاء','cancelLesson')}<button class="admin-btn" type="submit">${isNew?'حفظ المحتوى':'حفظ التعديلات'} ✓</button></div></form></div>`;
 }
+function renderAcademyCategoryManager(){
+ const settings=data.settings||{},categories=getAcademyCategories(settings),members=getAcademyMembership(settings);
+ const categoryFields=categories.map(cat=>academyCategoryRow(cat)).join('');
+ const itemFields=(data.learning_items||[]).map(item=>`<fieldset class="admin-tool-row" data-lesson-category-id="${esc(String(item.id))}" style="padding:12px;margin:12px 0;border:1px solid #ffffff25;border-radius:12px"><legend>${esc(item.title_ar||item.title_en||'محتوى')}</legend><div data-category-assignment>${categories.map(cat=>`<label class="form-field checkbox"><input type="checkbox" data-category-membership="${esc(cat.id)}" ${(members[String(item.id)]||[]).includes(cat.id)?'checked':''}>${esc(cat.ar||cat.en)}</label>`).join('')}</div></fieldset>`).join('');
+ const extra=ACADEMY_TEXT_KEYS.map(([key,label])=>`<div class="admin-form-grid">${field('ar_'+key,label+' بالعربي',academyText(settings,key,'ar'),{full:true})}${field('en_'+key,label+' بالإنجليزي',academyText(settings,key,'en'),{full:true})}</div>`).join('');
+ return `<section class="admin-panel"><div class="admin-heading"><h2>إدارة أقسام الأكاديمية</h2><p class="admin-note">كل المحتوى والفيديوهات والمقالات أساسية. أضف أقسام جديدة وحدد المحتوى التابع لكل قسم، أو أخفِ أي قسم إضافي.</p></div><form data-entity="academy_categories" id="academyCategoryForm"><div id="academyCategoryRows">${categoryFields}</div><button class="admin-btn secondary" data-add-academy-category type="button">+ إضافة قسم</button><h3>توزيع المحتوى على الأقسام</h3><div id="academyMemberships">${itemFields}</div><details><summary>تحرير نصوص الصفحة الداخلية والأزرار</summary>${extra}</details><button type="submit" class="admin-btn">حفظ أقسام الأكاديمية ✓</button></form></section>`;
+}
+function academyCategoryRow(cat={}){
+ return `<div class="admin-tool-row" data-academy-category-row data-category-id="${esc(cat.id||'')}" style="padding:12px;margin:12px 0;border:1px solid #ffffff25;border-radius:12px"><div class="admin-form-grid">${field('category_ar','اسم القسم بالعربي',cat.ar||'',{required:true})}${field('category_en','English category name',cat.en||'')}${field('category_enabled','إظهار القسم',cat.enabled!==false,{type:'checkbox'})}</div><button class="admin-btn secondary" type="button" data-remove-academy-category>حذف القسم</button></div>`;
+}
 function renderFuture(){
  const settings=data.settings||seed.settings,vis=settings.section_visibility||{},items=data.learning_items||[];
  const mode=vis.learn===false?'hidden':(['hidden','coming_soon','live'].includes(settings.education_mode)?settings.education_mode:'coming_soon');
@@ -318,7 +329,7 @@ function renderFuture(){
  <div class="v10-education-save"><button class="admin-btn" type="submit">حفظ الحالة والنصوص ✓</button><span class="admin-note">مفيش حاجة هتظهر للزوار إلا بعد اختيار «بدأنا النشر» ونشر محتوى.</span></div></form></div>
  <div class="admin-panel" id="learningStudioList"><div class="admin-heading"><div><h2>مكتبة الفيديوهات والمقالات</h2><p class="admin-note">انشر محتوى حقيقي من غير ما ترجع GitHub. المسودات مش بتظهر للزوار.</p></div>${uiButton('＋ إضافة محتوى','newlesson','','primary')}</div>
  ${data.learning_error?`<div class="admin-banner">الأكاديمية محتاجة تشغيل ملف التحديث SQL رقم 005 أولًا: ${esc(data.learning_error)}</div>`:''}
- <div class="v10-learning-table"><div class="v10-learning-table-head"><span>المحتوى</span><span>الحالة</span><span>التحكم</span></div>${items.map(item=>{let id=youtubeId(item.youtube_url||'');return `<div class="v10-learning-row"><div class="v10-learning-title">${safeUrl(item.thumbnail_url)?`<img src="${esc(safeUrl(item.thumbnail_url))}" loading="lazy" alt="">`:id?`<img src="https://i.ytimg.com/vi/${id}/mqdefault.jpg" loading="lazy" alt="">`:'<span class="v10-lesson-fallback">✳</span>'}<div><strong>${esc(item.title_ar)}</strong><small>${item.content_type==='video'?'فيديو / يوتيوب':'مقال'} · ${esc(item.title_en||'بدون ترجمة')}</small></div></div><span class="v10-status-tag ${item.is_published?'published':''}">${item.is_published?'منشور':'مسودة'}</span><div class="v10-learning-actions">${uiButton(item.is_published?'إخفاء':'نشر','togglepublish',`learning_items|${item.id}`)}${uiButton('تعديل','editLesson',item.id)}${uiButton('حذف','deleteLesson',item.id,'danger')}</div></div>`}).join('')||'<div class="v10-no-lesson">مفيش محتوى اتضاف لسه. اضغط «إضافة محتوى» علشان تبدأ.</div>'}</div></div>${editor}`;
+ <div class="v10-learning-table"><div class="v10-learning-table-head"><span>المحتوى</span><span>الحالة</span><span>التحكم</span></div>${items.map(item=>{let id=youtubeId(item.youtube_url||'');return `<div class="v10-learning-row"><div class="v10-learning-title">${safeUrl(item.thumbnail_url)?`<img src="${esc(safeUrl(item.thumbnail_url))}" loading="lazy" alt="">`:id?`<img src="https://i.ytimg.com/vi/${id}/mqdefault.jpg" loading="lazy" alt="">`:'<span class="v10-lesson-fallback">✳</span>'}<div><strong>${esc(item.title_ar)}</strong><small>${item.content_type==='video'?'فيديو / يوتيوب':'مقال'} · ${esc(item.title_en||'بدون ترجمة')}</small></div></div><span class="v10-status-tag ${item.is_published?'published':''}">${item.is_published?'منشور':'مسودة'}</span><div class="v10-learning-actions">${uiButton(item.is_published?'إخفاء':'نشر','togglepublish',`learning_items|${item.id}`)}${uiButton('تعديل','editLesson',item.id)}${uiButton('حذف','deleteLesson',item.id,'danger')}</div></div>`}).join('')||'<div class="v10-no-lesson">مفيش محتوى اتضاف لسه. اضغط «إضافة محتوى» علشان تبدأ.</div>'}</div></div>${editor}${renderAcademyCategoryManager()}`;
 }
 
 
@@ -403,6 +414,7 @@ function getFields(form,table){
   const f=new FormData(form);
   const get=k=>String(f.get(k)||'').trim();
   if(table==='tools')return {};
+   if(table==='academy_categories')return {};
    if(table==='content'){
     const content_ar={...(data.settings?.content_ar||{})},content_en={...(data.settings?.content_en||{})};
     // Save only fields actually present in the editor, including the special
@@ -487,6 +499,32 @@ async function saveForm(form){
   const submitButton=form.querySelector('[data-direct-save],button[type="submit"]');if(submitButton){submitButton.disabled=true;submitButton.textContent='جاري الحفظ...';}
   formStatus(form,'جارٍ تجهيز البيانات للحفظ. لا تغلق الصفحة أثناء رفع الصور.');
   try {
+    if(table==='academy_categories'){
+      const old=getAcademyCategories(data.settings);
+      const oldIds=new Set(old.map(x=>x.id));
+      const used=new Set();
+      const rows=[...form.querySelectorAll('[data-academy-category-row]')];
+      if(rows.length>25)throw new Error('الحد الأقصى 25 قسم.');
+      const categories=rows.map((row,i)=>{
+       let id=row.dataset.categoryId;
+       if(!id){id='category-'+Date.now().toString(36)+'-'+i;}
+       if(used.has(id))throw new Error('معرّف قسم مكرر.');
+       used.add(id);
+       const arName=String(row.querySelector('[name="category_ar"]')?.value||'').trim();
+       if(!arName)throw new Error('اكتب اسم القسم بالعربي.');
+       return {id,ar:arName.slice(0,85),en:String(row.querySelector('[name="category_en"]')?.value||'').trim().slice(0,85),enabled:!!row.querySelector('[name="category_enabled"]')?.checked};
+      });
+      const memberships={};
+      for(const row of form.querySelectorAll('[data-lesson-category-id]')){
+       const id=row.dataset.lessonCategoryId;
+       const previous=getAcademyMembership(data.settings)[id]||[];
+       memberships[id]=[...new Set([...previous.filter(x=>!oldIds.has(x)&&!used.has(x)),...([...row.querySelectorAll('[data-category-membership]:checked')].map(x=>x.dataset.categoryMembership).filter(x=>used.has(x)))])];
+      }
+      const content_ar={...(data.settings?.content_ar||{}),[ACADEMY_CATEGORIES_KEY]:JSON.stringify(categories),[ACADEMY_MEMBERSHIP_KEY]:JSON.stringify(memberships)};
+      const content_en={...(data.settings?.content_en||{})};
+      for(const [key] of ACADEMY_TEXT_KEYS){content_ar[key]=String(form.elements.namedItem('ar_'+key)?.value||'').trim();content_en[key]=String(form.elements.namedItem('en_'+key)?.value||'').trim();}
+      entry={content_ar,content_en};
+    }
     if(table==='tools'){
       const rows=[...form.querySelectorAll('[data-admin-tool-row]')];
       if(rows.length>40)throw new Error('الحد الأقصى 40 أداة.');
@@ -543,7 +581,7 @@ async function saveForm(form){
     if(connected){
       formStatus(form,'اكتمل رفع الملفات، جاري تسجيل المشروع والبيانات في Supabase...');
       const db=await getClient(); let result;
-      if(['settings','content','future','appearance','notice','tools'].includes(table))result=await db.from('site_settings').update(entry).eq('id',1);
+      if(['settings','content','future','appearance','notice','tools','academy_categories'].includes(table))result=await db.from('site_settings').update(entry).eq('id',1);
       else {
         const payload={...entry};
         if(id)payload.id=id;
@@ -662,7 +700,12 @@ $('#adminApp').addEventListener('click',async e=>{
     if(cmsDirty && !confirm('عندك تغييرات غير محفوظة في محرر الموقع. هل تريد مغادرة القسم وفقدان التعديلات؟'))return;
     cmsDirty=false;tab=nav.dataset.tab;editing=null;renderPanel();window.scrollTo({top:0,behavior:'smooth'});return;
   }
-  if(e.target.closest('[data-add-catalog-tool]')){document.querySelector('#toolManagerRows')?.insertAdjacentHTML('beforeend',toolEditorRow({enabled:true}));return;}
+  if(e.target.closest('[data-add-academy-category]')){
+    document.querySelector('#academyCategoryRows')?.insertAdjacentHTML('beforeend',academyCategoryRow());
+    return;
+   }
+   if(e.target.closest('[data-remove-academy-category]')){e.target.closest('[data-academy-category-row]')?.remove();return;}
+   if(e.target.closest('[data-add-catalog-tool]')){document.querySelector('#toolManagerRows')?.insertAdjacentHTML('beforeend',toolEditorRow({enabled:true}));return;}
    const moveTool=e.target.closest('[data-move-catalog-tool]');
    if(moveTool){const row=moveTool.closest('[data-admin-tool-row]'),host=row?.parentNode;if(!row||!host)return;
     if(moveTool.dataset.moveCatalogTool==='up'&&row.previousElementSibling)host.insertBefore(row,row.previousElementSibling);
