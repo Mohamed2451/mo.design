@@ -705,10 +705,13 @@ $('#adminApp').addEventListener('click',async e=>{
     cmsDirty=false;tab=nav.dataset.tab;editing=null;renderPanel();window.scrollTo({top:0,behavior:'smooth'});return;
   }
   if(e.target.closest('[data-add-academy-category]')){
-    document.querySelector('#academyCategoryRows')?.insertAdjacentHTML('beforeend',academyCategoryRow());
+    const host=document.querySelector('#academyCategoryRows');
+    const id='category-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
+    host?.insertAdjacentHTML('beforeend',academyCategoryRow({id,enabled:true}));
+    document.querySelectorAll('[data-category-assignment]').forEach(box=>box.insertAdjacentHTML('beforeend','<label class="form-field checkbox"><input type="checkbox" data-category-membership="'+esc(id)+'">قسم جديد (غيّر اسمه فوق)</label>'));
     return;
    }
-   if(e.target.closest('[data-remove-academy-category]')){e.target.closest('[data-academy-category-row]')?.remove();return;}
+   if(e.target.closest('[data-remove-academy-category]')){const row=e.target.closest('[data-academy-category-row]');const id=row?.dataset.categoryId;row?.remove();if(id)document.querySelectorAll('[data-category-membership]').forEach(input=>{if(input.dataset.categoryMembership===id)input.closest('label')?.remove();});return;}
    if(e.target.closest('[data-add-catalog-tool]')){document.querySelector('#toolManagerRows')?.insertAdjacentHTML('beforeend',toolEditorRow({enabled:true}));return;}
    const moveTool=e.target.closest('[data-move-catalog-tool]');
    if(moveTool){const row=moveTool.closest('[data-admin-tool-row]'),host=row?.parentNode;if(!row||!host)return;
