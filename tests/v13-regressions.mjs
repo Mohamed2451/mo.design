@@ -140,4 +140,7 @@ assert.match(admin,/uploadImage\(file,'general'\)/,'tools can upload images to e
 assert.ok(revisedHome.indexOf('tools-final-section') > revisedHome.indexOf('id="learn"') && revisedHome.indexOf('tools-final-section') < revisedHome.indexOf('id="contact"'),'tools moved just before contact');
 assert.match(lessonCarouselCss,/object-fit:contain!important/,'academy preview never crops creative artwork');
 assert.match(revisedCss,/cta-marquee-section/,'compact CTA section rules exist');
+assert.match(app,/\$\$\('\.project-card,\.service-item,\.process-card,\.review-card,\.tool-card,\.editorial-tile'\)\.forEach/,'animation targets all interactive cards');
+assert.match(app,/requestAnimationFrame\(applyInteractiveFX\)/,'rebind card motion after category filter');
+assert.match(read('index.html'),/class="section tools-final-section" id="tools"/,'moved tools preserves section visibility hooks');
 console.log('V13 regression checks passed');
