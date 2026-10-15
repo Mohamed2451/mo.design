@@ -122,7 +122,7 @@ function renderProjects() {
 }
 function renderServices() {
   const items = model.services.filter(s=>s.is_published).sort((a,b)=>(a.sort_order || 0)-(b.sort_order || 0));
-  const icons = {diamond:'◇',sparkles:'✳',play:'▷',layout:'▦',target:'◎',brush:'✺'};
+  const icons = {diamond:'◇',sparkles:'◈',play:'▷',layout:'▦',target:'◎',brush:'✺'};
   const serviceCategory = service => {
     const id=String(service.id||'').toLowerCase();
     const name=[service.title_en,service.title_ar].join(' ').toLowerCase();
@@ -171,7 +171,7 @@ function renderFeatured() {
     const asset=safeUrl(p.image_url);
     return `<article class="feature-slide" data-position="${position}" data-slide-index="${i}" ${position==='active'?'':'aria-hidden="true"'}>
       <a class="feature-project-link" href="${esc(caseUrl(p))}" tabindex="${position==='active'?'0':'-1'}" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">
-      ${asset ? `<img src="${esc(asset)}" alt="${esc(field(p,'title'))}" loading="${i<3?'eager':'lazy'}"/>` : `<div class="project-cover ${esc(p.cover_style||'aurora')}" style="height:100%"><div class="cover-graphic">✳</div></div>`}
+      ${asset ? `<img src="${esc(asset)}" alt="${esc(field(p,'title'))}" loading="${i<3?'eager':'lazy'}"/>` : `<div class="project-cover ${esc(p.cover_style||'aurora')}" style="height:100%"><div class="cover-graphic">◇</div></div>`}
       <span class="feature-scrim" aria-hidden="true"></span><span class="feature-info"><span class="feature-tag">${esc(field(p,'category'))}</span><h3>${esc(field(p,'title'))}</h3><p>${p.project_type==='concept'||String(p.id).startsWith('demo-')?(lang==='ar'?'تصوّر إبداعي':'Concept work'):(lang==='ar'?'مشروع من أعمالي':'Portfolio project')} · ${number(i+1)}</p></span>
       </a></article>`;
   }).join('');
@@ -257,7 +257,7 @@ function renderSignature() {
   const gallery=document.querySelector('.editorial-gallery');
   if(!gallery)return;
   if(!projects.length){ document.querySelector('#signature').hidden=true; return; }
-  gallery.innerHTML=projects.map((p,i)=>`<a class="editorial-tile editorial-tile-${'abc'[i]}" href="${esc(caseUrl(p))}">${safeUrl(p.image_url)?`<img src="${esc(safeUrl(p.image_url))}" loading="lazy" alt="${esc(field(p,'title'))}">`:`<div class="editorial-fallback">✳</div>`}<span>${esc(field(p,'title'))}</span></a>`).join('');
+  gallery.innerHTML=projects.map((p,i)=>`<a class="editorial-tile editorial-tile-${'abc'[i]}" href="${esc(caseUrl(p))}">${safeUrl(p.image_url)?`<img src="${esc(safeUrl(p.image_url))}" loading="lazy" alt="${esc(field(p,'title'))}">`:`<div class="editorial-fallback">◇</div>`}<span>${esc(field(p,'title'))}</span></a>`).join('');
   const first=document.querySelector('.editorial-link');if(first)first.href=caseUrl(projects[0]);
 }
 function applySectionVisibility(){
@@ -298,7 +298,7 @@ function renderLearning(){
   stage.innerHTML=lessons.map((item,i)=>{
    const title=field(item,'title'),summary=field(item,'summary'),id=item.content_type==='video'?youtubeId(item.youtube_url):'';
    const thumb=safeUrl(item.thumbnail_url)||(id?'https://i.ytimg.com/vi/'+id+'/hqdefault.jpg':'');
-   return `<article class="home-learning-slide" data-index="${i}"><a href="./lesson.html?id=${encodeURIComponent(item.id)}" class="home-learning-link" tabindex="-1">${thumb?`<img src="${esc(thumb)}" alt="" loading="lazy">`:'<span class="home-learning-fallback">✳</span>'}<span class="home-learning-shade"></span><span class="home-learning-caption"><small>${item.content_type==='video'?(lang==='ar'?'فيديو':'Video'):(lang==='ar'?'مقال':'Article')}</small><strong>${esc(title)}</strong><span>${esc(summary)}</span></span></a></article>`;
+   return `<article class="home-learning-slide" data-index="${i}"><a href="./lesson.html?id=${encodeURIComponent(item.id)}" class="home-learning-link" tabindex="-1">${thumb?`<img src="${esc(thumb)}" alt="" loading="lazy">`:'<span class="home-learning-fallback">◇</span>'}<span class="home-learning-shade"></span><span class="home-learning-caption"><small>${item.content_type==='video'?(lang==='ar'?'فيديو':'Video'):(lang==='ar'?'مقال':'Article')}</small><strong>${esc(title)}</strong><span>${esc(summary)}</span></span></a></article>`;
   }).join('');
   stage.dataset.renderKey=key;
  }
