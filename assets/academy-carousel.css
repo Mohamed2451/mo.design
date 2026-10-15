@@ -24,3 +24,8 @@
 .home-learning-all{font-size:12px;color:var(--text,#fff);text-decoration:none;border-bottom:1px solid var(--accent,#c8ff83)}
 @media(max-width:650px){.home-learning-carousel{padding:0 34px 30px}.home-learning-carousel .learning-list{height:320px}.home-learning-slide{width:79%;height:270px;top:12px}.home-learning-slide[data-position="prev"]{transform:translateX(-107%) scale(.78)}.home-learning-slide[data-position="next"]{transform:translateX(7%) scale(.78)}.home-learning-arrow{top:132px;width:32px;height:32px;font-size:18px}.home-learning-caption{padding:28px 12px 12px}.home-learning-caption>span{display:none}}
 @media(prefers-reduced-motion:reduce){.home-learning-slide{transition:none}}
+
+/* Display complete featured educational artwork without clipping text/design edges. */
+.home-learning-link{display:flex;align-items:center;justify-content:center;background:#111317}
+.home-learning-link>img{height:100%;width:100%;object-fit:contain!important;object-position:center;transform:none!important}
+.home-learning-slide[data-position="active"] .home-learning-link>img:hover{transform:none!important}
