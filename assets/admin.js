@@ -667,7 +667,11 @@ $('#adminApp').addEventListener('input',e=>{
       group.querySelectorAll('.form-field').forEach(el=>{
         const input=el.querySelector('input,textarea,select');
         const searchText=[el.textContent,input?.value||'',input?.name||'',group.querySelector('summary')?.textContent||''].join(' ').toLocaleLowerCase();
-        const ok=!q||normalizeQuery(searchText).includes(q)||((q.includes('استوديو مو ديزاين')||q.includes('mo design'))&&['hero_side','hero_year'].some(k=>input?.name?.endsWith('_'+k)))||((q.includes('2026')||q.includes('حقوق'))&&['portrait_copyright','footer_copyright','hero_year'].some(k=>input?.name?.endsWith('_'+k)));
+        const normalized=normalizeQuery(searchText);
+        const tokens=q.replace(/[+،,\/]/g,' ').split(/\s+/).filter(Boolean);
+        const isCombinedLearn=tokens.some(t=>t==='اتعلم'||t==='تعلم')&&tokens.some(t=>t==='ابتكر');
+        const isLearnField=isCombinedLearn&&['learn_big1','learn_big2'].some(k=>input?.name?.endsWith('_'+k));
+        const ok=!q||normalized.includes(q)||tokens.every(t=>normalized.includes(t))||isLearnField||((q.includes('استوديو مو ديزاين')||q.includes('mo design'))&&['hero_side','hero_year'].some(k=>input?.name?.endsWith('_'+k)))||((q.includes('2026')||q.includes('حقوق'))&&['portrait_copyright','footer_copyright','hero_year'].some(k=>input?.name?.endsWith('_'+k)));
         el.hidden=!ok;if(ok)found++;
       });
       group.hidden=!!q&&!found;
