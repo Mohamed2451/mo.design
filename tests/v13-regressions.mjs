@@ -89,7 +89,6 @@ assert.match(landing,/href="\.\/learning\.html"/, 'the homepage academy CTA link
 assert.match(landing,/assets\/ticker-loop\.js/, 'previously confirmed ticker remains enabled');
 assert.match(landing,/id="about"/, 'owner portrait and introduction remain available');
 assert.match(landing,/data-brand-logo/, 'original branding is preserved');
-assert.match(read('learning.html'),/learningStage/, 'standalone academy remains available');
 assert.match(admin,/portrait_copyright/, 'hero copyright remains configurable');
 assert.match(admin,/footer_copyright/, 'footer copyright remains configurable');
 assert.match(app,/pointermove/, 'original pointer interactions remain available');
@@ -109,7 +108,6 @@ assert.doesNotMatch(app,/\$\('#aboutDescription'\)/,'renderer does not refer to 
 assert.match(admin,/\['hero_merged_description'\]/,'CMS saves combined biography');
 assert.match(heroCSS,/hero-identity-points/,'responsive styling exists for merged introduction');
 const academyCarouselCss=read('assets/academy-carousel.css');
-const academyPageJs=read('assets/learning-page.js');
 const academyHome=read('index.html');
 assert.match(academyHome,/id="learningCarouselShell"/,'home academy uses visible carousel wrapper');
 assert.match(academyHome,/id="learningPrev"/,'home academy has outside previous arrow');
@@ -117,7 +115,16 @@ assert.match(academyHome,/id="learningNext"/,'home academy has outside next arro
 assert.match(academyCarouselCss,/home-learning-slide\[data-position="active"\]/,'active learning card has centered styling');
 assert.match(app,/stage\.dataset\.renderKey!==key/,'home learning cards remain mounted while navigating');
 assert.match(app,/function moveLearning\(delta\)/,'home learning arrows support navigation');
-assert.match(academyPageJs,/stage\.dataset\.renderKey!==key/,'academy page cards remain mounted during transition');
-assert.match(academyPageJs,/slide\.dataset\.position=position/,'academy page updates positional animations');
-assert.match(read('learning.html'),/academy-outside-arrow/,'academy page arrows are outside card stage');
+const academyInnerHtml=read('learning.html');
+const academyInnerJs=read('assets/learning-page.js');
+const academyInnerCss=read('assets/learning-page.css');
+assert.match(academyInnerHtml,/id="learningFilters"/,'academy page has content category tabs');
+assert.match(academyInnerHtml,/data-filter="all"/,'all content tab exists');
+assert.match(academyInnerHtml,/data-filter="video"/,'video tab exists');
+assert.match(academyInnerHtml,/data-filter="article"/,'article tab exists');
+assert.match(academyInnerHtml,/id="learningGrid"/,'inner academy uses grid');
+assert.doesNotMatch(academyInnerHtml,/learningPrev|learningNext|learningDots|academy-slide/,'inner academy has no slider controls');
+assert.match(academyInnerJs,/filter==='all'/,'academy filters published items');
+assert.match(academyInnerJs,/lesson\.html\?id=/,'academy cards link to lesson details');
+assert.match(academyInnerCss,/grid-template-columns:repeat\(3/,'academy uses three columns on desktop');
 console.log('V13 regression checks passed');
