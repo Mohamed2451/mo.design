@@ -93,4 +93,8 @@ assert.match(read('learning.html'),/learningStage/, 'standalone academy remains 
 assert.match(admin,/portrait_copyright/, 'hero copyright remains configurable');
 assert.match(admin,/footer_copyright/, 'footer copyright remains configurable');
 assert.match(app,/pointermove/, 'original pointer interactions remain available');
+assert.match(read('index.html'),/data-i18n="portrait_copyright"/, 'portrait copyright displayed from editable field');
+assert.match(read('index.html'),/data-i18n="hero_year"/, 'studio year displayed from editable field');
+assert.match(app,/txt\(\)\.footer_copyright/, 'footer copyright displayed from editable field');
+assert.match(admin,/f\.has\('ar_'\+key\)/, 'special CMS fields only save when present');
 console.log('V13 regression checks passed');
