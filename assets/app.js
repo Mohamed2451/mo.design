@@ -237,7 +237,7 @@ function applyInteractiveFX(){
    }else{
     node.style.transform='perspective(1050px) rotateX('+(-cy*8).toFixed(2)+'deg) rotateY('+(cx*8).toFixed(2)+'deg) translate3d('+(cx*8).toFixed(2)+'px,'+(cy*7-3).toFixed(2)+'px,0)';
    }
-   if(inside||Math.abs(cx-tx)+Math.abs(cy-ty)>.008)raf=requestAnimationFrame(draw);
+   if(Math.abs(cx-tx)+Math.abs(cy-ty)>.008)raf=requestAnimationFrame(draw);
    else if(!featured)node.style.transform='';
   }
   node.addEventListener('pointermove',e=>{
