@@ -24,3 +24,16 @@
 @media(min-width:801px){.hero .hero-grid{min-height:650px}.hero .hero-art{align-self:center}}
 @media(max-width:800px){.hero-identity-points{gap:8px}.hero .hero-description{max-width:100%}}
 @media(max-width:540px){.hero-intro{font-size:14px;margin:14px 0 5px}.hero .hero-kicker{margin-top:6px}.hero-identity-points>span{font-size:10px;padding:7px 9px}.hero .hero-bottom{margin-top:22px}}
+
+/* Finishing: compact CTA without disturbing its content or prominent action. */
+.cta-marquee-section{padding:46px 0 26px!important}
+.cta-marquee-section .cta-statement{max-width:1030px!important;padding:48px 26px 43px!important;min-height:0}
+.cta-marquee-section .cta-statement h2{font-size:clamp(35px,4.8vw,63px)!important;line-height:1.22!important;max-width:790px}
+.cta-marquee-section .cta-statement>p{margin-bottom:23px!important}
+.cta-marquee-section .cta-asterisk{display:none!important}
+/* Tool showcase is the last content section before contact. */
+.tools-final-section{padding:34px 0 60px}
+.tools-final-section .tools-showcase{margin:0!important}
+.tools-final-section .tool-badge img{object-fit:contain}
+.tools-final-section .tools-empty{color:var(--text-soft);padding:25px}
+@media(max-width:600px){.cta-marquee-section .cta-statement{padding:32px 17px!important}.tools-final-section{padding:23px 0 44px}}
