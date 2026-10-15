@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="./assets/v11-2.css?v=112" /><link rel="stylesheet" href="./assets/v12.css?v=ticker-pixel-20261014" /><link rel="stylesheet" href="./assets/v14-motion.css?v=142" /><link rel="stylesheet" href="./assets/v15-studio.css?v=150" />
   <link rel="stylesheet" href="./assets/ticker-loop.css?v=rtl-origin-3" />
   <link rel="stylesheet" href="./assets/baseline-safe-fixes.css?v=merged-hero-20261015" />
+  <link rel="stylesheet" href="./assets/academy-carousel.css?v=academy-v1" />
   <!-- V11.1: content-first reveal; visible when JS, CDN, or data loading fails. -->
   <style id="mo-visibility-failsafe">
     .reveal { opacity:1; transform:none; }
@@ -162,7 +163,12 @@
 
       <section class="section cta-marquee-section" id="cta"><div class="container"><div class="cta-statement reveal"><div class="cta-asterisk" aria-hidden="true">✳</div><div class="eyebrow"><span data-i18n="cta_kicker">تفرق معاك</span></div><h2 data-i18n="cta_title">شغلك يستحق <em>يتشاف.</em></h2><p data-i18n="cta_sub">خلّي مشروعك الجاي عمل يوقف الـ Scroll ويفضل في الذاكرة.</p><a href="https://wa.me/201097865616" id="ctaWhatsApp" class="pill-btn primary-btn" target="_blank" rel="noopener noreferrer"><span data-i18n="cta_button">نبدأ مشروعك؟</span> ↗</a></div></div></section>
 
-      <section class="section learn-section" id="learn"><div class="container"><div class="learn-panel reveal"><div class="learn-copy"><div class="eyebrow"><span>05 / </span><span data-i18n="learn_eyebrow">في المستقبل</span></div><h2 class="section-title" data-i18n="learn_title">المعرفة الجاية أقرب.</h2><p data-i18n="learn_desc"></p><a class="future-tag learn-action-link" href="./learning.html">✳ <span data-i18n="learn_tag">اتفرج وتعلم</span></a></div><div class="learn-visual"><span data-i18n="learn_big1">اتعلّم</span><span class="learn-plus">+</span><span data-i18n="learn_big2">ابتكر</span><div class="learn-circle"></div></div></div><div class="learning-list" id="learningList" aria-live="polite" hidden></div></div></section>
+      <section class="section learn-section" id="learn"><div class="container"><div class="learn-panel reveal"><div class="learn-copy"><div class="eyebrow"><span>05 / </span><span data-i18n="learn_eyebrow">في المستقبل</span></div><h2 class="section-title" data-i18n="learn_title">المعرفة الجاية أقرب.</h2><p data-i18n="learn_desc"></p><a class="future-tag learn-action-link" href="./learning.html">✳ <span data-i18n="learn_tag">اتفرج وتعلم</span></a></div><div class="learn-visual"><span data-i18n="learn_big1">اتعلّم</span><span class="learn-plus">+</span><span data-i18n="learn_big2">ابتكر</span><div class="learn-circle"></div></div></div><div class="home-learning-carousel" id="learningCarouselShell" hidden>
+        <button type="button" class="home-learning-arrow home-learning-prev" id="learningPrev" aria-label="المحتوى السابق">←</button>
+        <div class="learning-list" id="learningList" aria-label="المحتوى التعليمي المختار" aria-roledescription="carousel" tabindex="0"></div>
+        <button type="button" class="home-learning-arrow home-learning-next" id="learningNext" aria-label="المحتوى التالي">→</button>
+        <div class="home-learning-footer"><span id="learningCount">00 / 00</span><div id="learningDots" aria-label="اختيار المحتوى"></div><a href="./learning.html" class="home-learning-all" data-i18n="learn_view_all">شوف كل المحتوى ↗</a></div>
+      </div></div></section>
 
       <section class="section contact-section" id="contact"><div class="container contact-grid">
         <div class="contact-copy reveal"><div class="eyebrow"><span>06 / </span><span data-i18n="contact_eyebrow">عندك فكرة؟</span></div><h2 class="section-title display-lines" data-i18n="contact_title">عندك فكرة؟<br />خلّيها مشروع.</h2><p data-i18n="contact_desc"></p><div class="contact-shortcuts">
