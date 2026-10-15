@@ -1,6 +1,7 @@
 import { seed, readDemo, escapeHTML as esc, safeUrl, tField, ar, en } from './data.js';
 import { connected, getPublicContent, sendInquiry } from './api.js';
 import {PORTFOLIO_CATEGORIES, categoryFor} from './categories.js';
+import {getToolsCatalog} from './tools-catalog.js';
 
 let model = connected ? {...seed, projects:[], testimonials:[]} : readDemo();
 let lang = (()=>{try{return localStorage.getItem('portfolio_lang')==='en'?'en':'ar'}catch{return 'ar'}})();
@@ -203,20 +204,16 @@ function renderSubjects() {
   $('#serviceSelect').innerHTML = txt().subject_options.map((v,i)=>`<option value="${esc(v)}" ${i===0?'disabled selected':''}>${esc(v)}</option>`).join('');
 }
 
-function renderTools() {
- const defs=[
-   {id:'photoshop',name:'Adobe Photoshop',ar:'تصميم الإعلانات وتعديل الصور',en:'Design and photo retouching'},
-   {id:'illustrator',name:'Adobe Illustrator',ar:'الشعارات والهوية البصرية',en:'Logos and vector identities'},
-   {id:'premiere',name:'Adobe Premiere Pro',ar:'مونتاج الفيديوهات والريلز',en:'Video and reels editing'},
-   {id:'resolve',name:'DaVinci Resolve',ar:'مونتاج وتصحيح الألوان',en:'Editing and color grading'},
-   {id:'capcut',name:'CapCut',ar:'مونتاج المقاطع القصيرة',en:'Short-form editing'},
-   {id:'higgsfield',name:'Higgsfield',ar:'إنشاء فيديوهات وصور بالذكاء الاصطناعي',en:'AI image and video creation'},
-   {id:'flow',name:'Google Flow',ar:'صناعة فيديوهات بالذكاء الاصطناعي',en:'AI video creation'}
- ];
+function renderTools(){
  const grid=$('#toolsGrid');if(!grid)return;
- grid.innerHTML=defs.map((d,i)=>`<article class="tool-card reveal" tabindex="0">
-  <div class="tool-badge"><img loading="lazy" src="./assets/icons/${['resolve','capcut','higgsfield','flow'].includes(d.id)?d.id+'.png':d.id+'.svg'}" alt="${esc(d.name)}" width="56" height="56"></div>
-  <div class="tool-copy"><h3 dir="ltr">${esc(d.name)}</h3><p>${esc(lang==='ar'?d.ar:d.en)}</p></div><span class="tool-index">${number(i+1)}</span></article>`).join('');
+ const defs=getToolsCatalog(model.settings).filter(tool=>tool.enabled);
+ grid.innerHTML=defs.length?defs.map((d,i)=>{
+  const icon=safeUrl(d.image_url);
+  return `<article class="tool-card reveal" tabindex="0">
+   <div class="tool-badge">${icon?`<img loading="lazy" src="${esc(icon)}" alt="" width="56" height="56" onerror="this.style.display='none'">`:'<span class="tool-image-placeholder" aria-hidden="true">◈</span>'}</div>
+   <div class="tool-copy"><h3 dir="auto">${esc(d.name)}</h3><p>${esc((lang==='ar'?d.ar:d.en)||d.ar||d.en)}</p></div>
+   <span class="tool-index">${number(i+1)}</span></article>`;
+ }).join(''):`<p class="tools-empty">${lang==='ar'?'الأدوات هتظهر هنا بعد إضافتها من لوحة التحكم.':'Tools will appear after you add them in the dashboard.'}</p>`;
 }
 
 function applyInteractiveFX(){
