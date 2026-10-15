@@ -1,8 +1,9 @@
 import {getPublicContent} from './api.js';
 import {safeUrl,escapeHTML as esc,tField} from './data.js';
+import {getAcademyCategories,getAcademyMembership,academyText} from './academy-config.js';
 
 let lang=(()=>{try{return localStorage.getItem('portfolio_lang')==='en'?'en':'ar'}catch{return 'ar'}})();
-let items=[],filter='all';
+let items=[],filter='all',settings={};
 const $=selector=>document.querySelector(selector);
 const choose=(item,key)=>tField(item,key,lang);
 const youtubeId=value=>{
@@ -19,29 +20,31 @@ const copy={
 };
 function render(){
  const t=copy[lang];
+ const tr=(key)=>academyText(settings,key,lang);
  document.documentElement.lang=lang;
  document.documentElement.dir=lang==='ar'?'rtl':'ltr';
- document.title=t.title+' | Mo Design';
+ document.title=tr('academy_page_heading')+' | Mo Design';
  $('#learningLang').textContent=lang==='ar'?'EN':'ع';
- $('#learningHeading').textContent=t.title;
- $('#learningIntro').textContent=t.intro;
- $('#learningBack').textContent=t.back;
+ $('#learningHeading').textContent=tr('academy_page_heading');
+ $('#learningIntro').textContent=tr('academy_page_intro');
+ $('#learningBack').textContent=tr('academy_back');
  $('#learningFilters').setAttribute('aria-label',lang==='ar'?'تصفية المحتوى':'Filter content');
- for(const b of $('#learningFilters').querySelectorAll('[data-filter]')){
-  b.textContent=t.filters[b.dataset.filter];
-  b.classList.toggle('is-active',b.dataset.filter===filter);
-  b.setAttribute('aria-pressed',String(b.dataset.filter===filter));
- }
- const visible=items.filter(item=>filter==='all'||(filter==='video'?item.content_type==='video':item.content_type==='article'));
+ const categories=getAcademyCategories(settings).filter(x=>x.enabled);
+ const fixed=[['all',tr('academy_filter_all')],['video',tr('academy_filter_videos')],['article',tr('academy_filter_articles')]];
+ const options=[...fixed,...categories.map(x=>[x.id,(lang==='ar'?x.ar:x.en)||x.ar||x.en])];
+ if(!options.some(x=>x[0]===filter))filter='all';
+ $('#learningFilters').innerHTML=options.map(([id,label])=>'<button type="button" data-filter="'+esc(id)+'" class="'+(filter===id?'is-active':'')+'" aria-pressed="'+(filter===id)+'">'+esc(label)+'</button>').join('');
+ const membership=getAcademyMembership(settings);
+ const visible=items.filter(item=>filter==='all'||(filter==='video'||filter==='article'?item.content_type===filter:(membership[String(item.id)]||[]).includes(filter)));
  const grid=$('#learningGrid');
  grid.setAttribute('aria-busy','false');
- if(!visible.length){grid.innerHTML='<p class="academy-empty">'+esc(t.empty)+'</p>';return}
+ if(!visible.length){grid.innerHTML='<p class="academy-empty">'+esc(tr('academy_no_content'))+'</p>';return}
  grid.innerHTML=visible.map(item=>{
   const title=choose(item,'title'),video=item.content_type==='video';
   const id=video?youtubeId(item.youtube_url):'';
   const image=safeUrl(item.thumbnail_url)||(id?'https://i.ytimg.com/vi/'+encodeURIComponent(id)+'/hqdefault.jpg':'');
   return '<article class="academy-card"><a href="./lesson.html?id='+encodeURIComponent(item.id)+'" aria-label="'+esc(title)+'">'+
-   '<span class="academy-card-image">'+(image?'<img loading="lazy" src="'+esc(image)+'" alt="">':'<span class="academy-placeholder" aria-hidden="true">✳</span>')+'</span>'+
+   '<span class="academy-card-image">'+(image?'<img loading="lazy" src="'+esc(image)+'" alt="">':'<span class="academy-placeholder" aria-hidden="true">◈</span>')+'</span>'+
    '<strong class="academy-card-title">'+esc(title)+'</strong></a></article>';
  }).join('');
 }
@@ -56,6 +59,7 @@ $('#learningLang').addEventListener('click',()=>{
 });
 getPublicContent().then(data=>{
  if(data._loadWarnings?.includes('learning items'))throw new Error('Academy content temporarily unavailable');
+ settings=data.settings||{};
  items=(data.learning_items||[]).filter(item=>item.is_published).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0));
  render();
 }).catch(error=>{
