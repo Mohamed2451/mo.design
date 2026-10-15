@@ -157,6 +157,6 @@ assert.doesNotMatch(read('index.html'),/✳/,'decorative stars removed from publ
 assert.match(admin,/name="lesson_category"/,'lesson upload form includes category selection');
 assert.match(admin,/selectedLessonCategories/,'lesson save collects selected academy categories');
 assert.match(admin,/ACADEMY_MEMBERSHIP_KEY/,'lesson save persists category assignment');
-assert.match(app,/--float-x/,'featured carousel responds to pointer tracking');
+assert.match(app,/node.querySelector\('\.feature-project-link'\)/,'featured hover animates inner link rather than carousel geometry');
 assert.match(app,/tx-cx/,'floating interaction smooths mouse movement');
 console.log('V13 regression checks passed');
