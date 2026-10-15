@@ -178,6 +178,7 @@ function renderFeatured() {
   $('#featureCount').textContent=`${number(featureIndex+1)} / ${number(count)}`;
   $('#featureDots').innerHTML=projects.map((p,i)=>`<button type="button" class="feature-dot" data-feature-to="${i}" aria-label="${lang==='ar'?'الذهاب إلى مشروع':'Go to project'} ${i+1}" aria-current="${i===featureIndex}"></button>`).join('');
   stage.querySelectorAll('.feature-slide').forEach(el=>{el.inert=el.dataset.position!=='active';});
+  requestAnimationFrame(applyInteractiveFX);
 }
 function moveFeature(delta){const a=featuredItems();if(!a.length)return;featureIndex=(featureIndex+delta+a.length)%a.length;renderFeatured();}
 function renderReviews() {
