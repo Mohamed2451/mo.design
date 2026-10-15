@@ -52,11 +52,11 @@ function setBrandContent() {
   $$('[data-brand-logo]').forEach(img=>{img.src=safeUrl(settings[theme==='dark'?'logo_dark_url':'logo_light_url']) || `./assets/images/mo-logo-${theme==='dark'?'white':'black'}.webp`;});
   $('#brandName').textContent = field(settings, 'brand');
   $('#footerBrand').textContent = field(settings, 'brand');
-  $('#heroRole').textContent = field(settings, 'role');
+  $('#heroRole').textContent = txt().hero_merged_role || field(settings, 'role');
   const parts = field(settings, 'headline').split('\n');
   $('#heroTitle').innerHTML = `${esc(parts[0] || '')}<br><em>${esc(parts.slice(1).join(' ') || '')}</em>`;
-  $('#heroDescription').textContent = field(settings, 'subheadline');
-  $('#aboutDescription').textContent = field(settings, 'bio');
+  $('#heroDescription').textContent = txt().hero_merged_description || field(settings, 'subheadline');
+  
   $('#availabilityText').textContent = settings.availability ? txt().available : txt().unavailable;
   $('#availabilityText').closest('.availability').querySelector('.status-pulse').style.background = settings.availability ? 'var(--accent)' : '#ff9b9b';
   const email = String(settings.contact_email || '').trim();
@@ -263,7 +263,7 @@ function renderSignature() {
 }
 function applySectionVisibility(){
  const visibility=model.settings?.section_visibility||{};
- const sections=['featured','signature','work','services','tools','why','about','process','testimonials','faq','cta','learn','contact'];
+ const sections=['featured','signature','work','services','tools','why','process','testimonials','faq','cta','learn','contact'];
  for(const id of sections){const node=document.getElementById(id);if(node){ const enabled=visibility[id]!==false; node.hidden=!enabled || (['featured','signature'].includes(id) && !model.projects.some(p=>p.is_published && (id==='signature'||p.featured))) || (id==='testimonials' && !model.testimonials.some(r=>r.is_verified && r.is_published)); }}
 }
 function youtubeId(value) {
