@@ -140,7 +140,7 @@ assert.match(admin,/uploadImage\(file,'general'\)/,'tools can upload images to e
 assert.ok(revisedHome.indexOf('tools-final-section') > revisedHome.indexOf('id="learn"') && revisedHome.indexOf('tools-final-section') < revisedHome.indexOf('id="contact"'),'tools moved just before contact');
 assert.match(lessonCarouselCss,/object-fit:contain!important/,'academy preview never crops creative artwork');
 assert.match(revisedCss,/cta-marquee-section/,'compact CTA section rules exist');
-assert.ok(app.includes("$('.project-card,.service-item,.process-card,.review-card,.tool-card,.editorial-tile').forEach"),'animation targets all interactive cards');
+assert.match(app,/\.feature-slide'\)\.forEach/,'featured and portfolio hover listeners are assigned');
 assert.match(app,/requestAnimationFrame\(applyInteractiveFX\)/,'rebind card motion after category filter');
 assert.match(read('index.html'),/class="section tools-final-section" id="tools"/,'moved tools preserves section visibility hooks');
 const academyCfg=read('assets/academy-config.js');
@@ -152,6 +152,11 @@ assert.match(admin,/function renderAcademyCategoryManager\(\)/,'dashboard includ
 assert.match(admin,/data-add-academy-category/,'dashboard can add academy categories');
 assert.match(admin,/\[ACADEMY_MEMBERSHIP_KEY\]:JSON\.stringify\(memberships\)/,'dashboard saves content assignments');
 assert.match(admin,/isCombinedLearn/,'editor searches combined learn and create labels');
-assert.ok(app.includes("$('.project-card,.service-item,.process-card,.review-card,.tool-card,.editorial-tile').forEach"),'all matching cards receive animation');
+assert.match(app,/\.feature-slide'\)\.forEach/,'featured and portfolio hover listeners are assigned');
 assert.doesNotMatch(read('index.html'),/✳/,'decorative stars removed from public homepage');
+assert.match(admin,/name="lesson_category"/,'lesson upload form includes category selection');
+assert.match(admin,/selectedLessonCategories/,'lesson save collects selected academy categories');
+assert.match(admin,/ACADEMY_MEMBERSHIP_KEY/,'lesson save persists category assignment');
+assert.match(app,/--float-x/,'featured carousel responds to pointer tracking');
+assert.match(app,/tx-cx/,'floating interaction smooths mouse movement');
 console.log('V13 regression checks passed');
