@@ -37,3 +37,8 @@
 .tools-final-section .tool-badge img{object-fit:contain}
 .tools-final-section .tools-empty{color:var(--text-soft);padding:25px}
 @media(max-width:600px){.cta-marquee-section .cta-statement{padding:32px 17px!important}.tools-final-section{padding:23px 0 44px}}
+
+/* Pointer floating on featured inner card keeps outer carousel transforms intact. */
+@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+ .feature-slide .feature-project-link{translate:var(--float-x,0px) var(--float-y,0px);transition:translate .16s ease-out}
+}
