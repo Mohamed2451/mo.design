@@ -77,7 +77,7 @@ function setBrandContent() {
   $('#communityLink').href = community;
   $('#communityLink').closest('.contact-quick').hidden = !(settings.community_url && safeUrl(settings.community_url));
   document.querySelector('.email-actions').hidden = !email;
-  $('#copyrightText').textContent = `© ${new Date().getFullYear()} Mo Design / Mohamed Mahmoud. ${txt().rights}`;
+  $('#copyrightText').textContent = txt().footer_copyright || `© ${new Date().getFullYear()} Mo Design / Mohamed Mahmoud. ${txt().rights}`;
   const countValues=[settings.stats_projects,settings.stats_years,settings.stats_satisfaction];
   $$('.stats-strip [data-count]').forEach((el,i)=>{ const newCount=Math.max(0,Number(countValues[i]??[100,3,100][i])||0);el.dataset.count=String(newCount);el.textContent=String(newCount); });
   const hasStats = countValues.some(v => Number(v) > 0);
