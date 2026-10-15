@@ -1,6 +1,7 @@
 import { seed, readDemo, saveDemo, escapeHTML as esc, safeUrl, ar, en } from './data.js';
 import { connected, getClient, adminAuthenticated, getAdminContent } from './api.js';
 import {PORTFOLIO_CATEGORIES, categoryFor, formatTools} from './categories.js';
+import {getToolsCatalog,TOOLS_CATALOG_KEY} from './tools-catalog.js';
 
 const $ = s => document.querySelector(s);
 let data = connected ? null : readDemo();
@@ -22,7 +23,7 @@ window.addEventListener('beforeunload',event=>{
 });
 
 // Dashboard always uses its own neutral dark palette; the public site's theme remains unchanged.
-const labels = {notice:'إشعارات الموقع',overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',appearance:'مظهر الأقسام',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى'};
+const labels = {notice:'إشعارات الموقع',overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',appearance:'مظهر الأقسام',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى',tools:'إدارة الأدوات'};
 const FONT_CHOICES=[['Alexandria','Alexandria — حديث'],['Cairo','Cairo — واضح'],['Readex Pro','Readex Pro — هادي'],['IBM Plex Sans Arabic','IBM Plex Sans Arabic — احترافي']];
 const EXTRA_CONTENT_KEYS=['hero_intro','hero_merged_role','hero_merged_description','hero_point_1','hero_point_2','hero_point_3','about_story_label','about_story_value','about_kicker','about_ribbon','portrait_tag','portrait_pill','hero_side','footer_line','learn_eyebrow','learn_big1','learn_big2','cta_kicker','tool_kicker','tools_eyebrow','ticker_items','project_about_title','project_objective_title','selected_real_sub','reviews_real_sub','featured_real_sub','portrait_copyright','hero_year','footer_copyright'];
 const ALL_COPY_KEYS=()=>[...new Set([...Object.keys(ar),...Object.keys(en),...EXTRA_CONTENT_KEYS])].filter(k=>EXTRA_CONTENT_KEYS.includes(k)||typeof ar[k]==='string'||typeof en[k]==='string');
@@ -95,10 +96,10 @@ function renderLogin(error=''){
 function baseShell(){
  const groups=[
   {title:'المكتب',items:['overview','messages']},
-  {title:'إدارة المحتوى',items:['content','appearance','projects','media','services','testimonials','future','notice']},
+  {title:'إدارة المحتوى',items:['content','appearance','projects','media','services','tools','testimonials','future','notice']},
   {title:'الهوية والإعدادات',items:['settings']}
  ];
- const icons={overview:'◫',messages:'✉',content:'▤',appearance:'◈',projects:'▦',media:'▧',services:'◇',testimonials:'❞',future:'▷',notice:'♧',settings:'⚙'};
+ const icons={overview:'◫',messages:'✉',content:'▤',appearance:'◈',projects:'▦',media:'▧',tools:'◈',services:'◇',testimonials:'❞',future:'▷',notice:'♧',settings:'⚙'};
  $('#adminApp').innerHTML=`<div class="admin-layout v10-shell"><aside class="admin-sidebar">
  <div class="studio-sidebar-top"><a href="./index.html" class="brand v10-brand"><span class="brand-mark"><img src="./assets/images/mo-logo-white.webp" alt="" data-admin-brand-logo /></span><span><strong>Mo Design</strong><small>مساحة الإدارة الإبداعية</small></span></a><div class="v10-workspace-badge"><span class="v10-online-dot"></span> مساحة الإدارة الخاصة</div></div>
  <nav class="sidebar-nav" id="adminNav" aria-label="أقسام لوحة الإدارة">${groups.map(group=>`<div class="v10-nav-group"><div class="v10-nav-label">${group.title}</div>${group.items.map(key=>`<button type="button" data-tab="${key}" class="${tab===key?'active':''}"><span class="v10-nav-icon" aria-hidden="true">${icons[key]}</span><span>${labels[key]}</span><span class="v10-nav-chevron" aria-hidden="true">‹</span></button>`).join('')}</div>`).join('')}</nav>
@@ -130,6 +131,26 @@ function renderContent(){
  return `<div class="admin-panel"><div class="admin-heading"><div><h2>إدارة كل أقسام الموقع</h2><p class="admin-note">فعّل أو اخفي أي قسم، وعدّل عناوينه ووصفه بالعربي والإنجليزي. مش هتحتاج ترجع لـ GitHub.</p></div><a class="admin-btn secondary" href="./index.html" target="_blank" rel="noopener">معاينة ↗</a></div><form data-entity="content" id="contentForm"><div class="v10-home-copy"><h3>✳ كلام الصفحة الرئيسية</h3><p class="admin-note">ده أول كلام العميل بيشوفه في الموقع. عدّله من هنا واحفظ مع باقي الأقسام.</p><div class="admin-form-grid">${field('headline_ar','العنوان الرئيسي — عربي',settings.headline_ar,{type:'textarea',required:true,rows:2})}${field('headline_en','العنوان الرئيسي — إنجليزي',settings.headline_en,{type:'textarea',required:true,rows:2})}${field('subheadline_ar','نبذة البداية — عربي',settings.subheadline_ar,{type:'textarea',rows:3})}${field('subheadline_en','نبذة البداية — إنجليزي',settings.subheadline_en,{type:'textarea',rows:3})}</div></div><h3>الأقسام اللي تظهر للزائر</h3><div class="cms-toggle-grid">${controls}</div><h3 style="margin-block:35px 15px">تحرير النصوص</h3><style id="v13-cms-search-style">.cms-search-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:15px}.cms-search-controls small{margin-inline-end:auto}.cms-search-controls .admin-btn{font-size:12px;padding:8px 10px}.cms-editor-group[hidden],.cms-editor-group .form-field[hidden]{display:none!important}</style><div class="cms-search-tools"><label class="form-field full" style="margin-block:12px 8px">ابحث عن اسم الحقل أو النص الموجود بالعربي أو الإنجليزي<input id="cmsCopySearch" type="search" placeholder="مثلاً: آراء العملاء، الزر، أو كلمات من النص نفسه" autocomplete="off"></label><div class="cms-search-controls"><small id="cmsSearchResults" role="status" aria-live="polite">تقدر تبحث في أسماء الحقول ومحتواها.</small><button class="admin-btn secondary" type="button" data-cms-groups="open">فتح كل المجموعات</button><button class="admin-btn secondary" type="button" data-cms-groups="close">طي كل المجموعات</button></div></div>${sections}<div class="admin-sticky-actions"><button type="submit" class="admin-btn">حفظ المحتوى والتغييرات ✓</button><small id="cmsSaveStatus" role="status">المحتوى بيتحفظ على Supabase ويظهر على الموقع من غير GitHub</small></div></form></div>`;
 }
 
+function toolEditorRow(tool={}){
+ const img=safeUrl(tool.image_url);
+ return `<div class="admin-tool-row" data-admin-tool-row style="border:1px solid #ffffff24;border-radius:14px;padding:16px;margin:12px 0">
+ <div class="admin-form-grid">
+ ${field('tool_name','اسم الأداة',tool.name||'',{required:true,full:true})}
+ ${field('tool_ar','وصف عربي',tool.ar||'')}
+ ${field('tool_en','English description',tool.en||'')}
+ ${field('tool_image','رابط صورة الأداة (يمكن تركه واستخدام الرفع)',tool.image_url||'',{full:true})}
+ <label class="form-field full">ارفع صورة للأداة (PNG / JPG / WebP / AVIF)<input type="file" name="tool_upload" accept="image/png,image/jpeg,image/webp,image/avif"><small>الصورة اختيارية، وبحد أقصى 8 ميجابايت.</small></label>
+ <label class="form-field checkbox"><input name="tool_enabled" type="checkbox" ${tool.enabled!==false?'checked':''}>إظهار الأداة على الموقع</label>
+ </div><div style="display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:10px"><span class="admin-note">${img?'صورة موجودة ✓':'من غير صورة حاليًا'}</span><button class="admin-btn secondary" type="button" data-remove-catalog-tool>حذف الأداة</button></div></div>`;
+}
+function renderToolManager(){
+ const tools=getToolsCatalog(data.settings);
+ return `<section class="admin-panel"><div class="admin-heading"><h2>أدواتي / الأدوات والمنصات</h2><p class="admin-note">أضف أو احذف أو أخفِ أي أداة، وغيّر اسمها ووصفها وصورتها. ترتيب البطاقات هنا هو ترتيبها في الموقع.</p></div>
+ <form data-entity="tools" id="toolManagerForm">
+ <div id="toolManagerRows">${tools.map(toolEditorRow).join('')}</div>
+ <div class="admin-actions"><button class="admin-btn secondary" type="button" data-add-catalog-tool>+ إضافة أداة</button><button class="admin-btn" type="submit">حفظ الأدوات ✓</button></div>
+ </form></section>`;
+}
 function renderSettings(){
   const s=data.settings || seed.settings;
   return `<div class="admin-panel"><h2>المحتوى والتعريف</h2><form data-entity="settings" id="settingsForm"><div class="admin-form-grid">
@@ -360,7 +381,7 @@ function renderNoticeEditor(){
 function renderPanel(){
   if(!data)return;
   const main=$('#adminMain'); if(!main) return;
-  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,services:()=>renderItems('services'),testimonials:()=>renderItems('testimonials'),messages:renderMessages,future:renderFuture,notice:renderNoticeEditor})[tab]();
+  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,services:()=>renderItems('services'),testimonials:()=>renderItems('testimonials'),messages:renderMessages,future:renderFuture,notice:renderNoticeEditor})[tab]();
   main.innerHTML=`<header class="admin-heading v10-page-head"><div><span class="v10-page-path">Mo Design <span>/</span> مساحة العمل <span>/</span> ${esc(labels[tab])}</span><h1>${esc(labels[tab])}</h1><p>أدواتك ومحتواك وطلبات الشغل في مكان واحد.</p></div><div class="v10-page-actions"><span class="admin-badge">${connected?`<span class="v10-online-dot"></span> متصل`:'◌ وضع تجربة محلية'}</span><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">↗ شوف الموقع</a></div></header>${!connected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
   document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
   if(tab==='media')void loadMedia();
@@ -381,7 +402,8 @@ function setupToolTags(root){
 function getFields(form,table){
   const f=new FormData(form);
   const get=k=>String(f.get(k)||'').trim();
-  if(table==='content'){
+  if(table==='tools')return {};
+   if(table==='content'){
     const content_ar={...(data.settings?.content_ar||{})},content_en={...(data.settings?.content_en||{})};
     // Save only fields actually present in the editor, including the special
     // copyright/studio-year group excluded from copyGroup().
@@ -465,6 +487,23 @@ async function saveForm(form){
   const submitButton=form.querySelector('[data-direct-save],button[type="submit"]');if(submitButton){submitButton.disabled=true;submitButton.textContent='جاري الحفظ...';}
   formStatus(form,'جارٍ تجهيز البيانات للحفظ. لا تغلق الصفحة أثناء رفع الصور.');
   try {
+    if(table==='tools'){
+      const rows=[...form.querySelectorAll('[data-admin-tool-row]')];
+      if(rows.length>40)throw new Error('الحد الأقصى 40 أداة.');
+      const output=[];
+      for(const row of rows){
+       const val=name=>String(row.querySelector('[name="'+name+'"]')?.value||'').trim();
+       const name=val('tool_name');
+       if(!name)throw new Error('اكتب اسم كل أداة أو احذف السطر الفارغ.');
+       let image_url=val('tool_image');
+       const file=row.querySelector('[name="tool_upload"]')?.files?.[0];
+       if(file)image_url=await uploadImage(file,'general');
+       if(image_url && !safeUrl(image_url))throw new Error('رابط صورة الأداة غير صحيح.');
+       output.push({id:'tool-'+output.length,name:name.slice(0,100),ar:val('tool_ar').slice(0,250),en:val('tool_en').slice(0,250),image_url,enabled:!!row.querySelector('[name="tool_enabled"]')?.checked});
+      }
+      const content_ar={...(data.settings?.content_ar||{}),[TOOLS_CATALOG_KEY]:JSON.stringify(output)};
+      entry={content_ar};
+    }
     if(connected && table==='settings'){
       const file=form.querySelector('input[name="profile_file"]')?.files?.[0];
       if(file)entry.profile_image_url=await uploadImage(file,'general');
@@ -504,7 +543,7 @@ async function saveForm(form){
     if(connected){
       formStatus(form,'اكتمل رفع الملفات، جاري تسجيل المشروع والبيانات في Supabase...');
       const db=await getClient(); let result;
-      if(['settings','content','future','appearance','notice'].includes(table))result=await db.from('site_settings').update(entry).eq('id',1);
+      if(['settings','content','future','appearance','notice','tools'].includes(table))result=await db.from('site_settings').update(entry).eq('id',1);
       else {
         const payload={...entry};
         if(id)payload.id=id;
@@ -623,7 +662,9 @@ $('#adminApp').addEventListener('click',async e=>{
     if(cmsDirty && !confirm('عندك تغييرات غير محفوظة في محرر الموقع. هل تريد مغادرة القسم وفقدان التعديلات؟'))return;
     cmsDirty=false;tab=nav.dataset.tab;editing=null;renderPanel();window.scrollTo({top:0,behavior:'smooth'});return;
   }
-  const deleteMedia=e.target.closest('[data-media-delete]');
+  if(e.target.closest('[data-add-catalog-tool]')){document.querySelector('#toolManagerRows')?.insertAdjacentHTML('beforeend',toolEditorRow({enabled:true}));return;}
+   if(e.target.closest('[data-remove-catalog-tool]')){e.target.closest('[data-admin-tool-row]')?.remove();return;}
+   const deleteMedia=e.target.closest('[data-media-delete]');
   if(deleteMedia){
     if(!connected || deleteMedia.disabled)return;
     const path=deleteMedia.dataset.mediaDelete||'';
