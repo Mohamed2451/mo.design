@@ -29,3 +29,13 @@
 .home-learning-link{display:flex;align-items:center;justify-content:center;background:#111317}
 .home-learning-link>img{height:100%;width:100%;object-fit:contain!important;object-position:center;transform:none!important}
 .home-learning-slide[data-position="active"] .home-learning-link>img:hover{transform:none!important}
+
+/* Captions have their own footer so not a single pixel of artwork is obscured. */
+.home-learning-link{display:flex!important;flex-direction:column!important;justify-content:flex-start!important;align-items:stretch!important}
+.home-learning-link>img{flex:1 1 auto;min-height:0;height:calc(100% - 88px)!important;max-height:calc(100% - 88px);width:100%;object-fit:contain!important}
+.home-learning-shade{display:none!important}
+.home-learning-caption{position:relative!important;inset:auto!important;bottom:auto!important;flex:0 0 88px;padding:10px 16px 12px!important;justify-content:center;gap:4px!important;overflow:hidden;background:#12141a}
+.home-learning-caption strong{font-size:clamp(14px,1.6vw,18px)!important;line-height:1.35!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-learning-caption>span{display:none!important}
+.home-learning-fallback{flex:1 1 auto;min-height:0}
+@media(max-width:650px){.home-learning-link>img{height:calc(100% - 68px)!important;max-height:calc(100% - 68px)}.home-learning-caption{flex-basis:68px;padding:8px 10px!important}}
