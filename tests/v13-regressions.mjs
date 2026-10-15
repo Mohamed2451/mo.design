@@ -108,4 +108,16 @@ assert.match(app,/txt\(\)\.hero_merged_description/,'CMS combined biography driv
 assert.doesNotMatch(app,/\$\('#aboutDescription'\)/,'renderer does not refer to removed About paragraph');
 assert.match(admin,/\['hero_merged_description'\]/,'CMS saves combined biography');
 assert.match(heroCSS,/hero-identity-points/,'responsive styling exists for merged introduction');
+const academyCarouselCss=read('assets/academy-carousel.css');
+const academyPageJs=read('assets/learning-page.js');
+const academyHome=read('index.html');
+assert.match(academyHome,/id="learningCarouselShell"/,'home academy uses visible carousel wrapper');
+assert.match(academyHome,/id="learningPrev"/,'home academy has outside previous arrow');
+assert.match(academyHome,/id="learningNext"/,'home academy has outside next arrow');
+assert.match(academyCarouselCss,/home-learning-slide\[data-position="active"\]/,'active learning card has centered styling');
+assert.match(app,/stage\.dataset\.renderKey!==key/,'home learning cards remain mounted while navigating');
+assert.match(app,/function moveLearning\(delta\)/,'home learning arrows support navigation');
+assert.match(academyPageJs,/stage\.dataset\.renderKey!==key/,'academy page cards remain mounted during transition');
+assert.match(academyPageJs,/slide\.dataset\.position=position/,'academy page updates positional animations');
+assert.match(read('learning.html'),/academy-outside-arrow/,'academy page arrows are outside card stage');
 console.log('V13 regression checks passed');
