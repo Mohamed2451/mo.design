@@ -143,4 +143,15 @@ assert.match(revisedCss,/cta-marquee-section/,'compact CTA section rules exist')
 assert.ok(app.includes("$('.project-card,.service-item,.process-card,.review-card,.tool-card,.editorial-tile').forEach"),'animation targets all interactive cards');
 assert.match(app,/requestAnimationFrame\(applyInteractiveFX\)/,'rebind card motion after category filter');
 assert.match(read('index.html'),/class="section tools-final-section" id="tools"/,'moved tools preserves section visibility hooks');
+const academyCfg=read('assets/academy-config.js');
+const academyClient=read('assets/learning-page.js');
+assert.match(academyCfg,/ACADEMY_CATEGORIES_KEY/,'academy categories stored in settings');
+assert.match(academyClient,/getAcademyMembership\(settings\)/,'academy filters use lesson assignments');
+assert.match(academyClient,/getAcademyCategories\(settings\)/,'academy lists custom categories');
+assert.match(admin,/function renderAcademyCategoryManager\(\)/,'dashboard includes academy manager');
+assert.match(admin,/data-add-academy-category/,'dashboard can add academy categories');
+assert.match(admin,/\[ACADEMY_MEMBERSHIP_KEY\]:JSON\.stringify\(memberships\)/,'dashboard saves content assignments');
+assert.match(admin,/isCombinedLearn/,'editor searches combined learn and create labels');
+assert.ok(app.includes("$('.project-card,.service-item,.process-card,.review-card,.tool-card,.editorial-tile').forEach"),'all matching cards receive animation');
+assert.doesNotMatch(read('index.html'),/✳/,'decorative stars removed from public homepage');
 console.log('V13 regression checks passed');
