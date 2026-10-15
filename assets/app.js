@@ -277,42 +277,43 @@ function youtubeId(value) {
     return /^[A-Za-z0-9_-]{11}$/.test(id)?id:'';
   } catch {return '';}
 }
-function renderLearning() {
-  const section=$('#learn'),list=$('#learningList');if(!section||!list)return;
-  const settings=model.settings||seed.settings;
-  const mode=['hidden','coming_soon','live'].includes(settings.education_mode)?settings.education_mode:'coming_soon';
-  const visibility=settings.section_visibility||{};
-  section.hidden=(visibility.learn===false||mode==='hidden');
-  if(section.hidden)return;
-  const live=mode==='live';
-  const copy=txt();
-  const header=section.querySelector('[data-i18n="learn_title"]');
-  const intro=section.querySelector('[data-i18n="learn_desc"]');
-  const badge=section.querySelector('[data-i18n="learn_tag"]');
-  header.textContent=live?copy.learn_live_title|| (lang==='ar'?'بدأت أنشر محتوى جديد':'New content is live'):copy.learn_title;
-  intro.textContent=live?copy.learn_live_desc||'':copy.learn_desc;
-  badge.textContent=live?copy.learn_live_tag||'':copy.learn_tag;
-  list.hidden=!live;
-  if(!live)return;
-  const published=(model.learning_items||[]).filter(item=>item.is_published);
-  if(!published.length) {
-    list.innerHTML=`<p class="learning-empty">${lang==='ar'?'لسه بنجهّز أول درس. تابعنا قريب.':'First lesson coming soon.'}</p>`;
-    return;
-  }
-  const cards=published.map((item,index)=>{
-    const title=field(item,'title'),summary=field(item,'summary');
-    const video=item.content_type==='video';
-    const id=video?youtubeId(item.youtube_url):'';
-    const customThumb=safeUrl(item.thumbnail_url);
-    const thumb=customThumb||(id?`https://i.ytimg.com/vi/${id}/hqdefault.jpg`:'');
-    return `<a class="learning-card reveal" href="./lesson.html?id=${encodeURIComponent(item.id)}" aria-label="${esc(title)}">
-      <span class="learning-thumb">${thumb?`<img src="${esc(thumb)}" alt="" loading="lazy" onerror="this.style.display='none'">`:`<span class="learning-abstract" aria-hidden="true">✳</span>`}<span class="learning-play" aria-hidden="true">${video?'▶':'↗'}</span></span>
-      <span class="learning-item-meta">${video?(lang==='ar'?'فيديو تعليمي':'Video lesson'):(lang==='ar'?'مقال':'Article')} <span> / ${String(index+1).padStart(2,'0')}</span></span>
-      <strong>${esc(title)}</strong><span class="learning-item-desc">${esc(summary)}</span>
-    </a>`;
-  });
-  list.innerHTML=cards.join('');
+let learningIndex=0,learningRenderKey='';
+function renderLearning(){
+ const section=$('#learn'),stage=$('#learningList'),shell=$('#learningCarouselShell');if(!section||!stage||!shell)return;
+ const settings=model.settings||seed.settings;
+ const mode=['hidden','coming_soon','live'].includes(settings.education_mode)?settings.education_mode:'coming_soon';
+ section.hidden=settings.section_visibility?.learn===false||mode==='hidden';
+ if(section.hidden)return;
+ const live=mode==='live',copy=txt();
+ section.querySelector('[data-i18n="learn_title"]').textContent=live?(copy.learn_live_title||'بدأت أنشر محتوى يفيدك.'):copy.learn_title;
+ section.querySelector('[data-i18n="learn_desc"]').textContent=live?(copy.learn_live_desc||''):copy.learn_desc;
+ section.querySelector('[data-i18n="learn_tag"]').textContent=live?(copy.learn_live_tag||'اتفرّج وتعلّم'):copy.learn_tag;
+ shell.hidden=!live;
+ if(!live)return;
+ const lessons=(model.learning_items||[]).filter(item=>item.is_published).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0));
+ const count=lessons.length;
+ if(!count){stage.innerHTML='<p class="learning-empty">'+(lang==='ar'?'لسه بنجهّز أول درس. تابعنا قريب.':'The first lesson is coming soon.')+'</p>';stage.dataset.renderKey='';$('#learningCount').textContent='00 / 00';$('#learningDots').innerHTML='';$('#learningPrev').disabled=true;$('#learningNext').disabled=true;return;}
+ learningIndex=((learningIndex%count)+count)%count;
+ const key=lang+'|'+lessons.map(x=>[x.id,field(x,'title'),x.thumbnail_url,x.content_type].join(':')).join('|');
+ if(stage.dataset.renderKey!==key){
+  stage.innerHTML=lessons.map((item,i)=>{
+   const title=field(item,'title'),summary=field(item,'summary'),id=item.content_type==='video'?youtubeId(item.youtube_url):'';
+   const thumb=safeUrl(item.thumbnail_url)||(id?'https://i.ytimg.com/vi/'+id+'/hqdefault.jpg':'');
+   return `<article class="home-learning-slide" data-index="${i}"><a href="./lesson.html?id=${encodeURIComponent(item.id)}" class="home-learning-link" tabindex="-1">${thumb?`<img src="${esc(thumb)}" alt="" loading="lazy">`:'<span class="home-learning-fallback">✳</span>'}<span class="home-learning-shade"></span><span class="home-learning-caption"><small>${item.content_type==='video'?(lang==='ar'?'فيديو':'Video'):(lang==='ar'?'مقال':'Article')}</small><strong>${esc(title)}</strong><span>${esc(summary)}</span></span></a></article>`;
+  }).join('');
+  stage.dataset.renderKey=key;
+ }
+ stage.querySelectorAll('.home-learning-slide').forEach((el,i)=>{
+  const forward=(i-learningIndex+count)%count,backward=(learningIndex-i+count)%count;
+  const position=forward===0?'active':backward===1?'prev':forward===1?'next':'hidden';
+  el.dataset.position=position;el.setAttribute('aria-hidden',String(position!=='active'));el.inert=position!=='active';
+  el.querySelector('a').tabIndex=position==='active'?0:-1;
+ });
+ $('#learningCount').textContent=number(learningIndex+1)+' / '+number(count);
+ $('#learningDots').innerHTML=lessons.map((_,i)=>`<button type="button" data-learning-to="${i}" aria-label="${lang==='ar'?'المحتوى':'Item'} ${i+1}" aria-current="${i===learningIndex}"></button>`).join('');
+ $('#learningPrev').disabled=count<2;$('#learningNext').disabled=count<2;
 }
+function moveLearning(delta){const count=(model.learning_items||[]).filter(x=>x.is_published).length;if(count>1){learningIndex=(learningIndex+delta+count)%count;renderLearning();}}
 
 function syncRealWorkCopy(){
  const projects=(model.projects||[]).filter(p=>p.is_published);
@@ -425,6 +426,13 @@ function render() {
   }
 }
 
+$('#learningPrev').addEventListener('click',()=>moveLearning(-1));
+$('#learningNext').addEventListener('click',()=>moveLearning(1));
+$('#learningDots').addEventListener('click',e=>{const dot=e.target.closest('[data-learning-to]');if(dot){learningIndex=Number(dot.dataset.learningTo);renderLearning();}});
+let learningTouchX=0;
+$('#learningList').addEventListener('touchstart',e=>{learningTouchX=e.changedTouches[0].clientX;},{passive:true});
+$('#learningList').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-learningTouchX;if(Math.abs(dx)>45)moveLearning(dx<0?1:-1);},{passive:true});
+$('#learningList').addEventListener('keydown',e=>{if(e.key==='ArrowLeft')moveLearning(1);if(e.key==='ArrowRight')moveLearning(-1);});
 $('#learningList').addEventListener('click',e=>{
  const button=e.target.closest('[data-lesson]');if(!button)return;
  const item=(model.learning_items||[]).find(x=>String(x.id)===button.dataset.lesson&&x.is_published);
