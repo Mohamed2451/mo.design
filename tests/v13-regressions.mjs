@@ -127,4 +127,17 @@ assert.doesNotMatch(academyInnerHtml,/learningPrev|learningNext|learningDots|aca
 assert.match(academyInnerJs,/filter==='all'/,'academy filters published items');
 assert.match(academyInnerJs,/lesson\.html\?id=/,'academy cards link to lesson details');
 assert.match(academyInnerCss,/grid-template-columns:repeat\(3/,'academy uses three columns on desktop');
+const toolCatalog=read('assets/tools-catalog.js');
+const revisedHome=read('index.html');
+const revisedCss=read('assets/baseline-safe-fixes.css');
+const lessonCarouselCss=read('assets/academy-carousel.css');
+assert.match(toolCatalog,/export function getToolsCatalog/,'editable tool catalog has shared loader');
+assert.match(app,/getToolsCatalog\(model\.settings\)/,'public tool cards use CMS data');
+assert.match(admin,/function renderToolManager\(/,'CMS exposes editable tool manager');
+assert.match(admin,/data-entity="tools"/,'tools have their own saving form');
+assert.match(admin,/\[TOOLS_CATALOG_KEY\]:JSON\.stringify\(output\)/,'tools persist via existing settings JSON');
+assert.match(admin,/uploadImage\(file,'general'\)/,'tools can upload images to existing Supabase storage');
+assert.ok(revisedHome.indexOf('tools-final-section') > revisedHome.indexOf('id="learn"') && revisedHome.indexOf('tools-final-section') < revisedHome.indexOf('id="contact"'),'tools moved just before contact');
+assert.match(lessonCarouselCss,/object-fit:contain!important/,'academy preview never crops creative artwork');
+assert.match(revisedCss,/cta-marquee-section/,'compact CTA section rules exist');
 console.log('V13 regression checks passed');
