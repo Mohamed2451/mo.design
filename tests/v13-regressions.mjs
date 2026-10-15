@@ -159,4 +159,23 @@ assert.match(admin,/selectedLessonCategories/,'lesson save collects selected aca
 assert.match(admin,/ACADEMY_MEMBERSHIP_KEY/,'lesson save persists category assignment');
 assert.match(app,/node.querySelector\('\.feature-project-link'\)/,'featured hover animates inner link rather than carousel geometry');
 assert.match(app,/tx-cx/,'floating interaction smooths mouse movement');
+// Release readiness: guard the responsive layouts and current GitHub Pages indexing.
+const responsiveStyles=read('assets/styles.css');
+const academyStyles=read('assets/learning-page.css');
+const academyPreviewStyles=read('assets/academy-carousel.css');
+const releaseIndex=read('index.html');
+const sitemap=read('sitemap.xml');
+const robots=read('robots.txt');
+assert.match(releaseIndex,/name="viewport"/,'homepage declares mobile viewport');
+assert.match(read('admin.html'),/name="viewport"/,'admin declares mobile viewport');
+assert.match(read('learning.html'),/name="viewport"/,'academy declares mobile viewport');
+assert.match(responsiveStyles,/@media\(max-width:540px\)/,'homepage has phone layout');
+assert.match(responsiveStyles,/\.admin-form-grid\{grid-template-columns:1fr\}/,'admin form stacks on phones');
+assert.match(academyStyles,/@media\(max-width:540px\)/,'academy grid has phone layout');
+assert.match(academyPreviewStyles,/@media\(max-width:650px\)/,'homepage academy carousel has phone layout');
+assert.match(app,/pointer:fine/,'pointer effects restricted to precision pointers');
+assert.match(app,/prefers-reduced-motion/,'animations honor reduced motion');
+assert.match(sitemap,/mo\.design\/learning\.html/,'academy route is in sitemap');
+assert.match(sitemap,/mo\.design\/services\/social-media\//,'service route is in sitemap');
+assert.match(robots,/mohamed2451\.github\.io\/mo\.design\/sitemap\.xml/,'robots points to GitHub Pages sitemap');
 console.log('V13 regression checks passed');
