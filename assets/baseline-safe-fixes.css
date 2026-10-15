@@ -42,3 +42,12 @@
 @media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
  .feature-slide .feature-project-link{translate:var(--float-x,0px) var(--float-y,0px);transition:translate .16s ease-out}
 }
+
+/* Smooth mouse-follow: animate only while hovered, keep carousel's outer transform untouched. */
+@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+ .project-card.mo-floating,.service-item.mo-floating,.process-card.mo-floating,.review-card.mo-floating,.tool-card.mo-floating,.editorial-tile.mo-floating,
+ .feature-slide .feature-project-link.mo-floating{transition:transform 0s!important;will-change:transform}
+ .feature-slide .feature-project-link{transform-origin:center;transition:transform .3s ease-out}
+ .feature-slide .feature-project-link.mo-floating{translate:none!important}
+ .review-card,.service-item,.process-card,.editorial-tile{will-change:auto}
+}
