@@ -117,6 +117,8 @@ function renderProjects() {
  $('#projectGrid').setAttribute('aria-live','polite');
  $('#projectGrid').innerHTML=items.length?items.map((p,i)=>`<article class="project-card reveal"><a class="project-cover-button" href="${esc(caseUrl(p))}" style="display:block;width:100%" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">${graphicHTML(p)}</a><div class="project-meta"><div><h3>${esc(field(p,'title'))}</h3><p>${esc((categoryFor(p)||{})[lang]||field(p,'category'))}</p></div><span class="project-index">/${number(i+1)}</span></div></article>`).join(''):`<p class="admin-empty">${esc(txt().no_projects)}</p>`;
  observeReveal();
+ // Project filters rebuild the cards, so attach effects to newly added cards too.
+ if(typeof applyInteractiveFX==='function')requestAnimationFrame(applyInteractiveFX);
 }
 function renderServices() {
   const items = model.services.filter(s=>s.is_published).sort((a,b)=>(a.sort_order || 0)-(b.sort_order || 0));
