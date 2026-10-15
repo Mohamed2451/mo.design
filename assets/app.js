@@ -219,18 +219,36 @@ function renderTools(){
 }
 
 function applyInteractiveFX(){
- if(window.matchMedia('(prefers-reduced-motion: reduce), (pointer: coarse)').matches)return;
- $('.project-card,.service-item,.process-card,.review-card,.tool-card,.editorial-tile').forEach(node=>{
+ if(window.matchMedia('(prefers-reduced-motion: reduce), (pointer:coarse)').matches)return;
+ // Original 3D floating hover feel, with per-frame pointer smoothing.
+ $$('.project-card,.service-item,.process-card,.review-card,.tool-card,.editorial-tile,.feature-slide').forEach(node=>{
   if(node.dataset.fxBound)return;node.dataset.fxBound='1';
-  let raf=0;
+  const featured=node.classList.contains('feature-slide');
+  let raf=0,tx=0,ty=0,cx=0,cy=0,inside=false;
+  function draw(){
+   raf=0;cx+=(tx-cx)*.23;cy+=(ty-cy)*.23;
+   const x=cx.toFixed(3),y=cy.toFixed(3);
+   if(featured){
+    node.style.setProperty('--float-x',(cx*11).toFixed(2)+'px');
+    node.style.setProperty('--float-y',(cy*9).toFixed(2)+'px');
+    node.style.setProperty('--mx',((cx+.5)*100).toFixed(1)+'%');
+    node.style.setProperty('--my',((cy+.5)*100).toFixed(1)+'%');
+   }else{
+    node.style.transform='perspective(1050px) rotateX('+(-cy*8).toFixed(2)+'deg) rotateY('+(cx*8).toFixed(2)+'deg) translate3d('+(cx*8).toFixed(2)+'px,'+(cy*7-3).toFixed(2)+'px,0)';
+   }
+   if(inside||Math.abs(cx-tx)+Math.abs(cy-ty)>.008)raf=requestAnimationFrame(draw);
+   else if(!featured)node.style.transform='';
+  }
   node.addEventListener('pointermove',e=>{
-   if(e.pointerType==='touch'||raf)return;
-   raf=requestAnimationFrame(()=>{raf=0;const r=node.getBoundingClientRect();if(!r.width||!r.height)return;
-    const x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;
-    node.style.transform='perspective(1100px) rotateX('+((.5-y)*5).toFixed(2)+'deg) rotateY('+((x-.5)*5).toFixed(2)+'deg)';
-   });
+   if(e.pointerType==='touch')return;
+   const r=node.getBoundingClientRect();if(!r.width||!r.height)return;
+   tx=Math.max(-.5,Math.min(.5,(e.clientX-r.left)/r.width-.5));
+   ty=Math.max(-.5,Math.min(.5,(e.clientY-r.top)/r.height-.5));
+   inside=true;if(!raf)raf=requestAnimationFrame(draw);
   },{passive:true});
-  node.addEventListener('pointerleave',()=>{if(raf)cancelAnimationFrame(raf);raf=0;node.style.transform='';});
+  node.addEventListener('pointerleave',()=>{
+   tx=ty=0;inside=false;if(!raf)raf=requestAnimationFrame(draw);
+  });
  });
 }
 
