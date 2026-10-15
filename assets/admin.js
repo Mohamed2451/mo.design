@@ -141,7 +141,7 @@ function toolEditorRow(tool={}){
  ${field('tool_image','رابط صورة الأداة (يمكن تركه واستخدام الرفع)',tool.image_url||'',{full:true})}
  <label class="form-field full">ارفع صورة للأداة (PNG / JPG / WebP / AVIF)<input type="file" name="tool_upload" accept="image/png,image/jpeg,image/webp,image/avif"><small>الصورة اختيارية، وبحد أقصى 8 ميجابايت.</small></label>
  <label class="form-field checkbox"><input name="tool_enabled" type="checkbox" ${tool.enabled!==false?'checked':''}>إظهار الأداة على الموقع</label>
- </div><div style="display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:10px"><span class="admin-note">${img?'صورة موجودة ✓':'من غير صورة حاليًا'}</span><button class="admin-btn secondary" type="button" data-remove-catalog-tool>حذف الأداة</button></div></div>`;
+ </div><div style="display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:10px"><span class="admin-note">${img?'صورة موجودة ✓':'من غير صورة حاليًا'}</span><span><button class="admin-btn secondary" type="button" data-move-catalog-tool="up" aria-label="تحريك الأداة للأعلى">↑</button> <button class="admin-btn secondary" type="button" data-move-catalog-tool="down" aria-label="تحريك الأداة للأسفل">↓</button> <button class="admin-btn secondary" type="button" data-remove-catalog-tool>حذف الأداة</button></span></div></div>`;
 }
 function renderToolManager(){
  const tools=getToolsCatalog(data.settings);
@@ -663,6 +663,12 @@ $('#adminApp').addEventListener('click',async e=>{
     cmsDirty=false;tab=nav.dataset.tab;editing=null;renderPanel();window.scrollTo({top:0,behavior:'smooth'});return;
   }
   if(e.target.closest('[data-add-catalog-tool]')){document.querySelector('#toolManagerRows')?.insertAdjacentHTML('beforeend',toolEditorRow({enabled:true}));return;}
+   const moveTool=e.target.closest('[data-move-catalog-tool]');
+   if(moveTool){const row=moveTool.closest('[data-admin-tool-row]'),host=row?.parentNode;if(!row||!host)return;
+    if(moveTool.dataset.moveCatalogTool==='up'&&row.previousElementSibling)host.insertBefore(row,row.previousElementSibling);
+    if(moveTool.dataset.moveCatalogTool==='down'&&row.nextElementSibling)host.insertBefore(row.nextElementSibling,row);
+    return;
+   }
    if(e.target.closest('[data-remove-catalog-tool]')){e.target.closest('[data-admin-tool-row]')?.remove();return;}
    const deleteMedia=e.target.closest('[data-media-delete]');
   if(deleteMedia){
