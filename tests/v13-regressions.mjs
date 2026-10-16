@@ -214,7 +214,7 @@ assert.doesNotMatch(admin,/name="sp_categories"/,'manual pipe-separated category
 assert.match(publicService,/if\(activeGroup!=='all'&&!groups\.some/,'hidden category resets public filter');
 
 assert.match(admin,/const cmsConnected=connected && new URLSearchParams\(location\.search\)\.get\('demo'\)!=='1'/,'demo query disables live database');
-assert.match(admin,/if\(table==='service_pages'\|\|table==='tools'\|\|table==='academy_categories'\)/,'offline settings editors save locally');
+assert.match(admin,/table==='legal_pages'\)data.settings/,'offline settings editors save locally');
 assert.match(read('admin.html'),/replace-media-20261016/,'fresh dashboard code requested');
 
 assert.match(admin,/function renderLegalPages\(/,'legal content editor is available');
