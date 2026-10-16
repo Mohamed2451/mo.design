@@ -6,7 +6,9 @@ import {SERVICE_PAGES,SERVICE_PAGE_KEY,serviceConfig,projectServiceGroups} from 
 import {getAcademyCategories,getAcademyMembership,ACADEMY_CATEGORIES_KEY,ACADEMY_MEMBERSHIP_KEY,ACADEMY_TEXT_KEYS,academyText} from './academy-config.js';
 
 const $ = s => document.querySelector(s);
-let data = connected ? null : readDemo();
+// ?demo=1 forces a local-only sandbox; never access live Supabase from this mode.
+const cmsConnected=connected && new URLSearchParams(location.search).get('demo')!=='1';
+let data = cmsConnected ? null : readDemo();
 let currentUser = null;
 let tab = 'overview';
 let editing = null; // {table,id}
@@ -105,7 +107,7 @@ function baseShell(){
  $('#adminApp').innerHTML=`<div class="admin-layout v10-shell"><aside class="admin-sidebar">
  <div class="studio-sidebar-top"><a href="./index.html" class="brand v10-brand"><span class="brand-mark"><img src="./assets/images/mo-logo-white.webp" alt="" data-admin-brand-logo /></span><span><strong>Mo Design</strong><small>مساحة الإدارة الإبداعية</small></span></a><div class="v10-workspace-badge"><span class="v10-online-dot"></span> مساحة الإدارة الخاصة</div></div>
  <nav class="sidebar-nav" id="adminNav" aria-label="أقسام لوحة الإدارة">${groups.map(group=>`<div class="v10-nav-group"><div class="v10-nav-label">${group.title}</div>${group.items.map(key=>`<button type="button" data-tab="${key}" class="${tab===key?'active':''}"><span class="v10-nav-icon" aria-hidden="true">${icons[key]}</span><span>${labels[key]}</span><span class="v10-nav-chevron" aria-hidden="true">‹</span></button>`).join('')}</div>`).join('')}</nav>
- <div class="sidebar-footer"><div class="v10-admin-account"><span class="v10-avatar">م</span><div><strong>محمد محمود</strong><small>مدير الموقع</small></div></div><a href="./index.html" target="_blank" rel="noopener">↗ معاينة الموقع</a>${connected?'<button type="button" data-action="logout">تسجيل الخروج</button>':''}</div></aside>
+ <div class="sidebar-footer"><div class="v10-admin-account"><span class="v10-avatar">م</span><div><strong>محمد محمود</strong><small>مدير الموقع</small></div></div><a href="./index.html" target="_blank" rel="noopener">↗ معاينة الموقع</a>${cmsConnected?'<button type="button" data-action="logout">تسجيل الخروج</button>':''}</div></aside>
  <main class="admin-main" id="adminMain"></main></div>`;
 }
 function renderOverview(){
@@ -165,12 +167,12 @@ function renderSettings(){
   ${field('bio_ar','نبذة عنك بالعربي',s.bio_ar,{type:'textarea',full:true})}
   ${field('bio_en','نبذة عنك بالإنجليزي',s.bio_en,{type:'textarea',full:true})}
   ${field('profile_image_url','رابط صورتك الشخصية (لو حابب تغيرها)',s.profile_image_url||'',{full:true})}
-  <label class="form-field full">ارفع صورة شخصية جديدة مباشرة (8 ميجابايت كحد أقصى)<input type="file" name="profile_file" accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}></label>
+  <label class="form-field full">ارفع صورة شخصية جديدة مباشرة (8 ميجابايت كحد أقصى)<input type="file" name="profile_file" accept="image/png,image/jpeg,image/webp,image/avif" ${cmsConnected?'':'disabled'}></label>
   <div class="cms-brand-settings full"><h3>صورتك والشعار</h3><p class="admin-note">الشعار الأبيض للدارك مود، والأسود للايت مود. رفع الملفات بيحدّث الموقع بعد الحفظ من غير GitHub.</p><div class="cms-brand-preview"><img src="${esc(safeUrl(s.profile_image_url)||'./assets/images/mohamed-mahmoud.webp')}" alt="معاينة صورتك"><img src="${esc(safeUrl(s.logo_dark_url)||'./assets/images/mo-logo-white.webp')}" alt="شعار الوضع الداكن"></div></div>
   ${field('logo_dark_url','رابط الشعار الأبيض للدارك مود (اختياري)',s.logo_dark_url||'',{full:true})}
-  <label class="form-field full">أو ارفع الشعار الأبيض من جهازك<input type="file" name="logo_dark_file" accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}></label>
+  <label class="form-field full">أو ارفع الشعار الأبيض من جهازك<input type="file" name="logo_dark_file" accept="image/png,image/jpeg,image/webp,image/avif" ${cmsConnected?'':'disabled'}></label>
   ${field('logo_light_url','رابط الشعار الأسود للايت مود (اختياري)',s.logo_light_url||'',{full:true})}
-  <label class="form-field full">أو ارفع الشعار الأسود من جهازك<input type="file" name="logo_light_file" accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}></label>
+  <label class="form-field full">أو ارفع الشعار الأسود من جهازك<input type="file" name="logo_light_file" accept="image/png,image/jpeg,image/webp,image/avif" ${cmsConnected?'':'disabled'}></label>
   ${field('contact_email','بريدك الإلكتروني — اختياري حتى تضيفه',s.contact_email,{type:'email'})}
   ${field('instagram_url','رابط إنستجرام',s.instagram_url,{type:'url'})}${field('behance_url','رابط بيهانس',s.behance_url,{type:'url'})}
   ${field('linkedin_url','رابط لينكدإن',s.linkedin_url,{type:'url'})}${field('whatsapp_url','رابط واتساب',s.whatsapp_url,{type:'url'})}
@@ -238,9 +240,9 @@ function renderItems(table){
   ${richField('objective_en','الهدف بالإنجليزي',item.objective_en||'',8)}
   ${field('text_font','خط النص الطويل',item.text_style?.font||'Alexandria',{select:FONT_CHOICES})}${field('text_size','حجم النص بالبكسل (14–30)',item.text_style?.size||17,{type:'number'})}
   <div class="form-field full cms-tool-entry"><span>الأدوات المستخدمة في المشروع</span><div class="cms-tools-box" data-tools-box><div data-tools-tags class="cms-tools-tags"></div><input data-tool-add placeholder="اكتب Photoshop واضغط Enter" aria-label="اكتب أداة واضغط Enter" maxlength="70"></div><input type="hidden" name="tools_used" value="${esc(formatTools(item.tools_used).join(', '))}"><small>اضغط Enter بعد كل برنامج علشان يظهر في خانة مستقلة، أو اضغط × لإزالته.</small></div>
-  <label class="form-field full">ارفع فيديوهات المشروع من جهازك (حتى 4 فيديوهات، 45 ميجابايت لكل ملف)<input name="project_video_file" type="file" multiple accept="video/mp4,video/webm" ${connected?'':'disabled'}><small>الفيديو يُرفع إلى Supabase Storage عند حفظ المشروع. للفيديوهات الأكبر استخدم YouTube.</small></label>
-  <label class="form-field full">ارفع صورة غلاف المشروع من جهازك (اختياري) <input type="file" name="media_file" accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'} /> <small>صورة بحد أقصى 8 MB. ترفع بصورة آمنة فقط عند تفعيل التخزين وسياسات الصلاحيات.</small></label>
-  <label class="form-field full">ارفع صور المشروع الإضافية من جهازك (حتى 15 صورة)<input type="file" name="gallery_files" multiple accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}/><small data-project-gallery-count role="status" aria-live="polite">الحد الأقصى 15 صورة إضافية، شامل الروابط والملفات الجديدة.</small></label>
+  <label class="form-field full">ارفع فيديوهات المشروع من جهازك (حتى 4 فيديوهات، 45 ميجابايت لكل ملف)<input name="project_video_file" type="file" multiple accept="video/mp4,video/webm" ${cmsConnected?'':'disabled'}><small>الفيديو يُرفع إلى Supabase Storage عند حفظ المشروع. للفيديوهات الأكبر استخدم YouTube.</small></label>
+  <label class="form-field full">ارفع صورة غلاف المشروع من جهازك (اختياري) <input type="file" name="media_file" accept="image/png,image/jpeg,image/webp,image/avif" ${cmsConnected?'':'disabled'} /> <small>صورة بحد أقصى 8 MB. ترفع بصورة آمنة فقط عند تفعيل التخزين وسياسات الصلاحيات.</small></label>
+  <label class="form-field full">ارفع صور المشروع الإضافية من جهازك (حتى 15 صورة)<input type="file" name="gallery_files" multiple accept="image/png,image/jpeg,image/webp,image/avif" ${cmsConnected?'':'disabled'}/><small data-project-gallery-count role="status" aria-live="polite">الحد الأقصى 15 صورة إضافية، شامل الروابط والملفات الجديدة.</small></label>
   <details class="cms-advanced full"><summary>رابط خارجي للعمل (اختياري) ▾</summary>${field('external_url','رابط لعرض العمل على Behance أو موقع خارجي',item.external_url,{type:'url',full:true})}<small>اتركه فارغًا لو مش عايز تحول الزائر لموقع آخر. صفحة المشروع عندك تعمل بدونه.</small></details>
   ${field('featured','مميز',item.featured,{type:'checkbox'})}`:
   `${field('description_ar','وصف الخدمة بالعربي',item.description_ar,{type:'textarea',full:true})}${field('description_en','وصف الخدمة بالإنجليزي',item.description_en,{type:'textarea',full:true})}
@@ -250,7 +252,7 @@ function renderItems(table){
   return `<div class="admin-panel" id="editorPanel"><h2>${isNew?`إضافة ${noun}`:`تعديل ${noun}`}</h2><form data-entity="${table}" data-edit-id="${esc(item.id || '')}" novalidate><div class="admin-form-grid">${main}</div>${preview}<div class="admin-actions"><div data-save-status role="status" aria-live="polite" hidden style="width:100%;padding:12px;border:1px solid #79b943;border-radius:10px;white-space:normal"></div>${uiButton('إلغاء','cancel')}<button class="admin-btn" type="button" data-direct-save>حفظ ${noun}</button></div></form></div>`+list;
 }
 function renderMessages(){
- if(!connected)return `<div class="admin-panel"><h2>رسائل العملاء</h2><p class="admin-note">الرسائل تحتاج توصيل Supabase. على النسخة غير المتصلة، الطلبات تفتح واتساب ومش بتتحفظ هنا.</p></div>`;
+ if(!cmsConnected)return `<div class="admin-panel"><h2>رسائل العملاء</h2><p class="admin-note">الرسائل تحتاج توصيل Supabase. على النسخة غير المتصلة، الطلبات تفتح واتساب ومش بتتحفظ هنا.</p></div>`;
  const messages=data.messages||[];
  return `<div class="admin-panel"><div class="admin-heading"><div><h2>صندوق طلبات العملاء</h2><p class="admin-note">افتح وسيلة التواصل المناسبة، سجل المتابعة، وحدّث حالة كل مشروع.</p></div><span class="admin-badge">${messages.length} طلب</span></div><div class="inbox-toolbar"><input id="inboxSearch" type="search" placeholder="دوّر باسم العميل أو نوع الخدمة" aria-label="بحث في الطلبات"><select id="inboxFilter" aria-label="فلترة الطلبات"><option value="">كل الحالات</option><option value="new">جديد</option><option value="reviewing">قيد المراجعة</option><option value="contacted">تم التواصل</option><option value="proposal_sent">تم إرسال عرض</option><option value="accepted">تم الاتفاق</option><option value="completed">مكتمل</option><option value="archived">مؤرشف</option></select></div><div id="inboxRows">${messages.map(m=>{
  const number=String(m.sender_phone||'').replace(/[^0-9]/g,'').replace(/^0(?=1[0125][0-9]{8}$)/,'20');
@@ -260,7 +262,7 @@ function renderMessages(){
  }).join('')||'<p class="admin-empty">مفيش طلبات لحد دلوقتي.</p>'}</div></div>`;
 }
 function renderMedia(){
- return `<div class="admin-panel"><h2>مكتبة الصور والوسائط</h2><p class="admin-note">ارفع صورك مرة واستخدم الرابط في أي مشروع أو في إعدادات صورتك الشخصية. الصور بتتحفظ في Supabase مش على GitHub.</p><form id="mediaUploadForm" class="media-upload-form"><label class="form-field">اختار الصور (JPG / PNG / WebP / AVIF) <input type="file" name="uploads" multiple accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'} required></label><button type="submit" class="admin-btn" ${connected?'':'disabled'}>رفع الصور</button></form><div id="mediaGallery" class="media-grid">${!connected?'<p class="admin-note">اتصل بـ Supabase الأول علشان تعرض مكتبة الصور.</p>':'<p class="admin-note">جارٍ تحميل الوسائط...</p>'}</div></div>`;
+ return `<div class="admin-panel"><h2>مكتبة الصور والوسائط</h2><p class="admin-note">ارفع صورك مرة واستخدم الرابط في أي مشروع أو في إعدادات صورتك الشخصية. الصور بتتحفظ في Supabase مش على GitHub.</p><form id="mediaUploadForm" class="media-upload-form"><label class="form-field">اختار الصور (JPG / PNG / WebP / AVIF) <input type="file" name="uploads" multiple accept="image/png,image/jpeg,image/webp,image/avif" ${cmsConnected?'':'disabled'} required></label><button type="submit" class="admin-btn" ${cmsConnected?'':'disabled'}>رفع الصور</button></form><div id="mediaGallery" class="media-grid">${!cmsConnected?'<p class="admin-note">اتصل بـ Supabase الأول علشان تعرض مكتبة الصور.</p>':'<p class="admin-note">جارٍ تحميل الوسائط...</p>'}</div></div>`;
 }
 async function uploadImage(file,folder='general'){
  if(!['image/png','image/jpeg','image/webp','image/avif'].includes(file.type)||file.size>8*1024*1024)throw Error('اختار صورة PNG أو JPEG أو WebP أو AVIF بحد أقصى 8 ميجابايت.');
@@ -279,7 +281,7 @@ async function uploadLearningVideo(file,folder='learning'){
  return db.storage.from('portfolio-video').getPublicUrl(path).data.publicUrl;
 }
 async function loadMedia(){
- const grid=$('#mediaGallery');if(!grid||!connected)return;
+ const grid=$('#mediaGallery');if(!grid||!cmsConnected)return;
  try{
   const db=await getClient();
   async function listFolder(folder){
@@ -330,11 +332,11 @@ function renderLearningItemEditor(item){
  ${richField('summary_en','الوصف بالإنجليزي',item.summary_en||'',3)}
  ${field('youtube_url','رابط فيديو YouTube أو Shorts (اختياري لو هترفع فيديو)',item.youtube_url||'',{type:'url',full:true})}
  ${field('video_url','رابط MP4 أو WebM مباشر (اختياري)',item.video_url||'',{type:'url',full:true})}
- <label class="form-field full">ارفع فيديو من جهازك (MP4 / WebM، بحد أقصى 45 ميجابايت)<input name="lesson_video_file" type="file" accept="video/mp4,video/webm" ${connected?'':'disabled'}><small>الفيديو بيترفع على Supabase Storage عند الضغط على حفظ. للفيديوهات الكبيرة استخدم يوتيوب لتوفير المساحة.</small></label>
+ <label class="form-field full">ارفع فيديو من جهازك (MP4 / WebM، بحد أقصى 45 ميجابايت)<input name="lesson_video_file" type="file" accept="video/mp4,video/webm" ${cmsConnected?'':'disabled'}><small>الفيديو بيترفع على Supabase Storage عند الضغط على حفظ. للفيديوهات الكبيرة استخدم يوتيوب لتوفير المساحة.</small></label>
  ${field('thumbnail_url','رابط صورة مصغرة (اختياري)',item.thumbnail_url||'',{type:'url',full:true})}
- <label class="form-field full">أو ارفع صورة مصغّرة من جهازك (JPG / PNG / WebP لحد 8 ميجابايت)<input type="file" name="lesson_thumbnail_file" accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}><small>لو اخترت صورة هنا هتترفع تلقائيًا وقت الحفظ، وتظهر على بطاقة الدرس.</small></label>
+ <label class="form-field full">أو ارفع صورة مصغّرة من جهازك (JPG / PNG / WebP لحد 8 ميجابايت)<input type="file" name="lesson_thumbnail_file" accept="image/png,image/jpeg,image/webp,image/avif" ${cmsConnected?'':'disabled'}><small>لو اخترت صورة هنا هتترفع تلقائيًا وقت الحفظ، وتظهر على بطاقة الدرس.</small></label>
  <details class="cms-advanced full"><summary>روابط صور الدرس الجاهزة (اختياري) ▾</summary>${field('image_urls','روابط صور الشرح — رابط HTTPS لكل سطر',item.image_urls||'',{type:'textarea',full:true,rows:3})}</details>
- <label class="form-field full">ارفع صور الشرح من الكمبيوتر (حتى 15 صورة إجماليًا، 8MB للصورة)<input type="file" name="lesson_images_files" accept="image/png,image/jpeg,image/webp,image/avif" multiple ${connected?'':'disabled'}><small data-lesson-gallery-count role="status" aria-live="polite">صور الدرس: الحد الأقصى 15 صورة شامل الروابط والملفات.</small></label>
+ <label class="form-field full">ارفع صور الشرح من الكمبيوتر (حتى 15 صورة إجماليًا، 8MB للصورة)<input type="file" name="lesson_images_files" accept="image/png,image/jpeg,image/webp,image/avif" multiple ${cmsConnected?'':'disabled'}><small data-lesson-gallery-count role="status" aria-live="polite">صور الدرس: الحد الأقصى 15 صورة شامل الروابط والملفات.</small></label>
  ${mediaCaptionsEditor('lesson',item.image_captions,item.image_urls)}${field('text_font','خط المحتوى',item.text_style?.font||'Alexandria',{select:FONT_CHOICES})}${field('text_size','حجم النص بالبكسل (14–30)',item.text_style?.size||17,{type:'number'})}
  ${field('resource_links','روابط الشرح وملفات PDF أو Google Drive (كل رابط في سطر، بصيغة: اسم الملف | https://...)',item.resource_links||'',{type:'textarea',full:true,rows:4})}
  <p class="admin-note full">علشان ملفات Google Drive تفتح للزوار: افتح إعدادات المشاركة للملف واختر «أي شخص معه الرابط — مشاهد».</p>
@@ -401,7 +403,7 @@ function renderAppearance(){
       <div class="v13-preview-mode" data-preview-mode="light" style="background:${color('light_bg','#f7f5ef')};color:${color('light_text','#172026')}"><small>Light mode — معاينة فقط</small><strong>عنوان تجريبي للقسم</strong><span style="color:${color('light_accent','#39671a')}">نص باللون المميز ●</span><p>مثال على وضوح النص فوق الخلفية.</p></div>
     </div>
     ${field(id+'__cover_url','رابط الكافر الحالي (اختياري)',d.cover_url||'',{type:'url',full:true})}
-    <label class="form-field full">ارفع كافر من جهازك لهذا القسم (اختياري)<input name="${id}__cover_file" type="file" accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}><small>حد أقصى 8 ميجابايت للصورة، وتقدر تغيّره أو تمسح الرابط في أي وقت.</small></label>
+    <label class="form-field full">ارفع كافر من جهازك لهذا القسم (اختياري)<input name="${id}__cover_file" type="file" accept="image/png,image/jpeg,image/webp,image/avif" ${cmsConnected?'':'disabled'}><small>حد أقصى 8 ميجابايت للصورة، وتقدر تغيّره أو تمسح الرابط في أي وقت.</small></label>
     ${field(id+'__font','خط نصوص القسم',d.font||'',{select:[['','الخط الحالي'],...FONT_CHOICES]})}
     ${field(id+'__heading_size','حجم العنوان الرئيسي (0 = التصميم الأساسي)',d.heading_size??0,{type:'number'})}
     ${field(id+'__body_size','حجم الوصف (0 = التصميم الأساسي)',d.body_size??0,{type:'number'})}
@@ -436,7 +438,7 @@ function renderPanel(){
   if(!data)return;
   const main=$('#adminMain'); if(!main) return;
   const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,services:()=>renderItems('services'),testimonials:()=>renderItems('testimonials'),messages:renderMessages,future:renderFuture,notice:renderNoticeEditor})[tab]();
-  main.innerHTML=`<header class="admin-heading v10-page-head"><div><span class="v10-page-path">Mo Design <span>/</span> مساحة العمل <span>/</span> ${esc(labels[tab])}</span><h1>${esc(labels[tab])}</h1><p>أدواتك ومحتواك وطلبات الشغل في مكان واحد.</p></div><div class="v10-page-actions"><span class="admin-badge">${connected?`<span class="v10-online-dot"></span> متصل`:'◌ وضع تجربة محلية'}</span><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">↗ شوف الموقع</a></div></header>${!connected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
+  main.innerHTML=`<header class="admin-heading v10-page-head"><div><span class="v10-page-path">Mo Design <span>/</span> مساحة العمل <span>/</span> ${esc(labels[tab])}</span><h1>${esc(labels[tab])}</h1><p>أدواتك ومحتواك وطلبات الشغل في مكان واحد.</p></div><div class="v10-page-actions"><span class="admin-badge">${cmsConnected?`<span class="v10-online-dot"></span> متصل`:'◌ وضع تجربة محلية'}</span><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">↗ شوف الموقع</a></div></header>${!cmsConnected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
   document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
   if(tab==='media')void loadMedia();
   setupToolTags(main);
@@ -606,7 +608,7 @@ async function saveForm(form){
       const content_ar={...(data.settings?.content_ar||{}),[TOOLS_CATALOG_KEY]:JSON.stringify(output)};
       entry={content_ar};
     }
-    if(connected && table==='settings'){
+    if(cmsConnected && table==='settings'){
       const file=form.querySelector('input[name="profile_file"]')?.files?.[0];
       if(file)entry.profile_image_url=await uploadImage(file,'general');
       for(const [fieldName,key] of [['logo_dark_file','logo_dark_url'],['logo_light_file','logo_light_url']]){
@@ -614,7 +616,7 @@ async function saveForm(form){
         if(newLogo)entry[key]=await uploadImage(newLogo,'general');
       }
     }
-    if(connected && table==='learning_items'){
+    if(cmsConnected && table==='learning_items'){
       const videoFile=form.querySelector('input[name="lesson_video_file"]')?.files?.[0];
       if(videoFile)entry.video_url=await uploadLearningVideo(videoFile);
       const thumbnail=form.querySelector('input[name="lesson_thumbnail_file"]')?.files?.[0];
@@ -625,13 +627,13 @@ async function saveForm(form){
       const newlyUploaded=[];for(let i=0;i<lessonImages.length;i++){formStatus(form,`جاري رفع صورة الدرس ${i+1} من ${lessonImages.length}...`);const url=await uploadImage(lessonImages[i],'learning');images.push(url);newlyUploaded.push(url);}linkNewCaptions(entry,'lesson',lessonImages,newlyUploaded,'image_captions');
       entry.image_urls=images.join('\n');
     }
-    if(connected && table==='appearance'){
+    if(cmsConnected && table==='appearance'){
       for(const [section] of DESIGN_SECTIONS){
         const file=form.querySelector(`input[name="${section}__cover_file"]`)?.files?.[0];
         if(file)entry.section_design[section].cover_url=await uploadImage(file,'general');
       }
     }
-    if(connected && table==='projects'){
+    if(cmsConnected && table==='projects'){
       const projectVideos=[...(form.querySelector('input[name="project_video_file"]')?.files||[])];
       if(projectVideos.length>4)throw new Error('الحد الأقصى 4 فيديوهات جديدة في كل عملية حفظ.');
       const existingVideos=Array.isArray(entry.gallery_captions?.__project_videos)?entry.gallery_captions.__project_videos:[];
@@ -654,7 +656,7 @@ async function saveForm(form){
         entry.gallery_urls=urls.join('\n');
       }
     }
-    if(connected){
+    if(cmsConnected){
       formStatus(form,'اكتمل رفع الملفات، جاري تسجيل المشروع والبيانات في Supabase...');
       const db=await getClient(); let result;
       if(['settings','content','future','appearance','notice','tools','academy_categories','service_pages'].includes(table))result=await db.from('site_settings').update(entry).eq('id',1);
@@ -677,7 +679,8 @@ async function saveForm(form){
       }
       data=await getAdminContent();
     } else {
-      if(['settings','content','future','appearance','notice'].includes(table))data.settings={...data.settings,...entry};
+      if(table==='service_pages'||table==='tools'||table==='academy_categories')data.settings={...data.settings,...entry};
+      else if(['settings','content','future','appearance','notice'].includes(table))data.settings={...data.settings,...entry};
       else if(id){const index=data[table].findIndex(x=>x.id===id);if(index!==-1)data[table][index]={...data[table][index],...entry};}
       else data[table].push({...entry,id:`local-${Date.now()}`,slug:`project-${Date.now()}`});
       saveDemo(data);
@@ -690,7 +693,7 @@ async function saveForm(form){
 async function deleteItem(table,id){
   if(!confirm('هل أنت متأكد من حذف هذا العنصر؟'))return;
   try{
-    if(connected){const db=await getClient();const {error}=await db.from(table).delete().eq('id',id);if(error)throw error;data=await getAdminContent();}
+    if(cmsConnected){const db=await getClient();const {error}=await db.from(table).delete().eq('id',id);if(error)throw error;data=await getAdminContent();}
     else {data[table]=data[table].filter(x=>String(x.id)!==id);saveDemo(data);}
     if(editing?.id===id)editing=null;
     renderPanel();toast('تم الحذف.');
@@ -808,7 +811,7 @@ $('#adminApp').addEventListener('click',async e=>{
    if(e.target.closest('[data-remove-catalog-tool]')){e.target.closest('[data-admin-tool-row]')?.remove();return;}
    const deleteMedia=e.target.closest('[data-media-delete]');
   if(deleteMedia){
-    if(!connected || deleteMedia.disabled)return;
+    if(!cmsConnected || deleteMedia.disabled)return;
     const path=deleteMedia.dataset.mediaDelete||'';
     // Only files currently returned by the authenticated media library can be removed.
     if(!mediaCache.some(x=>x.folder+'/'+x.name===path))return;
@@ -868,14 +871,14 @@ $('#adminApp').addEventListener('click',async e=>{
   if(action==='add'){tab=id;editing={table:id,id:null};renderPanel();$('#editorPanel')?.scrollIntoView({behavior:'smooth'});}
   if(action==='edit'){const [table,itemId]=id.split('|');tab=table;editing={table,id:itemId};renderPanel();$('#editorPanel')?.scrollIntoView({behavior:'smooth'});}
   if(action==='cancel'){editing=null;renderPanel();}
-  if(action==='togglepublish' && connected){
+  if(action==='togglepublish' && cmsConnected){
     const [table,itemId]=id.split('|');const item=(data[table]||[]).find(x=>x.id===itemId);
     if(!item)return;
     try{const db=await getClient();const {error}=await db.from(table).update({is_published:!item.is_published}).eq('id',itemId);if(error)throw error;data=await getAdminContent();renderPanel();toast(item.is_published?'تم إخفاء العنصر':'تم نشر العنصر');}catch(e){toast('تعذر التعديل: '+e.message)}
   }
   if(action==='delete'){const [table,itemId]=id.split('|');await deleteItem(table,itemId);}
   if(action==='markread')await markRead(id);
-  if(['archiveInquiry','restoreInquiry','deleteInquiry'].includes(action) && connected){
+  if(['archiveInquiry','restoreInquiry','deleteInquiry'].includes(action) && cmsConnected){
     const message=(data.messages||[]).find(m=>String(m.id)===String(id));
     if(!message)return;
     const removing=action==='deleteInquiry';
@@ -895,13 +898,13 @@ $('#adminApp').addEventListener('click',async e=>{
     }catch(error){btn.disabled=false;toast('تعذر تحديث الطلب: '+error.message);}
     return;
   }
-  if(action==='savenote' && connected){try{const db=await getClient();const notes=document.querySelector(`[data-inquiry-note="${id}"]`)?.value||'';const {error}=await db.from('inquiries').update({internal_notes:notes.trim().slice(0,2000)}).eq('id',id);if(error)throw error;toast('تم حفظ ملاحظات الطلب');}catch(error){toast('تعذر حفظ الملاحظة: '+error.message);}}
+  if(action==='savenote' && cmsConnected){try{const db=await getClient();const notes=document.querySelector(`[data-inquiry-note="${id}"]`)?.value||'';const {error}=await db.from('inquiries').update({internal_notes:notes.trim().slice(0,2000)}).eq('id',id);if(error)throw error;toast('تم حفظ ملاحظات الطلب');}catch(error){toast('تعذر حفظ الملاحظة: '+error.message);}}
   if(action==='export')exportDemo();
   if(action==='logout'){const db=await getClient();await db.auth.signOut();currentUser=null;data=null;renderLogin();}
 });
 $('#adminApp').addEventListener('change',async e=>{
   const ctl=e.target.closest('[data-message-status]');
-  if(!ctl || !connected)return;
+  if(!ctl || !cmsConnected)return;
   try{const db=await getClient();const {error}=await db.from('inquiries').update({status:ctl.value}).eq('id',ctl.dataset.messageStatus);if(error)throw error;data.messages=(data.messages||[]).map(m=>String(m.id)===String(ctl.dataset.messageStatus)?{...m,status:ctl.value}:m);renderPanel();toast('تم تحديث حالة الطلب والعداد');}catch(error){toast('تعذر تعديل الحالة: '+error.message);}
 });
 $('#adminApp').addEventListener('change',e=>{
@@ -944,7 +947,7 @@ $('#adminApp').addEventListener('submit',async e=>{
   e.preventDefault();
   const form=e.target;
   if(form.id==='mediaUploadForm'){
-    if(!connected)return;
+    if(!cmsConnected)return;
     const button=form.querySelector('button[type=submit]');const files=[...(form.querySelector('[name="uploads"]')?.files||[])];
     if(!files.length)return;button.disabled=true;
     try{for(const f of files)await uploadImage(f);toast(`${files.length} صورة اتضافت للمكتبة`);form.reset();await loadMedia();}
@@ -967,7 +970,7 @@ $('#adminApp').addEventListener('submit',async e=>{
   if(form.dataset.entity)await saveForm(form);
 });
 async function init(){
-  if(!connected){baseShell();renderPanel();refreshAdminLogos();return;}
+  if(!cmsConnected){baseShell();renderPanel();refreshAdminLogos();return;}
   try{
     currentUser=await adminAuthenticated();
     if(currentUser){data=await getAdminContent();baseShell();renderPanel();refreshAdminLogos();}
