@@ -202,3 +202,13 @@ assert.match(publicService,/data-service-filter/,'public service page supports s
 assert.match(publicService,/--service-cols/,'service grid column count configurable');
 assert.match(projectMedia,/extraVideoHTML/,'extra project videos render with controls');
 console.log('V13 regression checks passed');
+
+// Simplified service management: protect category visibility, stable associations and layout.
+assert.match(admin,/function serviceCategoryRow\(/,'simple category rows are available');
+assert.match(admin,/data-add-simple-category/,'dashboard can add service categories');
+assert.match(admin,/cat_enabled/,'categories can be hidden independently');
+assert.match(admin,/const priorId=item\.dataset\.categoryId/,'existing category ids are preserved');
+assert.match(admin,/output\[slug\]=\{\.\.\.old,ratio:/,'unchanged page metadata and columns are preserved');
+assert.match(admin,/table==='services'\?servicePageEditor\(\): ''/,'category editor only appears under services');
+assert.doesNotMatch(admin,/name="sp_categories"/,'manual pipe-separated category entry is removed');
+assert.match(publicService,/if\(activeGroup!=='all'&&!groups\.some/,'hidden category resets public filter');
