@@ -187,4 +187,18 @@ for(const servicePath of ['social-media','video-motion','ai-creative','branding'
  assert.match(page,/service-dynamic\.js\?v=(?:published-only|service-cms)/,'service '+servicePath+' uses live renderer');
  assert.doesNotMatch(page,/Social Posts|Product Ads|Campaign Systems|GLOW LAB|SOLAR POP/,'service '+servicePath+' has no static demo content');
 }
+const serviceAdmin=read('assets/admin.js');
+const serviceHelpers=read('assets/service-config.js');
+const publicService=read('assets/service-dynamic.js');
+const projectMedia=read('assets/project-dynamic.js');
+assert.match(serviceAdmin,/function servicePageEditor\(/,'service page manager exists');
+assert.match(serviceAdmin,/data-service-config/,'service page config fields exist');
+assert.match(serviceAdmin,/data-service-group-for/,'project page category selectors exist');
+assert.match(serviceAdmin,/project_video_file/,'project editor supports video file uploads');
+assert.match(serviceAdmin,/uploadLearningVideo\(projectVideos\[i\]\)/,'project videos use existing authorized storage');
+assert.match(serviceAdmin,/__project_videos/,'project video references retained without schema migration');
+assert.match(serviceHelpers,/projectServiceGroups/,'project service group membership is reusable');
+assert.match(publicService,/data-service-filter/,'public service page supports subcategory filtering');
+assert.match(publicService,/--service-cols/,'service grid column count configurable');
+assert.match(projectMedia,/extraVideoHTML/,'extra project videos render with controls');
 console.log('V13 regression checks passed');
