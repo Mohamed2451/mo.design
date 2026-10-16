@@ -436,22 +436,34 @@ document.addEventListener('change',event=>{
  const selected=event.target.value;
  editor.querySelectorAll('[data-service-group-for]').forEach(group=>{group.hidden=group.dataset.serviceGroupFor!==selected;});
 });
+function legalSectionRow(item={}){
+ return `<div data-legal-section style="border:1px solid #ffffff22;border-radius:10px;padding:12px;margin:10px 0">
+ <div class="admin-form-grid">
+ ${field('legal_section_title_ar','عنوان الجزء بالعربي',item.title_ar||'')}
+ ${field('legal_section_title_en','عنوان الجزء بالإنجليزي (اختياري)',item.title_en||'')}
+ ${field('legal_section_text_ar','النص بالعربي',item.text_ar||'',{type:'textarea',full:true,rows:4})}
+ ${field('legal_section_text_en','النص بالإنجليزي (اختياري)',item.text_en||'',{type:'textarea',full:true,rows:4})}
+ </div><button type="button" class="admin-btn secondary" data-legal-remove-section>حذف الجزء</button></div>`;
+}
 function renderLegalPages(){
  const pages=legalPages(data.settings);
- return `<section class="admin-panel"><h2>الصفحات والروابط أسفل الموقع</h2><p class="admin-note">غير أسماء الصفحات ومحتواها، أو أضف صفحة جديدة. الروابط الأصلية ثابتة حتى لا تتعطل الروابط القديمة. لإضافة عنوان داخل الصفحة اكتب # عنوان ثم في السطر التالي الشرح. ولعنوان فرعي اكتب ## عنوان. لو تركت محتوى الصفحة الأصلية فارغًا سيظل النص الحالي كما هو.</p><form data-entity="legal_pages"><div data-legal-list>${pages.map(p=>legalRow(p)).join('')}</div><button type="button" class="admin-btn secondary" data-legal-add>+ إضافة صفحة</button><button type="submit" class="admin-btn">حفظ الصفحات والروابط</button></form></section>`;
+ return `<section class="admin-panel"><h2>الصفحات والروابط أسفل الموقع</h2><p class="admin-note">كل جزء له خانة عنوان وخانة نص منفصلة. أضف عدد الأجزاء اللي تحتاجه واضغط حفظ. محتوى الصفحات الأصلية يظل محفوظًا حتى تستبدله.</p><form data-entity="legal_pages"><div data-legal-list>${pages.map(p=>legalRow(p)).join('')}</div><button type="button" class="admin-btn secondary" data-legal-add>+ إضافة صفحة</button><button type="submit" class="admin-btn">حفظ الصفحات والروابط</button></form></section>`;
 }
 function legalRow(p={}){
+ const sections=Array.isArray(p.sections)?p.sections:[];
  return `<fieldset data-legal-row data-legal-id="${esc(p.id||'')}" style="border:1px solid #ffffff33;border-radius:12px;padding:14px;margin:12px 0"><legend>${esc(p.ar||'صفحة جديدة')}</legend><div class="admin-form-grid">
- ${field('legal_ar','الاسم بالعربي',p.ar||'',{required:true})}${field('legal_en','الاسم بالإنجليزي',p.en||'')}
- ${field('legal_body_ar','محتوى الصفحة بالعربي — اكتب # ثم مسافة لعنوان رئيسي، أو ## لعنوان فرعي، وباقي السطور نص عادي',p.body_ar||'',{type:'textarea',full:true,rows:8})}
- ${field('legal_body_en','محتوى الصفحة بالإنجليزي — نفس تنسيق العناوين باستخدام # أو ##',p.body_en||'',{type:'textarea',full:true,rows:8})}
+ ${field('legal_ar','اسم الصفحة بالعربي',p.ar||'',{required:true})}${field('legal_en','اسم الصفحة بالإنجليزي',p.en||'')}
+ </div><h3>العناوين والنصوص داخل الصفحة</h3><div data-legal-sections>${sections.map(legalSectionRow).join('')}</div>
+ <button type="button" class="admin-btn secondary" data-legal-add-section>+ إضافة عنوان ونص</button>
  <label class="form-field"><input type="checkbox" name="legal_enabled" ${p.enabled!==false?'checked':''}/> إظهار الرابط</label>
- ${['privacy','terms','copyright'].includes(p.id)?'<small>الصفحة الأصلية — نحافظ على عنوان رابطها القديم.</small>':'<button type="button" class="admin-btn secondary" data-legal-remove>حذف الصفحة الجديدة</button>'}
- </div></fieldset>`;
+ ${['privacy','terms','copyright'].includes(p.id)?'<small>محتوى الصفحة الأصلي يظل موجودًا حتى تحفظ أجزاء جديدة.</small>':'<button type="button" class="admin-btn secondary" data-legal-remove>حذف الصفحة الجديدة</button>'}
+ </fieldset>`;
 }
 document.addEventListener('click',event=>{
  if(event.target.closest('[data-legal-add]')){const list=document.querySelector('[data-legal-list]');if(list&&list.children.length<15)list.insertAdjacentHTML('beforeend',legalRow());}
  if(event.target.closest('[data-legal-remove]'))event.target.closest('[data-legal-row]')?.remove();
+ if(event.target.closest('[data-legal-add-section]')){const list=event.target.closest('[data-legal-row]')?.querySelector('[data-legal-sections]');if(list&&list.children.length<30)list.insertAdjacentHTML('beforeend',legalSectionRow());}
+ if(event.target.closest('[data-legal-remove-section]'))event.target.closest('[data-legal-section]')?.remove();
 });
 function renderPanel(){
   if(!data)return;
@@ -593,11 +605,17 @@ async function saveForm(form){
     if(table==='legal_pages'){
       const existing=legalPages(data.settings);const output=[];
       for(const [i,row] of [...form.querySelectorAll('[data-legal-row]')].entries()){
-        const val=n=>String(row.querySelector('[name="'+n+'"]')?.value||'').trim();
-        const ar=val('legal_ar');if(!ar)throw new Error('اكتب اسم الصفحة بالعربي.');
+        const val=(root,n)=>String(root.querySelector('[name="'+n+'"]')?.value||'').trim();
+        const ar=val(row,'legal_ar');if(!ar)throw new Error('اكتب اسم الصفحة بالعربي.');
         const id=row.dataset.legalId||('custom-'+Date.now().toString(36)+'-'+i);
         const previous=existing.find(p=>p.id===id)||{};
-        output.push({id,ar:ar.slice(0,100),en:val('legal_en').slice(0,100),body_ar:val('legal_body_ar').slice(0,15000),body_en:val('legal_body_en').slice(0,15000),enabled:!!row.querySelector('[name="legal_enabled"]')?.checked,...(previous.url?{url:previous.url}:{})});
+        const sections=[...row.querySelectorAll('[data-legal-section]')].map(sec=>({
+          title_ar:val(sec,'legal_section_title_ar').slice(0,150),
+          title_en:val(sec,'legal_section_title_en').slice(0,150),
+          text_ar:val(sec,'legal_section_text_ar').slice(0,10000),
+          text_en:val(sec,'legal_section_text_en').slice(0,10000)
+        })).filter(x=>x.title_ar||x.title_en||x.text_ar||x.text_en);
+        output.push({...previous,id,ar:ar.slice(0,100),en:val(row,'legal_en').slice(0,100),sections,enabled:!!row.querySelector('[name="legal_enabled"]')?.checked});
       }
       entry={content_ar:{...(data.settings?.content_ar||{}),[LEGAL_KEY]:JSON.stringify(output)}};
     }
