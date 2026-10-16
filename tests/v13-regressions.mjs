@@ -250,3 +250,10 @@ for(const page of ['index.html','admin.html','project.html','learning.html','les
 }
 assert.match(read('assets/learning-page.js'),/mode==='live'/,'academy public listing respects live status');
 assert.match(read('assets/lesson.js'),/settings\.education_mode!=='live'/,'academy direct lessons respect live status');
+
+const signatureCSS=read('assets/signature-safe-layout.css');
+assert.match(read('index.html'),/signature-safe-layout\.css\?v=1/,'signature fix loaded');
+assert.match(signatureCSS,/#signature \.editorial-intro\{/,'signature intro has scoped layout');
+assert.match(signatureCSS,/object-fit:contain!important/,'signature images are fully visible');
+assert.match(signatureCSS,/grid-template-columns:minmax\(0,1fr\)/,'single-column mobile signature gallery');
+assert.match(signatureCSS,/position:static/,'signature captions are outside image frames');
