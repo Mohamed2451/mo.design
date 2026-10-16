@@ -195,7 +195,7 @@ assert.match(serviceAdmin,/function servicePageEditor\(/,'service page manager e
 assert.match(serviceAdmin,/data-service-config/,'service page config fields exist');
 assert.match(serviceAdmin,/data-service-group-for/,'project page category selectors exist');
 assert.match(serviceAdmin,/project_video_file/,'project editor supports video file uploads');
-assert.match(serviceAdmin,/uploadLearningVideo\(projectVideos\[i\]\)/,'project videos use existing authorized storage');
+assert.match(serviceAdmin,/uploadLearningVideo\(projectVideos\[i\],'projects'\)/,'project videos use authorized Supabase storage');
 assert.match(serviceAdmin,/__project_videos/,'project video references retained without schema migration');
 assert.match(serviceHelpers,/projectServiceGroups/,'project service group membership is reusable');
 assert.match(publicService,/data-service-filter/,'public service page supports subcategory filtering');
