@@ -240,8 +240,9 @@ function renderItems(table){
   ${richField('objective_en','الهدف بالإنجليزي',item.objective_en||'',8)}
   ${field('text_font','خط النص الطويل',item.text_style?.font||'Alexandria',{select:FONT_CHOICES})}${field('text_size','حجم النص بالبكسل (14–30)',item.text_style?.size||17,{type:'number'})}
   <div class="form-field full cms-tool-entry"><span>الأدوات المستخدمة في المشروع</span><div class="cms-tools-box" data-tools-box><div data-tools-tags class="cms-tools-tags"></div><input data-tool-add placeholder="اكتب Photoshop واضغط Enter" aria-label="اكتب أداة واضغط Enter" maxlength="70"></div><input type="hidden" name="tools_used" value="${esc(formatTools(item.tools_used).join(', '))}"><small>اضغط Enter بعد كل برنامج علشان يظهر في خانة مستقلة، أو اضغط × لإزالته.</small></div>
-  <label class="form-field full">ارفع فيديوهات المشروع من جهازك (حتى 4 فيديوهات، 45 ميجابايت لكل ملف)<input name="project_video_file" type="file" multiple accept="video/mp4,video/webm" ${cmsConnected?'':'disabled'}><small>الفيديو يُرفع إلى Supabase Storage عند حفظ المشروع. للفيديوهات الأكبر استخدم YouTube.</small></label>
-  <label class="form-field full">ارفع صورة غلاف المشروع من جهازك (اختياري) <input type="file" name="media_file" accept="image/png,image/jpeg,image/webp,image/avif" ${cmsConnected?'':'disabled'} /> <small>صورة بحد أقصى 8 MB. ترفع بصورة آمنة فقط عند تفعيل التخزين وسياسات الصلاحيات.</small></label>
+  <label class="form-field full">إضافة فيديوهات أخرى للمشروع (حتى 4 فيديوهات في المرة)<input name="project_video_file" type="file" multiple accept="video/mp4,video/webm" ${cmsConnected?'':'disabled'}><small>الفيديو يُرفع إلى Supabase Storage عند حفظ المشروع. للفيديوهات الأكبر استخدم YouTube.</small></label>
+  <label class="form-field full">استبدال الفيديو الرئيسي الحالي (اختياري)<input type="file" name="replace_project_video" accept="video/mp4,video/webm" ${cmsConnected?'':'disabled'}><small>اختار فيديو جديد لو عايز تستبدل الرئيسي. هيظهر مكانه بعد الحفظ؛ باقي فيديوهات المشروع مش هتتمسح.</small></label>
+  <label class="form-field full">استبدال صورة غلاف المشروع (أو إضافة غلاف لأول مرة) <input type="file" name="media_file" accept="image/png,image/jpeg,image/webp,image/avif" ${cmsConnected?'':'disabled'} /> <small>صورة بحد أقصى 8 MB. ترفع بصورة آمنة فقط عند تفعيل التخزين وسياسات الصلاحيات.</small></label>
   <label class="form-field full">ارفع صور المشروع الإضافية من جهازك (حتى 15 صورة)<input type="file" name="gallery_files" multiple accept="image/png,image/jpeg,image/webp,image/avif" ${cmsConnected?'':'disabled'}/><small data-project-gallery-count role="status" aria-live="polite">الحد الأقصى 15 صورة إضافية، شامل الروابط والملفات الجديدة.</small></label>
   <details class="cms-advanced full"><summary>رابط خارجي للعمل (اختياري) ▾</summary>${field('external_url','رابط لعرض العمل على Behance أو موقع خارجي',item.external_url,{type:'url',full:true})}<small>اتركه فارغًا لو مش عايز تحول الزائر لموقع آخر. صفحة المشروع عندك تعمل بدونه.</small></details>
   ${field('featured','مميز',item.featured,{type:'checkbox'})}`:
@@ -634,6 +635,15 @@ async function saveForm(form){
       }
     }
     if(cmsConnected && table==='projects'){
+      const replacementVideo=form.querySelector('input[name="replace_project_video"]')?.files?.[0];
+      if(replacementVideo){
+        formStatus(form,'جاري رفع الفيديو الرئيسي البديل...');
+        const previousMain=entry.video_url;
+        const replacementUrl=await uploadLearningVideo(replacementVideo,'projects');
+        entry.video_url=replacementUrl;
+        const videos=Array.isArray(entry.gallery_captions?.__project_videos)?entry.gallery_captions.__project_videos:[];
+        entry.gallery_captions.__project_videos=[...new Set([replacementUrl,...videos.filter(url=>url!==previousMain)])].slice(0,8);
+      }
       const projectVideos=[...(form.querySelector('input[name="project_video_file"]')?.files||[])];
       if(projectVideos.length>4)throw new Error('الحد الأقصى 4 فيديوهات جديدة في كل عملية حفظ.');
       const existingVideos=Array.isArray(entry.gallery_captions?.__project_videos)?entry.gallery_captions.__project_videos:[];
