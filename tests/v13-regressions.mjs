@@ -215,7 +215,7 @@ assert.match(publicService,/if\(activeGroup!=='all'&&!groups\.some/,'hidden cate
 
 assert.match(admin,/const cmsConnected=connected && new URLSearchParams\(location\.search\)\.get\('demo'\)!=='1'/,'demo query disables live database');
 assert.match(admin,/table==='legal_pages'\)data.settings/,'offline settings editors save locally');
-assert.match(read('admin.html'),/legal-blocks-20261016/,'fresh dashboard code requested');
+assert.match(read('admin.html'),/legal-verified-20261016/,'fresh dashboard code requested');
 
 assert.match(admin,/function renderLegalPages\(/,'legal content editor is available');
 assert.match(admin,/data-legal-add/,'additional legal pages can be created');
@@ -233,3 +233,6 @@ assert.match(admin,/data-legal-add-section/,'legal editor can add titled section
 assert.match(admin,/legal_section_title_ar/,'legal editor separates Arabic heading');
 assert.match(admin,/legal_section_text_ar/,'legal editor separates Arabic body');
 assert.match(read('assets/legal-dynamic.js'),/Array\.isArray\(p\.sections\)/,'legal renderer uses saved sections');
+
+assert.match(read('assets/legal-dynamic.js'),/getPublicContent\(\)/,'legal pages reuse public site settings loader');
+assert.match(admin,/verified\?\.content_ar\?\.\[LEGAL_KEY\]!==expected/,'legal save requires persisted data verification');
