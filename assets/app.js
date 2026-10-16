@@ -282,7 +282,7 @@ function renderSignature() {
 function applySectionVisibility(){
  const visibility=model.settings?.section_visibility||{};
  const sections=['featured','signature','work','services','tools','why','process','testimonials','faq','cta','learn','contact'];
- for(const id of sections){const node=document.getElementById(id);if(node){ const enabled=visibility[id]!==false; node.hidden=!enabled || (['featured','signature'].includes(id) && !model.projects.some(p=>p.is_published && (id==='signature'||p.featured))) || (id==='testimonials' && !model.testimonials.some(r=>r.is_verified && r.is_published)); }}
+ for(const id of sections){const node=document.getElementById(id);if(node){ const enabled=visibility[id]!==false && (id!=='learn'||model.settings?.education_mode!=='hidden'); node.hidden=!enabled || (['featured','signature'].includes(id) && !model.projects.some(p=>p.is_published && (id==='signature'||p.featured))) || (id==='testimonials' && !model.testimonials.some(r=>r.is_verified && r.is_published)); }}
 }
 function youtubeId(value) {
   try {
@@ -301,6 +301,9 @@ function renderLearning(){
  const settings=model.settings||seed.settings;
  const mode=['hidden','coming_soon','live'].includes(settings.education_mode)?settings.education_mode:'coming_soon';
  section.hidden=settings.section_visibility?.learn===false||mode==='hidden';
+ section.style.setProperty('display',section.hidden?'none':'','important');
+ const action=section.querySelector('.learn-action-link');
+ if(action){if(mode==='live'){action.href='./learning.html';action.removeAttribute('aria-disabled');action.removeAttribute('tabindex');action.style.pointerEvents='';}else{action.removeAttribute('href');action.setAttribute('aria-disabled','true');action.setAttribute('tabindex','-1');action.style.pointerEvents='none';}}
  if(section.hidden)return;
  const live=mode==='live',copy=txt();
  section.querySelector('[data-i18n="learn_title"]').textContent=live?(copy.learn_live_title||'بدأت أنشر محتوى يفيدك.'):copy.learn_title;
