@@ -184,7 +184,7 @@ assert.match(serviceDynamic,/categoryFor\(p\)/,'service work is mapped by its re
 assert.match(serviceDynamic,/if\(!projectsLoaded\)/,'service pages wait for actual data');
 for(const servicePath of ['social-media','video-motion','ai-creative','branding','prompt-engineering']){
  const page=read('services/'+servicePath+'/index.html');
- assert.match(page,/service-dynamic\.js\?v=published-only/,'service '+servicePath+' uses live renderer');
+ assert.match(page,/service-dynamic\.js\?v=(?:published-only|service-cms)/,'service '+servicePath+' uses live renderer');
  assert.doesNotMatch(page,/Social Posts|Product Ads|Campaign Systems|GLOW LAB|SOLAR POP/,'service '+servicePath+' has no static demo content');
 }
 console.log('V13 regression checks passed');
