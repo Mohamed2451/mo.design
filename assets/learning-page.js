@@ -28,6 +28,16 @@ function render(){
  $('#learningHeading').textContent=tr('academy_page_heading');
  $('#learningIntro').textContent=tr('academy_page_intro');
  $('#learningBack').textContent=tr('academy_back');
+ const mode=settings?.education_mode;
+ const available=mode==='live'&&settings?.section_visibility?.learn!==false;
+ const filters=$('#learningFilters'),grid=$('#learningGrid');
+ if(!available){
+   filters.hidden=true;
+   grid.setAttribute('aria-busy','false');
+   grid.innerHTML='<p class="academy-empty">'+esc(lang==='ar'?'الأكاديمية غير متاحة للزوار حاليًا. ارجع للموقع لمتابعة آخر الأخبار.':'The academy is not available to visitors yet.')+'</p>';
+   return;
+ }
+ filters.hidden=false;
  $('#learningFilters').setAttribute('aria-label',lang==='ar'?'تصفية المحتوى':'Filter content');
  const categories=getAcademyCategories(settings).filter(x=>x.enabled);
  const fixed=[['all',tr('academy_filter_all')],['video',tr('academy_filter_videos')],['article',tr('academy_filter_articles')]];
