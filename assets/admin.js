@@ -215,7 +215,7 @@ function renderItems(table){
   <label class="form-field full">تصنيف المشروع (من التصنيفات المعتمدة)<select name="category_id" required>${PORTFOLIO_CATEGORIES.map(c=>`<option value="${esc(c.id)}" ${categoryFor(item)?.id===c.id?'selected':''}>${esc(c.ar)} — ${esc(c.en)}</option>`).join('')}</select><small>الاسم العربي والإنجليزي بيتسجلوا تلقائيًا لتجنب التكرار في المعرض.</small></label>
   <fieldset class="form-field full" style="border:1px solid #ffffff33;border-radius:12px;padding:12px"><legend>التصنيفات داخل صفحات الخدمات</legend>
  <p class="admin-note">حدد الأقسام اللي هيظهر فيها المشروع داخل صفحة خدمته.</p>
- ${SERVICE_PAGES.filter(page=>page.category===(categoryFor(item)?.id||PORTFOLIO_CATEGORIES[0].id)).map(page=>`<div><strong>${esc(page.ar)}</strong>${serviceConfig(data.settings)[page.slug].categories.map(c=>`<label class="form-field checkbox"><input type="checkbox" name="service_group_${page.slug}" value="${esc(c.id)}" ${projectServiceGroups(item,page.slug).includes(c.id)?'checked':''}>${esc(c.ar)}</label>`).join('')}</div>`).join('')||'<small>يمكن إضافة تصنيفات من قسم الخدمات.</small>'}</fieldset>
+ ${SERVICE_PAGES.map(page=>`<div data-service-group-for="${esc(page.category)}" ${page.category===(categoryFor(item)?.id||PORTFOLIO_CATEGORIES[0].id)?'':'hidden'}><strong>${esc(page.ar)}</strong>${serviceConfig(data.settings)[page.slug].categories.map(c=>`<label class="form-field checkbox"><input type="checkbox" name="service_group_${page.slug}" value="${esc(c.id)}" ${projectServiceGroups(item,page.slug).includes(c.id)?'checked':''}>${esc(c.ar)}</label>`).join('')}</div>`).join('')||'<small>يمكن إضافة تصنيفات من قسم الخدمات.</small>'}</fieldset>
    ${field('project_type','نوع المشروع',item.project_type||'concept',{select:[['concept','تصوّر إبداعي / تجربة شخصية'],['personal','عمل شخصي'],['client','مشروع عميل مصرح بنشره']]})}
   ${richField('summary_ar','شرح المشروع بالعربي',item.summary_ar,6)}${richField('summary_en','وصف المشروع بالإنجليزي',item.summary_en,6)}
   <details class="cms-advanced full"><summary>مظهر افتراضي لو لم ترفع صورة ▾</summary>${field('cover_style','ستايل الصورة الافتراضية',item.cover_style || 'aurora',{select:[['aurora','تدرجات فنية'],['type','حروف وتايبوجرافي'],['orbit','أشكال دائرية'],['pop','ألوان جريئة']]})}</details>
@@ -415,6 +415,12 @@ function renderNoticeEditor(){
  </div><div class="admin-actions"><button type="submit" class="admin-btn">حفظ الإشعار ✓</button>${uiButton('إخفاء ومسح الإشعار','clearNotice','','danger')}</div></form>
  <p class="admin-note">لو الزائر قفل الإشعار من ×، مش هيظهر تاني في نفس تبويب المتصفح. لإعادة عرضه للزوار بعد تعديل الإشعار، احفظ نسخة جديدة منه.</p></section>`;
 }
+document.addEventListener('change',event=>{
+ if(event.target?.name!=='category_id')return;
+ const editor=event.target.closest('form[data-entity="projects"]');if(!editor)return;
+ const selected=event.target.value;
+ editor.querySelectorAll('[data-service-group-for]').forEach(group=>{group.hidden=group.dataset.serviceGroupFor!==selected;});
+});
 function renderPanel(){
   if(!data)return;
   const main=$('#adminMain'); if(!main) return;
