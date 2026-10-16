@@ -89,3 +89,6 @@ body{background-image:none!important}html{scroll-padding-top:92px}main{overflow:
 /* V13: readable project titles across Arabic, English and mobile screens */
 .case-main .case-hero .case-title{font-size:clamp(30px,4vw,58px);line-height:1.28;letter-spacing:-.035em;overflow-wrap:anywhere;max-width:1050px;margin-inline:auto;text-wrap:balance}
 @media(max-width:650px){.case-main .case-hero .case-title{font-size:clamp(27px,7vw,39px);line-height:1.35;letter-spacing:-.025em}}
+
+/* External project link */
+.case-external-link{margin:26px 0}.case-external-link a{display:inline-flex;align-items:center;gap:9px;padding:13px 18px;border:1px solid currentColor;border-radius:10px;color:inherit;font-weight:700;text-decoration:none;transition:background .2s,color .2s}.case-external-link a:hover,.case-external-link a:focus-visible{background:#cafa77;color:#111;outline-offset:3px}
