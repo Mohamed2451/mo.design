@@ -215,7 +215,7 @@ assert.match(publicService,/if\(activeGroup!=='all'&&!groups\.some/,'hidden cate
 
 assert.match(admin,/const cmsConnected=connected && new URLSearchParams\(location\.search\)\.get\('demo'\)!=='1'/,'demo query disables live database');
 assert.match(admin,/table==='legal_pages'\)data.settings/,'offline settings editors save locally');
-assert.match(read('admin.html'),/legal-headings-20261016/,'fresh dashboard code requested');
+assert.match(read('admin.html'),/legal-blocks-20261016/,'fresh dashboard code requested');
 
 assert.match(admin,/function renderLegalPages\(/,'legal content editor is available');
 assert.match(admin,/data-legal-add/,'additional legal pages can be created');
@@ -228,5 +228,8 @@ assert.match(read('legal-page.html'),/legal-dynamic\.js/,'additional pages have 
 assert.match(app,/action\.removeAttribute\('href'\)/,'coming soon cannot navigate to academy');
 assert.match(app,/section\.style\.setProperty\('display',section\.hidden\?'none'/,'hidden academy cannot be made visible by CSS');
 assert.match(app,/if\(mode==='live'\)/,'academy link enabled only when live');
-assert.match(read('assets/legal-dynamic.js'),/\^#\{1,3\}/,'legal page supports headings');
-assert.match(admin,/محتوى الصفحة بالعربي — اكتب #/,'legal heading instructions exist');
+
+assert.match(admin,/data-legal-add-section/,'legal editor can add titled sections');
+assert.match(admin,/legal_section_title_ar/,'legal editor separates Arabic heading');
+assert.match(admin,/legal_section_text_ar/,'legal editor separates Arabic body');
+assert.match(read('assets/legal-dynamic.js'),/Array\.isArray\(p\.sections\)/,'legal renderer uses saved sections');
