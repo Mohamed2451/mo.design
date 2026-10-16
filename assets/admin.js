@@ -181,20 +181,31 @@ function renderSettings(){
   ${field('stats_verified','أؤكد صحة الأرقام (+100 مشروع، +3 سنوات خبرة، 100% رضا عملاء) وأوافق على إظهارها علنًا',s.stats_verified,{type:'checkbox',full:true})}
   </div><div class="admin-actions"><button class="admin-btn" type="submit">حفظ التعديلات</button></div></form></div>`;
 }
+function serviceCategoryRow(c={}){
+ return `<div class="admin-row" data-simple-category data-category-id="${esc(c.id||'')}" style="margin:7px 0;gap:10px;flex-wrap:wrap">
+ <input aria-label="اسم التصنيف بالعربي" name="cat_ar" placeholder="اسم التصنيف (مثال: رمضان)" value="${esc(c.ar||'')}" style="flex:1;min-width:160px">
+ <input aria-label="اسم التصنيف بالإنجليزي (اختياري)" name="cat_en" placeholder="الإنجليزي (اختياري)" value="${esc(c.en||'')}" style="flex:1;min-width:130px">
+ <label style="display:flex;align-items:center;gap:5px;white-space:nowrap"><input type="checkbox" name="cat_enabled" ${c.enabled!==false?'checked':''}> إظهار</label>
+ <button type="button" class="admin-btn secondary" data-remove-simple-category>حذف</button></div>`;
+}
 function servicePageEditor(){
  const cfg=serviceConfig(data.settings);
- return `<section class="admin-panel"><h2>إدارة صفحات الخدمات والتصنيفات</h2><p class="admin-note">أضف أقسامًا داخل كل صفحة، وحدد عدد الأعمدة وطريقة عرض الصور. المشاريع تختار أقسامها من نموذج إضافة المشروع.</p>
- <form data-entity="service_pages"><div class="admin-form-grid">${SERVICE_PAGES.map(page=>{
- const d=cfg[page.slug];return `<fieldset class="full" data-service-config="${page.slug}" style="border:1px solid #ffffff33;padding:16px;border-radius:14px;margin-bottom:15px"><legend>${esc(page.ar)}</legend>
- ${field('sp_title_ar','عنوان الصفحة بالعربي',d.title_ar)}${field('sp_title_en','عنوان الصفحة بالإنجليزي',d.title_en)}
- ${field('sp_description_ar','وصف الصفحة بالعربي',d.description_ar,{type:'textarea'})}
- ${field('sp_description_en','وصف الصفحة بالإنجليزي',d.description_en,{type:'textarea'})}
- ${field('sp_columns','عدد الأعمدة',d.columns,{select:[[2,'2'],[3,'3'],[4,'4']]})}
- ${field('sp_ratio','أبعاد صور المشاريع',d.ratio,{select:[['landscape','أفقي'],['square','مربع'],['portrait','طولي'],['original','النسبة الأصلية']]})}
- <label class="form-field full">التصنيفات الإضافية (اسم عربي | اسم إنجليزي، كل تصنيف في سطر)
- <textarea name="sp_categories" rows="4" placeholder="إعلانات مطاعم | Restaurant Ads">${esc(d.categories.map(c=>c.ar+' | '+c.en).join('\n'))}</textarea></label></fieldset>`;
- }).join('')}</div><button class="admin-btn" type="submit">حفظ صفحات الخدمات</button></form></section>`;
+ const pages=SERVICE_PAGES.filter(page=>page.slug!=='prompt-engineering');
+ return `<section class="admin-panel"><h2>إدارة التصنيفات</h2><p class="admin-note">اختار الخدمة، أضف تصنيفاتها أو أخفِها وقت ما تحب. لو مش محتاج تصنيفات سيبها فاضية. ربط المشاريع يتم من صفحة المشاريع.</p>
+ <form data-entity="service_pages"><div class="admin-form-grid">${pages.map(page=>{
+ const d=cfg[page.slug];return `<fieldset class="full" data-service-config="${esc(page.slug)}" style="border:1px solid #ffffff33;padding:14px;border-radius:14px;margin-bottom:10px"><legend>${esc(page.ar)}</legend>
+ <div data-simple-category-list>${d.categories.map(serviceCategoryRow).join('')}</div>
+ <button class="admin-btn secondary" type="button" data-add-simple-category>+ إضافة تصنيف</button>
+ <details style="margin-top:12px"><summary>أبعاد صور المشاريع</summary>${field('sp_ratio','طريقة عرض الصور',d.ratio,{select:[['landscape','أفقي'],['square','مربع'],['portrait','طولي'],['original','النسبة الأصلية']]})}</details>
+ </fieldset>`;
+ }).join('')}</div><button class="admin-btn" type="submit">حفظ التصنيفات وأبعاد الصور</button></form></section>`;
 }
+document.addEventListener('click',event=>{
+ const add=event.target.closest('[data-add-simple-category]');
+ if(add){const list=add.closest('[data-service-config]')?.querySelector('[data-simple-category-list]');if(!list)return;if(list.querySelectorAll('[data-simple-category]').length>=25){alert('الحد الأقصى 25 تصنيفًا لكل خدمة.');return;}list.insertAdjacentHTML('beforeend',serviceCategoryRow());list.lastElementChild?.querySelector('[name="cat_ar"]')?.focus();return;}
+ const remove=event.target.closest('[data-remove-simple-category]');
+ if(remove){if(confirm('حذف التصنيف من الأزرار؟ المشاريع نفسها لن تُحذف.'))remove.closest('[data-simple-category]')?.remove();}
+});
 function renderItems(table){
   const isProjects=table==='projects';
   const isTestimonials=table==='testimonials';
@@ -202,7 +213,7 @@ function renderItems(table){
   const noun=isProjects?'مشروع':isTestimonials?'رأي عميل':'خدمة';
   const list=`<div class="admin-panel"><div class="admin-heading"><h2>${isProjects?'الأعمال المعروضة':isTestimonials?'آراء العملاء':'الخدمات المعروضة'}</h2>${uiButton(`+ إضافة ${noun}`,'add',table,'')}</div><div class="admin-rows">${arr.length?arr.map(row=>`<div class="admin-row"><div class="admin-row-content">${isProjects && safeUrl(row.image_url)?`<img class="admin-row-thumb" src="${esc(safeUrl(row.image_url))}" loading="lazy" alt=""/>`:''}<div><h3>${esc(isTestimonials?row.author_ar:row.title_ar)}</h3><p>${esc(isTestimonials?row.author_en:row.title_en)} · ${row.is_published?'منشور':'مسودة'} · #${esc(row.sort_order)}</p></div></div><div class="row-actions">${!isTestimonials?uiButton(row.is_published?'إخفاء':'نشر','togglepublish',`${table}|${row.id}`):''}${uiButton('تعديل','edit',`${table}|${row.id}`)}${uiButton('حذف','delete',`${table}|${row.id}`,'danger')}</div></div>`).join(''):`<p class="admin-empty">لا توجد عناصر بعد.</p>`}</div></div>`;
   const servicePages=table==='services'?`<div class="admin-panel"><h3>دليل صفحات الخدمات الفعلية</h3><p class="admin-note">الروابط الأربعة أدناه هي المعاينات المقابلة للخدمات الأساسية الظاهرة على الموقع. الخدمات الفعلية تتعدل من القائمة أسفل هذا الدليل، والمشاريع في كل صفحة تتحدد من تصنيف المشروع المنشور. لإضافة أعمال للصفحة افتح «المشاريع» واختر تصنيفها. عدّل أسماء الخدمات الفعلية من القائمة التالية.</p><div class="admin-rows">${[['social-media','السوشيال ميديا والإعلانات'],['video-motion','الريلز والبودكاست'],['ai-creative','التصميم بالذكاء الاصطناعي'],['branding','الهوية البصرية']].map(([slug,name])=>`<a class="admin-btn secondary" target="_blank" rel="noopener" href="./services/${slug}/">فتح تخصص ${name} ↗</a>`).join('')}</div></div>`:'';
-  if(!editing || editing.table!==table)return servicePageEditor()+servicePages+list;
+  if(!editing || editing.table!==table)return (table==='services'?servicePageEditor(): '')+servicePages+list;
   const item=arr.find(a=>a.id===editing.id) || {};
   const isNew=!item.id;
   const main=isTestimonials ? `${field('author_ar','اسم العميل بالعربي',item.author_ar,{required:true})}${field('author_en','اسم العميل بالإنجليزي',item.author_en,{required:true})}
@@ -559,16 +570,22 @@ async function saveForm(form){
       entry={content_ar,content_en};
     }
     if(table==='service_pages'){
-      const output={};const previous=serviceConfig(data.settings);
+      const previous=serviceConfig(data.settings);
+      const output=Object.fromEntries(Object.entries(previous).map(([slug,config])=>[slug,{...config}]));
       for(const row of form.querySelectorAll('[data-service-config]')){
-       const slug=row.dataset.serviceConfig,get=n=>row.querySelector('[name="'+n+'"]')?.value||'';
-       const old=previous[slug].categories;
-       const categories=String(get('sp_categories')).split(/\r?\n/).map(v=>v.trim()).filter(Boolean).slice(0,25).map((line,i)=>{
-        const [ar,en='']=line.split('|').map(x=>x.trim());
-        const existing=old.find(c=>c.ar===ar||c.en&&c.en===en)||old[i];
-        return {id:existing?.id||('group-'+i+'-'+ar.length),ar:ar.slice(0,75),en:en.slice(0,75),enabled:true};
-       });
-       output[slug]={title_ar:get('sp_title_ar'),title_en:get('sp_title_en'),description_ar:get('sp_description_ar'),description_en:get('sp_description_en'),columns:Number(get('sp_columns')),ratio:get('sp_ratio'),categories};
+        const slug=row.dataset.serviceConfig,old=previous[slug];
+        const used=new Set();
+        const categories=[...row.querySelectorAll('[data-simple-category]')].map((item,i)=>{
+          const ar=String(item.querySelector('[name="cat_ar"]')?.value||'').trim().slice(0,75);
+          const en=String(item.querySelector('[name="cat_en"]')?.value||'').trim().slice(0,75);
+          if(!ar)return null;
+          const priorId=item.dataset.categoryId;
+          const prior=old.categories.find(c=>c.id===priorId);
+          const id=prior?.id||('group-'+Date.now().toString(36)+'-'+i+'-'+Math.random().toString(36).slice(2,6));
+          if(used.has(id))return null;used.add(id);
+          return {id,ar,en,enabled:!!item.querySelector('[name="cat_enabled"]')?.checked};
+        }).filter(Boolean);
+        output[slug]={...old,ratio:row.querySelector('[name="sp_ratio"]')?.value||old.ratio,categories};
       }
       entry={content_ar:{...(data.settings?.content_ar||{}),[SERVICE_PAGE_KEY]:JSON.stringify(output)}};
     }
