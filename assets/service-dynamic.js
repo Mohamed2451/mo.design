@@ -33,11 +33,11 @@ function render(){
  desc.textContent=cfg['description_'+lang()]||label(service,'description')||tr('نماذج من المشاريع المنشورة في هذا التخصص.','Published work in this specialty.');
  document.title=title.textContent+' | Mo Design';
  const allProjects=snapshot.projects.filter(p=>p.is_published===true && categoryFor(p)?.id===category.id);
- const projects=allProjects.filter(p=>activeGroup==='all'||projectServiceGroups(p,key).includes(activeGroup))
-  .sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0));
  const filters=document.getElementById('serviceFilters');
  const groups=cfg.categories.filter(x=>x.enabled);
- if(!groups.some(c=>c.id===activeGroup))activeGroup='all';
+ if(activeGroup!=='all'&&!groups.some(c=>c.id===activeGroup))activeGroup='all';
+ const projects=allProjects.filter(p=>activeGroup==='all'||projectServiceGroups(p,key).includes(activeGroup))
+  .sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0));
  if(filters)filters.innerHTML=groups.length?[{id:'all',ar:'كل المشاريع',en:'All projects'},...groups].map(c=>'<button type="button" data-service-filter="'+esc(c.id)+'" aria-pressed="'+(activeGroup===c.id)+'">'+esc(c[lang()]||c.ar||c.en)+'</button>').join(''):'';
  gallery.style.setProperty('--service-cols',cfg.columns);
  gallery.dataset.ratio=cfg.ratio;
