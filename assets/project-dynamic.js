@@ -1,6 +1,7 @@
 import { getClient, connected } from './api.js';
 import { readDemo, escapeHTML as esc, safeUrl, tField } from './data.js';
 import { categoryFor, formatTools } from './categories.js';
+import {projectVideoUrls} from './service-config.js';
 import {renderRich,textStyle} from './rich-text.js';
 let lang=localStorage.getItem('portfolio_lang')==='en'?'en':'ar';
 let theme=localStorage.getItem('portfolio_theme')==='light'?'light':'dark';
@@ -74,12 +75,21 @@ function render(){chrome();updateProjectSEO(entry);
  const copy=settings?.[lang==='ar'?'content_ar':'content_en']||{};
  const aboutLabel=copy.project_about_title||txt('عن المشروع','About this project');
  const goalLabel=copy.project_objective_title||txt('هدف المشروع','Project objective');
- const gallery=(entry.gallery_urls||'').split(/\r?\n/).map(v=>safeUrl(v.trim())).filter(Boolean).slice(0,15);
- const galleryHTML=gallery.length?`<div class="case-stacked-media">${gallery.map((url,i)=>`<div class="case-artframe"><img src="${esc(url)}" loading="lazy" alt="${esc(fld('title'))} gallery image ${i+1}"/></div>`).join('')}</div>`:'';
+ const gallery=[...new Set(String(entry.gallery_urls||'').split(/\r?\n/).map(v=>safeUrl(v.trim())).filter(Boolean))].slice(0,15);
+ const captions=entry.gallery_captions&&typeof entry.gallery_captions==='object'?entry.gallery_captions:{};
+  const galleryHTML=gallery.length?`<div class="case-stacked-media">${gallery.map((url,i)=>`<figure class="case-artframe"><img src="${esc(url)}" loading="lazy" alt="${esc(fld('title'))} gallery image ${i+1}" data-case-media/>${(captions[url]?.[lang]||captions[url]?.ar)?`<figcaption class="media-long-caption rich-body">${renderRich(captions[url]?.[lang]||captions[url]?.ar)}</figcaption>`:""}</figure>`).join('')}</div>`:'';
+ const extraVideos=projectVideoUrls(entry).filter(url=>url!==video).filter(url=>/\.(mp4|webm)(\?|$)/i.test(url));
+ const extraVideoHTML=extraVideos.length?'<div class="case-stacked-media">'+extraVideos.map(url=>'<video class="case-video" controls playsinline preload="metadata"><source src="'+esc(url)+'" type="'+(/\.webm/i.test(url)?'video/webm':'video/mp4')+'"></video>').join('')+'</div>':'';
+ const externalLink=safeUrl(entry.external_url);
+ const externalLinkHTML=externalLink&&/^https?:\/\//i.test(externalLink)?'<div class="case-external-link"><a href="'+esc(externalLink)+'" target="_blank" rel="noopener noreferrer">'+esc(tr('عرض المشروع على الرابط الخارجي ↗','View project on external website ↗'))+'</a></div>':'';
  const youtube=youtubeID(entry.youtube_url);
  const youtubeHTML=youtube?`<div class="case-youtube"><iframe src="https://www.youtube-nocookie.com/embed/${youtube}" title="${esc(fld('title'))}" loading="lazy" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`:'';
  const videoHTML=video&&/\.(mp4|webm)(\?|$)/i.test(video)?`<video class="case-video" controls playsinline preload="none" ${media?`poster="${esc(media)}"`:''}><source src="${esc(video)}" type="${/\.webm/i.test(video)?'video/webm':'video/mp4'}"/></video>`:'';
- $('dynamicProject').innerHTML=`<section class="case-hero"><span class="case-eyebrow">MO DESIGN / ${isConcept?'SPEC WORK':'PORTFOLIO'}</span><h1 class="case-title">${esc(fld('title'))}</h1><div class="case-subline"><span>${esc((categoryFor(entry)||{})[lang]||fld('category'))}</span><span>${isConcept?txt('نموذج مفاهيمي غير تجاري','Speculative, non-commissioned project'):'MO DESIGN / PROJECT'}</span></div></section>${media?`<div class="case-lead-media"><img src="${esc(media)}" alt="${esc(fld('title'))}" fetchpriority="high"/></div>`:''}${videoHTML}${youtubeHTML}${galleryHTML}<section class="case-content-grid"><div class="case-side-title">OVERVIEW / 01</div><div class="case-content"><h2>${esc(aboutLabel)}</h2><div class="rich-body case-prose" style="${format}">${description}</div>${fld('objective')?`<h3>${esc(goalLabel)}</h3><div class="rich-body case-prose" style="${format}">${objective}</div>`:''}${entry.tools_used?`<div class="case-meta-tags">${formatTools(entry.tools_used).map(t=>`<span>${esc(t)}</span>`).join('')}</div>`:''}</div></section><section class="case-close"><h2>${copy.case_cta_title||txt('عايز مشروع بنفس الروح؟','Want to create something similar?')}</h2><a href="https://wa.me/201097865616?text=${encodeURIComponent('Hi Mo Design, I saw '+(entry.title_en||'a project')+' and want to discuss a similar brief.')}" target="_blank" rel="noopener noreferrer">${copy.case_cta_button||txt('كلمني واتساب ↗','Discuss a project ↗')}</a></section>`;
+ $('dynamicProject').innerHTML=`<section class="case-hero"><span class="case-eyebrow">MO DESIGN / ${isConcept?'SPEC WORK':'PORTFOLIO'}</span><h1 class="case-title">${esc(fld('title'))}</h1><div class="case-subline"><span>${esc((categoryFor(entry)||{})[lang]||fld('category'))}</span><span>${isConcept?txt('نموذج مفاهيمي غير تجاري','Speculative, non-commissioned project'):'MO DESIGN / PROJECT'}</span></div></section>${media?`<div class="case-lead-media"><img src="${esc(media)}" alt="${esc(fld('title'))}" fetchpriority="high" data-case-media/></div>`:''}${videoHTML}${extraVideoHTML}${youtubeHTML}${galleryHTML}<section class="case-content-grid"><div class="case-side-title">OVERVIEW / 01</div><div class="case-content"><h2>${esc(aboutLabel)}</h2><div class="rich-body case-prose" style="${format}">${description}</div>${fld('objective')?`<h3>${esc(goalLabel)}</h3><div class="rich-body case-prose" style="${format}">${objective}</div>`:''}${externalLinkHTML}${entry.tools_used?`<div class="case-meta-tags">${formatTools(entry.tools_used).map(t=>`<span>${esc(t)}</span>`).join('')}</div>`:''}</div></section><section class="case-close"><h2>${esc(copy.case_cta_title||txt('عايز مشروع بنفس الروح؟','Want to create something similar?'))}</h2><a href="https://wa.me/201097865616?text=${encodeURIComponent('Hi Mo Design, I saw '+(entry.title_en||'a project')+' and want to discuss a similar brief.')}" target="_blank" rel="noopener noreferrer">${esc(copy.case_cta_button||txt('كلمني واتساب ↗','Discuss a project ↗'))}</a></section>`;
+  // Broken media must not leave empty frames or block the remaining project.
+ $('dynamicProject').querySelectorAll('img[data-case-media]').forEach(img=>{
+   img.addEventListener('error',()=>{img.closest('.case-artframe,.case-lead-media')?.remove();},{once:true});
+ });
 }
 $('dynamicLanguage').addEventListener('click',()=>{lang=lang==='ar'?'en':'ar';localStorage.setItem('portfolio_lang',lang);render()});
 $('dynamicTheme').addEventListener('click',()=>{theme=theme==='dark'?'light':'dark';localStorage.setItem('portfolio_theme',theme);render()});
@@ -104,10 +114,14 @@ if (!route || !/^[a-zA-Z0-9_-]{1,140}$/.test(route)) {
    const {data:project,error}=await db.from('projects').select('*').eq('slug',route).eq('is_published',true).maybeSingle();
    if(error)throw error;
    entry=project||null;
-   const {data:site, error:settingsError}=await db.from('site_settings').select('*').eq('id',1).maybeSingle();
-   if(settingsError)console.warn('Optional project site settings unavailable:',settingsError.message);
-   settings=site||{};
-   try{render()}catch(renderError){console.error('Project display error',renderError);showLoadError(tr('حصل خطأ أثناء عرض بيانات المشروع.','Project rendering failed.'));}
+   // Render immediately after the required project query. Settings are optional.
+   settings={};
+   try{render()}catch(renderError){console.error('Project display error',renderError);showLoadError(tr('حصل خطأ أثناء عرض بيانات المشروع.','Project rendering failed.'));return;}
+   void db.from('site_settings').select('*').eq('id',1).maybeSingle()
+     .then(({data:site,error:settingsError})=>{
+       if(settingsError){console.warn('Optional project settings unavailable:',settingsError.message);return;}
+       if(site){settings=site;try{render()}catch(renderError){console.warn('Optional settings render failed:',renderError);}}
+     }).catch(settingsError=>console.warn('Optional project settings request failed:',settingsError));
    return;
   }catch(error){
    console.warn(`Mo Design project loading attempt ${attempt}/3`,error);

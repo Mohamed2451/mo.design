@@ -1,0 +1,118 @@
+/* Mo Design final polish: compact CTA, learning carousel, content-first image grids. */
+.cta-marquee-section{padding:36px 0 26px!important}
+.cta-marquee-section .cta-statement{max-width:1000px!important;min-height:0!important;padding:38px 30px!important;margin-inline:auto}
+.cta-marquee-section .cta-statement h2{font-size:clamp(30px,4.3vw,66px)!important;line-height:1.18!important;margin:12px auto!important}
+.cta-marquee-section .cta-statement p{font-size:clamp(13px,1.2vw,17px)!important;max-width:650px;margin:8px auto 20px}
+.cta-marquee-section .cta-asterisk{font-size:24px!important}
+.tools-last-section{padding:35px 0 60px}
+.tools-last-section .tools-showcase{margin:0!important}
+.about-section .about-creative-symbol{position:absolute;inset:12% 10%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px;font-size:clamp(90px,13vw,180px);color:#c6fb88;line-height:1}
+.about-creative-symbol span{font:800 clamp(13px,1.5vw,22px)/1.5 'DM Sans',sans-serif;letter-spacing:.16em;text-align:center;color:#fff}
+.about-section .about-frame{min-height:340px}
+.learn-action-link{display:inline-flex;align-items:center;gap:8px;text-decoration:none;cursor:pointer;width:max-content}
+.learning-carousel-wrap{position:relative;display:flex;align-items:center;gap:10px;margin:28px auto 0;max-width:100%;min-width:0}
+.learning-carousel-wrap[hidden]{display:none!important}
+.learning-carousel-wrap .learning-list{display:flex!important;align-items:stretch;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;min-width:0;width:100%;padding:8px 4px 18px}
+.learning-carousel-wrap .learning-list::-webkit-scrollbar{display:none}
+.learning-carousel-wrap .learning-card{flex:0 0 clamp(240px,38%,390px);scroll-snap-align:start;min-width:0;margin:0!important}
+.learning-arrow{flex:0 0 42px;width:42px;height:42px;border-radius:50%;border:1px solid #ffffff44;background:#171a20;color:inherit;font-size:19px;cursor:pointer}
+.learning-arrow:hover{border-color:#c6fa8a;color:#c6fa8a}
+.v11-lesson-page .lesson-gallery{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.v11-lesson-page .lesson-figure{width:100%;min-width:0;max-width:none!important;display:flex;flex-direction:column;margin:0!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible}
+.v11-lesson-page .lesson-figure img{display:block;width:100%;height:auto!important;max-height:none!important;object-fit:contain;border-radius:9px}
+.v11-lesson-page .lesson-figure.no-caption figcaption{display:none!important}
+.v11-lesson-page .lesson-figure.has-caption figcaption{height:auto!important;max-height:none!important;overflow:visible!important}
+@media(max-width:650px){
+ .cta-marquee-section{padding:28px 0 20px!important}
+ .cta-marquee-section .cta-statement{padding:26px 18px!important}
+ .learning-carousel-wrap{gap:5px}
+ .learning-arrow{flex-basis:34px;width:34px;height:34px}
+ .learning-carousel-wrap .learning-card{flex-basis:80%}
+ .v11-lesson-page .lesson-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+}
+@media(max-width:420px){.v11-lesson-page .lesson-gallery{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:no-preference){
+ .reveal.will-reveal:not(.visible){opacity:0;transform:translateY(17px);transition:opacity .6s ease,transform .6s ease}
+ .reveal.visible{opacity:1;transform:translateY(0);transition:opacity .6s ease,transform .6s ease}
+}
+
+/* The lesson figures are direct children of .lesson-image-gallery. */
+.v11-lesson-page .lesson-image-gallery{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.v11-lesson-page .lesson-image-gallery>h2{grid-column:1/-1}
+.v11-lesson-page .lesson-image-gallery>.lesson-figure{width:100%;max-width:none!important;margin:0!important;aspect-ratio:auto!important;overflow:visible!important;min-height:0!important;height:auto!important}
+.v11-lesson-page .lesson-image-gallery>.lesson-figure img{width:100%;height:auto!important;max-height:none!important;object-fit:contain!important}
+@media(max-width:600px){.v11-lesson-page .lesson-image-gallery{gap:10px;grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:400px){.v11-lesson-page .lesson-image-gallery{grid-template-columns:1fr}}
+
+/* Owner identity preserved, but About becomes a visual case study rather than a second Hero. */
+.about-section .about-frame{position:relative;min-height:360px}
+.about-section .about-story-logo{position:absolute;top:14%;left:21%;width:40%;height:53%;display:flex;justify-content:center;align-items:center;transform:rotate(-6deg);opacity:.9}
+.about-section .about-story-logo img{width:100%;height:100%;object-fit:contain;max-width:180px}
+.about-section .about-photo-mini{display:block;position:absolute;right:-3%;bottom:5%;height:35%;width:27%;border-radius:16px;overflow:hidden;transform:rotate(8deg);box-shadow:0 10px 32px #0006}
+.about-section .about-photo-mini img{width:100%;height:100%;object-fit:cover;display:block}
+.about-section .about-story-copy{position:absolute;top:14%;right:12%;display:grid;gap:12px;text-align:right;max-width:42%}
+.about-section .about-story-copy span{font-size:12px;color:#bdf987}
+.about-section .about-story-copy strong{font-size:clamp(15px,2vw,25px);line-height:1.5}
+.about-section .about-ribbon{z-index:3}
+
+/* Featured carousel uses its pre-existing transform animation, without pointer overrides. */
+
+/* Corrective restoration: keep original section sizes and present About as Hero continuation. */
+.services-section .services-intro{max-width:780px}
+.services-section .services-intro .section-title{font-size:clamp(30px,3.3vw,50px)!important;line-height:1.3!important}
+.services-section .service-item{padding-block:29px!important;min-height:105px}
+.services-section .service-title{font-size:clamp(19px,1.7vw,23px)!important}
+.services-section .service-desc{font-size:clamp(13px,1.1vw,16px)!important}
+.about-section{padding-block:55px 65px!important}
+.about-section .about-grid{gap:clamp(25px,4vw,70px);align-items:center}
+.about-section .about-content .section-title{font-size:clamp(29px,3.3vw,48px)!important;line-height:1.3!important}
+.about-section .about-art{max-width:490px}
+.about-section .about-frame{min-height:275px;max-height:340px}
+.about-section .about-story-logo{width:33%;height:42%}
+@media(max-width:800px){.about-section{padding-block:38px 48px!important}.services-section .services-intro .section-title{font-size:clamp(27px,7vw,43px)!important}}
+
+/* Restored V13 pointer-depth effect, while preserving featured carousel positioning. */
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+ .project-card.tilt-card,.process-card.tilt-card,.tool-card.tilt-card,.service-item.tilt-card{transform:perspective(1000px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg));transition:transform .16s ease-out}
+ .feature-slide.tilt-card::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;opacity:.7;background:radial-gradient(290px circle at var(--mx,50%) var(--my,50%),rgba(198,250,138,.11),transparent 72%)}
+}
+
+/* Stable centered featured carousel: positional transforms win over generic tilt and RTL. */
+#featureStage{direction:ltr!important;overflow:hidden!important}
+#featureStage .feature-cards{direction:ltr!important}
+#featureStage .feature-slide{left:50%!important;right:auto!important;transform-origin:center center}
+#featureStage .feature-slide[data-position="active"]{transform:translateX(-50%) scale(1)!important}
+#featureStage .feature-slide[data-position="prev"]{transform:translateX(-124%) scale(.78) rotateY(-8deg)!important}
+#featureStage .feature-slide[data-position="next"]{transform:translateX(24%) scale(.78) rotateY(8deg)!important}
+#featureStage .feature-slide[data-position="far-prev"]{transform:translateX(-179%) scale(.64)!important}
+#featureStage .feature-slide[data-position="far-next"]{transform:translateX(79%) scale(.64)!important}
+@media(max-width:950px){
+ #featureStage .feature-slide[data-position="prev"]{transform:translateX(-114%) scale(.79)!important}
+ #featureStage .feature-slide[data-position="next"]{transform:translateX(14%) scale(.79)!important}
+}
+@media(max-width:620px){
+ #featureStage .feature-slide[data-position="prev"]{transform:translateX(-106%) scale(.73)!important}
+ #featureStage .feature-slide[data-position="next"]{transform:translateX(6%) scale(.73)!important}
+}
+
+/* Integrated second beat of the introduction: no repeated full-height About section. */
+.hero-about-continuation{position:relative;z-index:2;margin:-25px auto 0;padding:0 max(20px,calc((100vw - 1190px)/2));background:var(--bg)}
+.hero-about-continuation .about-section{border-top:1px solid var(--line);padding:26px 0 32px!important;background:transparent}
+.hero-about-continuation .about-grid{display:grid;grid-template-columns:minmax(180px,300px) 1fr;gap:clamp(16px,3vw,40px);align-items:center}
+.hero-about-continuation .about-art{width:100%;max-width:300px}
+.hero-about-continuation .about-frame{min-height:210px!important;max-height:230px!important}
+.hero-about-continuation .about-content .section-title{font-size:clamp(24px,2.6vw,38px)!important;line-height:1.35!important;margin:8px 0}
+.hero-about-continuation .about-description{font-size:13px;line-height:1.8;max-width:690px}
+.hero-about-continuation .about-features{margin-block:12px}
+.hero-about-continuation .about-story-logo{width:30%;height:42%}
+@media(max-width:700px){.hero-about-continuation{margin:0;padding:0 18px}.hero-about-continuation .about-grid{grid-template-columns:1fr}.hero-about-continuation .about-art{max-width:260px;margin:auto}.hero-about-continuation .about-frame{min-height:200px!important}.hero-about-continuation .about-section{padding-block:24px!important}}
+/* Stable editorial and portfolio rows; no item-based stagger. */
+.work-section .work-grid{align-items:start}
+.work-section .work-grid>.project-card{margin-top:0!important;align-self:start}
+.editorial-gallery{align-items:center!important}
+.editorial-gallery>.editorial-tile{margin-top:0!important;align-self:center!important}
+/* Re-enable soft pointer light and lift in the remaining interactive categories. */
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+.review-card.tilt-card,.editorial-tile.tilt-card{transform:perspective(1100px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg));transition:transform .16s ease-out}
+.feature-slide.tilt-card .feature-project-link{background:radial-gradient(340px circle at var(--mx,50%) var(--my,50%),rgba(200,250,138,.07),transparent 80%)}
+}

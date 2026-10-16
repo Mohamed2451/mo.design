@@ -1,11 +1,12 @@
 import { seed, readDemo, escapeHTML as esc, safeUrl, tField, ar, en } from './data.js';
 import { connected, getPublicContent, sendInquiry } from './api.js';
 import {PORTFOLIO_CATEGORIES, categoryFor} from './categories.js';
+import {getToolsCatalog} from './tools-catalog.js';
 
 let model = connected ? {...seed, projects:[], testimonials:[]} : readDemo();
 let lang = (()=>{try{return localStorage.getItem('portfolio_lang')==='en'?'en':'ar'}catch{return 'ar'}})();
 let theme = (()=>{try{return localStorage.getItem('portfolio_theme')==='light'?'light':'dark'}catch{return 'dark'}})();
-let activeCategory = '*';
+let activeCategory = (()=>{const id=new URLSearchParams(location.search).get('category');return PORTFOLIO_CATEGORIES.some(c=>c.id===id)?id:'*';})();
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const txt = () => ({...(lang === 'ar' ? ar : en), ...(model.settings?.[lang==='ar'?'content_ar':'content_en']||{})});
@@ -19,41 +20,9 @@ function toast(message) {
   clearTimeout(toast.timeout);
   toast.timeout = setTimeout(() => el.classList.remove('show'), 5000);
 }
-let tickerSignature='';
-let tickerResizePending=false;
-function refreshTicker(force=false){
- const track=document.querySelector('.ticker-track');
- const shell=track?.closest('.ticker');
- if(!track||!shell)return;
- const words=String(txt().ticker_items||'').split(/\n|\|/).map(w=>w.trim()).filter(Boolean).slice(0,20);
- const selected=words.length?words:['مو ديزاين','تصميم إعلانات','مونتاج فيديو','ذكاء اصطناعي'];
- const signature=selected.join('|')+'::'+lang;
- const viewport=Math.max(window.innerWidth||0,shell.getBoundingClientRect().width,320);
- if(!force && signature===tickerSignature && Number(track.dataset.forWidth)>=viewport) return;
- tickerSignature=signature;
- const build=()=>selected.map(word=>`<span class="ticker-item">${esc(word)}</span>`).join('');
- const segment=document.createElement('span');segment.className='ticker-segment';
- segment.innerHTML=build();
- track.replaceChildren(segment);
- // Repeat until one full half is wider than the complete viewport.
- let count=0;
- while(segment.getBoundingClientRect().width<viewport+160&&count<50){segment.insertAdjacentHTML('beforeend',build());count++;}
- const width=Math.ceil(segment.getBoundingClientRect().width);
- const duplicate=segment.cloneNode(true);duplicate.setAttribute('aria-hidden','true');
- track.appendChild(duplicate);
- track.dataset.forWidth=String(viewport);
- track.style.setProperty('--mo-ticker-distance',width+'px');
- track.style.setProperty('--mo-ticker-time',Math.max(18,width/80)+'s');
- track.style.animation='none';
- // Force browser to apply the new track size before restarting the seamless loop.
- void track.offsetWidth;
- track.style.animation='';
-}
-window.addEventListener('resize',()=>{
- if(tickerResizePending)return;
- tickerResizePending=true;
- requestAnimationFrame(()=>{tickerResizePending=false;refreshTicker(true);});
-},{passive:true});
+// The ticker is independently managed by assets/ticker-loop.js.
+// Keep this compatibility hook for language / CMS copy updates.
+function refreshTicker(){window.moTickerWords=String(txt().ticker_items||'').split(/\n|\|/).map(x=>x.trim()).filter(Boolean).slice(0,20);window.dispatchEvent(new Event('mo:ticker-content-changed'));}
 function updateDocument() {
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
@@ -84,11 +53,11 @@ function setBrandContent() {
   $$('[data-brand-logo]').forEach(img=>{img.src=safeUrl(settings[theme==='dark'?'logo_dark_url':'logo_light_url']) || `./assets/images/mo-logo-${theme==='dark'?'white':'black'}.webp`;});
   $('#brandName').textContent = field(settings, 'brand');
   $('#footerBrand').textContent = field(settings, 'brand');
-  $('#heroRole').textContent = field(settings, 'role');
+  $('#heroRole').textContent = txt().hero_merged_role || field(settings, 'role');
   const parts = field(settings, 'headline').split('\n');
   $('#heroTitle').innerHTML = `${esc(parts[0] || '')}<br><em>${esc(parts.slice(1).join(' ') || '')}</em>`;
-  $('#heroDescription').textContent = field(settings, 'subheadline');
-  $('#aboutDescription').textContent = field(settings, 'bio');
+  $('#heroDescription').textContent = txt().hero_merged_description || field(settings, 'subheadline');
+  
   $('#availabilityText').textContent = settings.availability ? txt().available : txt().unavailable;
   $('#availabilityText').closest('.availability').querySelector('.status-pulse').style.background = settings.availability ? 'var(--accent)' : '#ff9b9b';
   const email = String(settings.contact_email || '').trim();
@@ -109,7 +78,7 @@ function setBrandContent() {
   $('#communityLink').href = community;
   $('#communityLink').closest('.contact-quick').hidden = !(settings.community_url && safeUrl(settings.community_url));
   document.querySelector('.email-actions').hidden = !email;
-  $('#copyrightText').textContent = `© ${new Date().getFullYear()} Mo Design / Mohamed Mahmoud. ${txt().rights}`;
+  $('#copyrightText').textContent = txt().footer_copyright || `© ${new Date().getFullYear()} Mo Design / Mohamed Mahmoud. ${txt().rights}`;
   const countValues=[settings.stats_projects,settings.stats_years,settings.stats_satisfaction];
   $$('.stats-strip [data-count]').forEach((el,i)=>{ const newCount=Math.max(0,Number(countValues[i]??[100,3,100][i])||0);el.dataset.count=String(newCount);el.textContent=String(newCount); });
   const hasStats = countValues.some(v => Number(v) > 0);
@@ -125,9 +94,9 @@ function setBrandContent() {
 }
 function caseUrl(project){
   const slug=String(project.slug||'').trim();
-  const original=['glow-beauty','vanta-ai','pulse-motion','forme-brand','flash-social','solar-product','neon-ai','noir-identity','aura-fragrance','zest-beverage','kinetik-motion','frame-storyboard'].includes(slug);
-  return original ? `./projects/${encodeURIComponent(slug)}/` : `./project.html?slug=${encodeURIComponent(slug)}`;
+  return `./project.html?slug=${encodeURIComponent(slug)}`;
 }
+
 function graphicHTML(project) {
   const type = ['aurora','type','orbit','pop'].includes(project.cover_style) ? project.cover_style : 'aurora';
   const safeImage = safeUrl(project.image_url);
@@ -148,12 +117,32 @@ function renderProjects() {
  $('#projectGrid').setAttribute('aria-live','polite');
  $('#projectGrid').innerHTML=items.length?items.map((p,i)=>`<article class="project-card reveal"><a class="project-cover-button" href="${esc(caseUrl(p))}" style="display:block;width:100%" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">${graphicHTML(p)}</a><div class="project-meta"><div><h3>${esc(field(p,'title'))}</h3><p>${esc((categoryFor(p)||{})[lang]||field(p,'category'))}</p></div><span class="project-index">/${number(i+1)}</span></div></article>`).join(''):`<p class="admin-empty">${esc(txt().no_projects)}</p>`;
  observeReveal();
+ // Project filters rebuild the cards, so attach effects to newly added cards too.
+ if(typeof applyInteractiveFX==='function')requestAnimationFrame(applyInteractiveFX);
 }
 function renderServices() {
   const items = model.services.filter(s=>s.is_published).sort((a,b)=>(a.sort_order || 0)-(b.sort_order || 0));
-  const icons = {diamond:'◇',sparkles:'✳',play:'▷',layout:'▦',target:'◎',brush:'✺'};
-  const serviceSlug = s => {const id=String(s.id||'');const title=String(s.title_en||'').toLowerCase();if(id==='service-edit'||/reels|podcast|video/.test(title))return 'video-motion';if(id==='service-ai'||/ai|images|video concepts/.test(title))return 'ai-creative';if(id==='service-prompts'||/prompt/.test(title))return 'prompt-engineering';if(id==='service-brand'||/brand|identity/.test(title))return 'branding';if(id==='service-ads'||/social|advertis|ads/.test(title))return 'social-media';return '';};
-  $('#servicesList').innerHTML = items.map((s,i)=>`<article class="service-item reveal"><span class="service-number">/${number(i+1)}</span><h3 class="service-title">${esc(field(s,'title'))}</h3><p class="service-desc">${esc(field(s,'description'))}</p><a href="${serviceSlug(s)?`./services/${serviceSlug(s)}/`:`#contact`}" class="service-mark" aria-label="${esc(txt().details)}: ${esc(field(s,'title'))}">${icons[s.icon] || '↗'}</a></article>`).join('');
+  const icons = {diamond:'◇',sparkles:'◈',play:'▷',layout:'▦',target:'◎',brush:'✺'};
+  const serviceCategory = service => {
+    const id=String(service.id||'').toLowerCase();
+    const name=[service.title_en,service.title_ar].join(' ').toLowerCase();
+    if(id==='service-edit'||/reels|podcast|video|مونتاج|ريلز|بودكاست/.test(name))return PORTFOLIO_CATEGORIES[1].id;
+    if(id==='service-ai'||id==='service-prompts'||/artificial|\bai\b|prompt|ذكاء|اصطناعي/.test(name))return PORTFOLIO_CATEGORIES[2].id;
+    if(id==='service-brand'||/brand|identity|هوية|براند/.test(name))return PORTFOLIO_CATEGORIES[3].id;
+    if(id==='service-ads'||/social|advertis|ads|سوشيال|إعلان/.test(name))return PORTFOLIO_CATEGORIES[0].id;
+    return '';
+  };
+  const servicePage = service => {
+    const id=String(service.id||'').toLowerCase();
+    const name=[service.title_en,service.title_ar].join(' ').toLowerCase();
+    if(id==='service-prompts'||/prompt|برومبت/.test(name))return 'prompt-engineering';
+    if(id==='service-edit'||/reels|podcast|video|مونتاج|ريلز|بودكاست/.test(name))return 'video-motion';
+    if(id==='service-ai'||/artificial|\\bai\\b|ذكاء|اصطناعي/.test(name))return 'ai-creative';
+    if(id==='service-brand'||/brand|identity|هوية|براند/.test(name))return 'branding';
+    if(id==='service-ads'||/social|advertis|ads|سوشيال|إعلان/.test(name))return 'social-media';
+    return '';
+  };
+  $('#servicesList').innerHTML = items.map((s,i)=>`<article class="service-item reveal"><span class="service-number">/${number(i+1)}</span><h3 class="service-title"><a href="${servicePage(s)?`./services/${servicePage(s)}/`:`./index.html?category=${encodeURIComponent(serviceCategory(s)||"")}#work`}" style="color:inherit;text-decoration:none">${esc(field(s,'title'))}</a></h3><p class="service-desc">${esc(field(s,'description'))}</p><a href="${servicePage(s)?`./services/${servicePage(s)}/`:`./index.html?category=${encodeURIComponent(serviceCategory(s)||"")}#work`}" class="service-mark" aria-label="${esc(txt().details)}: ${esc(field(s,'title'))}">${icons[s.icon] || '↗'}</a></article>`).join('');
   observeReveal();
 }
 function showProject(id) {
@@ -182,13 +171,14 @@ function renderFeatured() {
     const asset=safeUrl(p.image_url);
     return `<article class="feature-slide" data-position="${position}" data-slide-index="${i}" ${position==='active'?'':'aria-hidden="true"'}>
       <a class="feature-project-link" href="${esc(caseUrl(p))}" tabindex="${position==='active'?'0':'-1'}" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">
-      ${asset ? `<img src="${esc(asset)}" alt="${esc(field(p,'title'))}" loading="${i<3?'eager':'lazy'}"/>` : `<div class="project-cover ${esc(p.cover_style||'aurora')}" style="height:100%"><div class="cover-graphic">✳</div></div>`}
+      ${asset ? `<img src="${esc(asset)}" alt="${esc(field(p,'title'))}" loading="${i<3?'eager':'lazy'}"/>` : `<div class="project-cover ${esc(p.cover_style||'aurora')}" style="height:100%"><div class="cover-graphic">◇</div></div>`}
       <span class="feature-scrim" aria-hidden="true"></span><span class="feature-info"><span class="feature-tag">${esc(field(p,'category'))}</span><h3>${esc(field(p,'title'))}</h3><p>${p.project_type==='concept'||String(p.id).startsWith('demo-')?(lang==='ar'?'تصوّر إبداعي':'Concept work'):(lang==='ar'?'مشروع من أعمالي':'Portfolio project')} · ${number(i+1)}</p></span>
       </a></article>`;
   }).join('');
   $('#featureCount').textContent=`${number(featureIndex+1)} / ${number(count)}`;
   $('#featureDots').innerHTML=projects.map((p,i)=>`<button type="button" class="feature-dot" data-feature-to="${i}" aria-label="${lang==='ar'?'الذهاب إلى مشروع':'Go to project'} ${i+1}" aria-current="${i===featureIndex}"></button>`).join('');
   stage.querySelectorAll('.feature-slide').forEach(el=>{el.inert=el.dataset.position!=='active';});
+  requestAnimationFrame(applyInteractiveFX);
 }
 function moveFeature(delta){const a=featuredItems();if(!a.length)return;featureIndex=(featureIndex+delta+a.length)%a.length;renderFeatured();}
 function renderReviews() {
@@ -217,46 +207,50 @@ function renderSubjects() {
   $('#serviceSelect').innerHTML = txt().subject_options.map((v,i)=>`<option value="${esc(v)}" ${i===0?'disabled selected':''}>${esc(v)}</option>`).join('');
 }
 
-function renderTools() {
- const defs=[
-   {id:'photoshop',name:'Adobe Photoshop',ar:'تصميم الإعلانات وتعديل الصور',en:'Design and photo retouching'},
-   {id:'illustrator',name:'Adobe Illustrator',ar:'الشعارات والهوية البصرية',en:'Logos and vector identities'},
-   {id:'premiere',name:'Adobe Premiere Pro',ar:'مونتاج الفيديوهات والريلز',en:'Video and reels editing'},
-   {id:'resolve',name:'DaVinci Resolve',ar:'مونتاج وتصحيح الألوان',en:'Editing and color grading'},
-   {id:'capcut',name:'CapCut',ar:'مونتاج المقاطع القصيرة',en:'Short-form editing'},
-   {id:'higgsfield',name:'Higgsfield',ar:'إنشاء فيديوهات وصور بالذكاء الاصطناعي',en:'AI image and video creation'},
-   {id:'flow',name:'Google Flow',ar:'صناعة فيديوهات بالذكاء الاصطناعي',en:'AI video creation'}
- ];
+function renderTools(){
  const grid=$('#toolsGrid');if(!grid)return;
- grid.innerHTML=defs.map((d,i)=>`<article class="tool-card reveal" tabindex="0">
-  <div class="tool-badge"><img loading="lazy" src="./assets/icons/${['resolve','capcut','higgsfield','flow'].includes(d.id)?d.id+'.png':d.id+'.svg'}" alt="${esc(d.name)}" width="56" height="56"></div>
-  <div class="tool-copy"><h3 dir="ltr">${esc(d.name)}</h3><p>${esc(lang==='ar'?d.ar:d.en)}</p></div><span class="tool-index">${number(i+1)}</span></article>`).join('');
+ const defs=getToolsCatalog(model.settings).filter(tool=>tool.enabled);
+ grid.innerHTML=defs.length?defs.map((d,i)=>{
+  const icon=safeUrl(d.image_url);
+  return `<article class="tool-card reveal" tabindex="0">
+   <div class="tool-badge">${icon?`<img loading="lazy" src="${esc(icon)}" alt="" width="56" height="56" onerror="this.style.display='none'">`:'<span class="tool-image-placeholder" aria-hidden="true">◈</span>'}</div>
+   <div class="tool-copy"><h3 dir="auto">${esc(d.name)}</h3><p>${esc((lang==='ar'?d.ar:d.en)||d.ar||d.en)}</p></div>
+   <span class="tool-index">${number(i+1)}</span></article>`;
+ }).join(''):`<p class="tools-empty">${lang==='ar'?'الأدوات هتظهر هنا بعد إضافتها من لوحة التحكم.':'Tools will appear after you add them in the dashboard.'}</p>`;
 }
 
 function applyInteractiveFX(){
-  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const nodes = $$('.project-card,.process-card,.review-card,.tool-card,.service-item');
-  nodes.forEach(node=>{
-    if(node.dataset.fxBound) return;
-    node.dataset.fxBound='1';
-    node.classList.add('tilt-card');
-    node.addEventListener('pointermove',e=>{
-      if(e.pointerType==='touch')return;
-      const r=node.getBoundingClientRect();
-      const x=(e.clientX-r.left)/r.width;
-      const y=(e.clientY-r.top)/r.height;
-      const rx=(0.5-y)*8;
-      const ry=(x-0.5)*8;
-      node.style.setProperty('--mx',`${Math.round(x*100)}%`);
-      node.style.setProperty('--my',`${Math.round(y*100)}%`);
-      node.style.transform=`perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-4px)`;
-    });
-    node.addEventListener('pointerleave',()=>{
-      node.style.transform='';
-      node.style.removeProperty('--mx');
-      node.style.removeProperty('--my');
-    });
-  });
+ if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches||window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+ $$('.project-card,.service-item,.process-card,.review-card,.tool-card,.editorial-tile,.feature-slide').forEach(node=>{
+  if(node.dataset.fxBound)return;node.dataset.fxBound='1';
+  const featured=node.classList.contains('feature-slide');
+  const target=featured?node.querySelector('.feature-project-link'):node;
+  if(!target)return;
+  let raf=0,tx=0,ty=0,cx=0,cy=0,box=null,active=false;
+  function step(){
+   raf=0;
+   cx+=(tx-cx)*.34;cy+=(ty-cy)*.34;
+   if(featured){
+    target.style.transform='perspective(1100px) rotateX('+(-cy*7).toFixed(2)+'deg) rotateY('+(cx*7).toFixed(2)+'deg) translate3d('+(cx*7).toFixed(2)+'px,'+(cy*6).toFixed(2)+'px,0)';
+   }else{
+    target.style.transform='perspective(1050px) rotateX('+(-cy*8).toFixed(2)+'deg) rotateY('+(cx*8).toFixed(2)+'deg) translate3d('+(cx*7).toFixed(2)+'px,'+(cy*6-2).toFixed(2)+'px,0)';
+   }
+   if(Math.abs(tx-cx)+Math.abs(ty-cy)>.015)raf=requestAnimationFrame(step);
+   else if(!active){target.style.transform='';target.classList.remove('mo-floating');}
+  }
+  node.addEventListener('pointerenter',()=>{box=node.getBoundingClientRect();active=true;target.classList.add('mo-floating');},{passive:true});
+  node.addEventListener('pointermove',e=>{
+   if(e.pointerType==='touch')return;
+   if(!box)box=node.getBoundingClientRect();
+   tx=Math.max(-.5,Math.min(.5,(e.clientX-box.left)/box.width-.5));
+   ty=Math.max(-.5,Math.min(.5,(e.clientY-box.top)/box.height-.5));
+   if(!raf)raf=requestAnimationFrame(step);
+  },{passive:true});
+  node.addEventListener('pointerleave',()=>{
+   active=false;box=null;tx=ty=0;
+   if(!raf)raf=requestAnimationFrame(step);
+  },{passive:true});
+ });
 }
 
 function observeReveal() {
@@ -282,13 +276,13 @@ function renderSignature() {
   const gallery=document.querySelector('.editorial-gallery');
   if(!gallery)return;
   if(!projects.length){ document.querySelector('#signature').hidden=true; return; }
-  gallery.innerHTML=projects.map((p,i)=>`<a class="editorial-tile editorial-tile-${'abc'[i]}" href="${esc(caseUrl(p))}">${safeUrl(p.image_url)?`<img src="${esc(safeUrl(p.image_url))}" loading="lazy" alt="${esc(field(p,'title'))}">`:`<div class="editorial-fallback">✳</div>`}<span>${esc(field(p,'title'))}</span></a>`).join('');
+  gallery.innerHTML=projects.map((p,i)=>`<a class="editorial-tile editorial-tile-${'abc'[i]}" href="${esc(caseUrl(p))}">${safeUrl(p.image_url)?`<img src="${esc(safeUrl(p.image_url))}" loading="lazy" alt="${esc(field(p,'title'))}">`:`<div class="editorial-fallback">◇</div>`}<span>${esc(field(p,'title'))}</span></a>`).join('');
   const first=document.querySelector('.editorial-link');if(first)first.href=caseUrl(projects[0]);
 }
 function applySectionVisibility(){
  const visibility=model.settings?.section_visibility||{};
- const sections=['featured','signature','work','services','tools','why','about','process','testimonials','faq','cta','learn','contact'];
- for(const id of sections){const node=document.getElementById(id);if(node){ const enabled=visibility[id]!==false; node.hidden=!enabled || (['featured','signature'].includes(id) && !model.projects.some(p=>p.is_published && (id==='signature'||p.featured))) || (id==='testimonials' && !model.testimonials.some(r=>r.is_verified && r.is_published)); }}
+ const sections=['featured','signature','work','services','tools','why','process','testimonials','faq','cta','learn','contact'];
+ for(const id of sections){const node=document.getElementById(id);if(node){ const enabled=visibility[id]!==false && (id!=='learn'||model.settings?.education_mode!=='hidden'); node.hidden=!enabled || (['featured','signature'].includes(id) && !model.projects.some(p=>p.is_published && (id==='signature'||p.featured))) || (id==='testimonials' && !model.testimonials.some(r=>r.is_verified && r.is_published)); }}
 }
 function youtubeId(value) {
   try {
@@ -301,42 +295,46 @@ function youtubeId(value) {
     return /^[A-Za-z0-9_-]{11}$/.test(id)?id:'';
   } catch {return '';}
 }
-function renderLearning() {
-  const section=$('#learn'),list=$('#learningList');if(!section||!list)return;
-  const settings=model.settings||seed.settings;
-  const mode=['hidden','coming_soon','live'].includes(settings.education_mode)?settings.education_mode:'coming_soon';
-  const visibility=settings.section_visibility||{};
-  section.hidden=(visibility.learn===false||mode==='hidden');
-  if(section.hidden)return;
-  const live=mode==='live';
-  const copy=txt();
-  const header=section.querySelector('[data-i18n="learn_title"]');
-  const intro=section.querySelector('[data-i18n="learn_desc"]');
-  const badge=section.querySelector('[data-i18n="learn_tag"]');
-  header.textContent=live?copy.learn_live_title|| (lang==='ar'?'بدأت أنشر محتوى جديد':'New content is live'):copy.learn_title;
-  intro.textContent=live?copy.learn_live_desc||'':copy.learn_desc;
-  badge.textContent=live?copy.learn_live_tag||'':copy.learn_tag;
-  list.hidden=!live;
-  if(!live)return;
-  const published=(model.learning_items||[]).filter(item=>item.is_published);
-  if(!published.length) {
-    list.innerHTML=`<p class="learning-empty">${lang==='ar'?'لسه بنجهّز أول درس. تابعنا قريب.':'First lesson coming soon.'}</p>`;
-    return;
-  }
-  const cards=published.map((item,index)=>{
-    const title=field(item,'title'),summary=field(item,'summary');
-    const video=item.content_type==='video';
-    const id=video?youtubeId(item.youtube_url):'';
-    const customThumb=safeUrl(item.thumbnail_url);
-    const thumb=customThumb||(id?`https://i.ytimg.com/vi/${id}/hqdefault.jpg`:'');
-    return `<a class="learning-card reveal" href="./lesson.html?id=${encodeURIComponent(item.id)}" aria-label="${esc(title)}">
-      <span class="learning-thumb">${thumb?`<img src="${esc(thumb)}" alt="" loading="lazy" onerror="this.style.display='none'">`:`<span class="learning-abstract" aria-hidden="true">✳</span>`}<span class="learning-play" aria-hidden="true">${video?'▶':'↗'}</span></span>
-      <span class="learning-item-meta">${video?(lang==='ar'?'فيديو تعليمي':'Video lesson'):(lang==='ar'?'مقال':'Article')} <span> / ${String(index+1).padStart(2,'0')}</span></span>
-      <strong>${esc(title)}</strong><span class="learning-item-desc">${esc(summary)}</span>
-    </a>`;
-  });
-  list.innerHTML=cards.join('');
+let learningIndex=0,learningRenderKey='';
+function renderLearning(){
+ const section=$('#learn'),stage=$('#learningList'),shell=$('#learningCarouselShell');if(!section||!stage||!shell)return;
+ const settings=model.settings||seed.settings;
+ const mode=['hidden','coming_soon','live'].includes(settings.education_mode)?settings.education_mode:'coming_soon';
+ section.hidden=settings.section_visibility?.learn===false||mode==='hidden';
+ section.style.setProperty('display',section.hidden?'none':'','important');
+ const action=section.querySelector('.learn-action-link');
+ if(action){if(mode==='live'){action.href='./learning.html';action.removeAttribute('aria-disabled');action.removeAttribute('tabindex');action.style.pointerEvents='';}else{action.removeAttribute('href');action.setAttribute('aria-disabled','true');action.setAttribute('tabindex','-1');action.style.pointerEvents='none';}}
+ if(section.hidden)return;
+ const live=mode==='live',copy=txt();
+ section.querySelector('[data-i18n="learn_title"]').textContent=live?(copy.learn_live_title||'بدأت أنشر محتوى يفيدك.'):copy.learn_title;
+ section.querySelector('[data-i18n="learn_desc"]').textContent=live?(copy.learn_live_desc||''):copy.learn_desc;
+ section.querySelector('[data-i18n="learn_tag"]').textContent=live?(copy.learn_live_tag||'اتفرّج وتعلّم'):copy.learn_tag;
+ shell.hidden=!live;
+ if(!live)return;
+ const lessons=(model.learning_items||[]).filter(item=>item.is_published).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0));
+ const count=lessons.length;
+ if(!count){stage.innerHTML='<p class="learning-empty">'+(lang==='ar'?'لسه بنجهّز أول درس. تابعنا قريب.':'The first lesson is coming soon.')+'</p>';stage.dataset.renderKey='';$('#learningCount').textContent='00 / 00';$('#learningDots').innerHTML='';$('#learningPrev').disabled=true;$('#learningNext').disabled=true;return;}
+ learningIndex=((learningIndex%count)+count)%count;
+ const key=lang+'|'+lessons.map(x=>[x.id,field(x,'title'),x.thumbnail_url,x.content_type].join(':')).join('|');
+ if(stage.dataset.renderKey!==key){
+  stage.innerHTML=lessons.map((item,i)=>{
+   const title=field(item,'title'),summary=field(item,'summary'),id=item.content_type==='video'?youtubeId(item.youtube_url):'';
+   const thumb=safeUrl(item.thumbnail_url)||(id?'https://i.ytimg.com/vi/'+id+'/hqdefault.jpg':'');
+   return `<article class="home-learning-slide" data-index="${i}"><a href="./lesson.html?id=${encodeURIComponent(item.id)}" class="home-learning-link" tabindex="-1">${thumb?`<img src="${esc(thumb)}" alt="" loading="lazy">`:'<span class="home-learning-fallback">◇</span>'}<span class="home-learning-shade"></span><span class="home-learning-caption"><small>${item.content_type==='video'?(lang==='ar'?'فيديو':'Video'):(lang==='ar'?'مقال':'Article')}</small><strong>${esc(title)}</strong><span>${esc(summary)}</span></span></a></article>`;
+  }).join('');
+  stage.dataset.renderKey=key;
+ }
+ stage.querySelectorAll('.home-learning-slide').forEach((el,i)=>{
+  const forward=(i-learningIndex+count)%count,backward=(learningIndex-i+count)%count;
+  const position=forward===0?'active':backward===1?'prev':forward===1?'next':'hidden';
+  el.dataset.position=position;el.setAttribute('aria-hidden',String(position!=='active'));el.inert=position!=='active';
+  el.querySelector('a').tabIndex=position==='active'?0:-1;
+ });
+ $('#learningCount').textContent=number(learningIndex+1)+' / '+number(count);
+ $('#learningDots').innerHTML=lessons.map((_,i)=>`<button type="button" data-learning-to="${i}" aria-label="${lang==='ar'?'المحتوى':'Item'} ${i+1}" aria-current="${i===learningIndex}"></button>`).join('');
+ $('#learningPrev').disabled=count<2;$('#learningNext').disabled=count<2;
 }
+function moveLearning(delta){const count=(model.learning_items||[]).filter(x=>x.is_published).length;if(count>1){learningIndex=(learningIndex+delta+count)%count;renderLearning();}}
 
 function syncRealWorkCopy(){
  const projects=(model.projects||[]).filter(p=>p.is_published);
@@ -380,9 +378,17 @@ function applySectionDesign(){
  const validHex=v=>/^#[0-9a-f]{6}$/i.test(v||'')?v:'';
  for(const [id,raw] of Object.entries(design)){
   const section=document.getElementById(id);
-  if(!section || !raw || typeof raw!=='object' || raw.enabled!==true)continue;
+  if(!section || !raw || typeof raw!=='object')continue;
   const target=['cta','learn'].includes(id)?section.querySelector(id==='cta'?'.cta-statement':'.learn-panel'):section;
   if(!target)continue;
+  // Reset previously applied styles when the custom section design is disabled.
+  if(raw.enabled!==true){
+    target.classList.remove('v11-designed','v11-with-cover','v12-custom-font','v12-custom-heading','v12-custom-body');
+    for(const key of ['--v11-bg','--v11-fg','--v11-accent','--v11-pad','--v11-minh','--v11-cover','--v11-shade','--v12-section-font','--v12-heading-size','--v12-body-size']){
+      target.style.removeProperty(key);
+    }
+    continue;
+  }
   const mode=theme==='light'?'light':'dark';
   const background=validHex(raw[mode+'_bg']);
   const foreground=validHex(raw[mode+'_text']);
@@ -441,6 +447,13 @@ function render() {
   }
 }
 
+$('#learningPrev').addEventListener('click',()=>moveLearning(-1));
+$('#learningNext').addEventListener('click',()=>moveLearning(1));
+$('#learningDots').addEventListener('click',e=>{const dot=e.target.closest('[data-learning-to]');if(dot){learningIndex=Number(dot.dataset.learningTo);renderLearning();}});
+let learningTouchX=0;
+$('#learningList').addEventListener('touchstart',e=>{learningTouchX=e.changedTouches[0].clientX;},{passive:true});
+$('#learningList').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-learningTouchX;if(Math.abs(dx)>45)moveLearning(dx<0?1:-1);},{passive:true});
+$('#learningList').addEventListener('keydown',e=>{if(e.key==='ArrowLeft')moveLearning(1);if(e.key==='ArrowRight')moveLearning(-1);});
 $('#learningList').addEventListener('click',e=>{
  const button=e.target.closest('[data-lesson]');if(!button)return;
  const item=(model.learning_items||[]).find(x=>String(x.id)===button.dataset.lesson&&x.is_published);
@@ -510,9 +523,21 @@ $('#contactForm').addEventListener('submit',async e=>{
 });
 if(window.matchMedia('(hover: hover) and (pointer: fine)').matches){
   const glow=$('#cursorGlow');
-  window.addEventListener('pointermove',e=>{glow.style.left=e.clientX+'px';glow.style.top=e.clientY+'px';glow.style.opacity='1';},{passive:true});
+  let glowFrame=0,gx=0,gy=0;
+  window.addEventListener('pointermove',e=>{gx=e.clientX;gy=e.clientY;if(glowFrame)return;glowFrame=requestAnimationFrame(()=>{glowFrame=0;glow.style.transform='translate3d(calc('+gx+'px - 50%),calc('+gy+'px - 50%),0)';glow.style.opacity='1';});},{passive:true});
 }
 render();
 if(connected){
-  getPublicContent().then(data=>{model=data;render();}).catch(err=>{console.error(err);model={settings:seed.settings,projects:[],services:seed.services,testimonials:[]};render();toast(lang==='ar'?'تعذر تحميل المشاريع مؤقتًا. جرّب تحديث الصفحة.':'Could not load projects. Please refresh.');});
+  getPublicContent().then(data=>{
+    model=data;
+    render();
+    if(data._loadWarnings?.length) {
+      console.warn('Mo Design: some public content is temporarily unavailable:',data._loadWarnings);
+      toast(lang==='ar'?'بعض محتويات الموقع غير متاحة مؤقتًا. حاول تحديث الصفحة لاحقًا.':'Some content is temporarily unavailable. Please refresh later.');
+    }
+  }).catch(err=>{
+    console.error('Mo Design: public content loading failed:',err);
+    // Preserve the last successfully rendered state; never erase real projects on an error.
+    toast(lang==='ar'?'تعذر تحديث البيانات مؤقتًا. حاول مجددًا لاحقًا.':'Content could not be refreshed. Please try again later.');
+  });
 }

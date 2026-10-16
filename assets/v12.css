@@ -62,3 +62,75 @@ html.light body #cta .v11-designed h2 em{color:var(--v11-accent)!important;-webk
 .appearance-reset-bar .appearance-reset-button{margin:0;white-space:normal}
 .case-error{min-height:45vh}.case-error p{max-width:65ch;margin-inline:auto;line-height:2;color:var(--muted,#aaa)}
 @media(max-width:650px){.appearance-reset-bar{flex-direction:column;align-items:stretch}.appearance-reset-button{width:100%}}
+
+/* V13: keep CMS project images consistent without cropping their artwork. */
+.case-lead-media,.case-artframe{width:100%;overflow:hidden}
+.case-lead-media img,.case-artframe img{display:block;width:100%;height:auto;max-width:100%;object-fit:contain}
+.case-stacked-media{width:100%;min-width:0}
+.case-stacked-media .case-artframe{margin-inline:auto}
+@media(max-width:700px){
+ .case-lead-media,.case-stacked-media,.case-artframe{max-width:100%}
+ .case-lead-media img,.case-artframe img{max-height:none}
+}
+
+
+/* Project gallery captions: content-driven height, no clipping or fixed aspect ratio. */
+.case-main .case-stacked-media{align-items:start}
+.case-main .case-stacked-media .case-artframe,
+.case-main .case-stacked-media .case-artframe:nth-child(2){
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  align-self:start;
+  aspect-ratio:auto!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+  box-sizing:border-box;
+}
+.case-main .case-stacked-media .case-artframe img{
+  display:block!important;
+  width:100%!important;
+  height:auto!important;
+  max-height:none!important;
+  aspect-ratio:auto!important;
+  object-fit:contain!important;
+  flex:none;
+}
+.case-main .case-stacked-media .case-artframe .media-long-caption{
+  display:block!important;
+  flex:none;
+  width:100%;
+  min-height:0;
+  max-height:none!important;
+  height:auto!important;
+  overflow:visible!important;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  white-space:normal;
+  padding:18px 12px 8px;
+  line-height:2;
+  text-align:start;
+  box-sizing:border-box;
+}
+.case-main .case-stacked-media .media-long-caption p{margin:0 0 1em}
+.case-main .case-stacked-media .media-long-caption p:last-child{margin-bottom:0}
+@media(max-width:650px){
+  .case-main .case-stacked-media{grid-template-columns:minmax(0,1fr)}
+  .case-main .case-stacked-media .case-artframe{width:100%;min-width:0}
+}
+
+/* Seamless three-copy ticker: each copy has identical content and width. */
+.ticker-track{display:flex!important;width:max-content!important;gap:0!important;direction:ltr!important;animation:mo-ticker-triplicate var(--mo-ticker-time,40s) linear infinite!important}
+.ticker-track .ticker-segment{flex:0 0 auto!important;width:max-content;white-space:nowrap}
+@keyframes mo-ticker-triplicate{from{transform:translate3d(0,0,0)}to{transform:translate3d(-33.3333333333%,0,0)}}
+@media(prefers-reduced-motion:reduce){.ticker-track{animation:none!important}}
+
+/* Definitive ticker fix: exact one-segment pixel motion, no percentage rounding. */
+.ticker .ticker-track{animation:none!important;display:flex!important;gap:0!important;justify-content:flex-start!important;direction:ltr!important;max-width:none!important;min-width:max-content!important}
+.ticker .ticker-track.ticker-ready{animation:mo-ticker-precise var(--mo-ticker-time,40s) linear infinite!important}
+.ticker .ticker-segment{box-sizing:content-box;display:flex!important;flex:0 0 auto!important;flex-wrap:nowrap!important;gap:0!important;white-space:nowrap;min-width:max-content}
+@keyframes mo-ticker-precise{from{transform:translate3d(0,0,0)}to{transform:translate3d(calc(-1 * var(--mo-ticker-step,800px)),0,0)}}
+@media(prefers-reduced-motion:reduce){.ticker .ticker-track.ticker-ready{animation:none!important}}

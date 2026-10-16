@@ -1,0 +1,32 @@
+/* V15 — Creative Studio Experience. Works without JS; progressive enhancements only. */
+:root{--v15-glow:rgba(189,250,139,.25)}
+html.light{--v15-glow:rgba(70,123,42,.18)}
+.hero{isolation:isolate}
+.hero::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 55% 48% at 74% 35%,var(--v15-glow),transparent 75%);opacity:.6}
+.hero-grid{position:relative;z-index:1}
+.hero .hero-title{max-width:13ch;line-height:1.12;text-wrap:balance}
+.hero-art .portrait-frame{isolation:isolate}
+.hero-art .portrait-frame::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(140deg,rgba(255,255,255,.12),transparent 36%,rgba(255,255,255,.035) 80%);mix-blend-mode:screen}
+.work-section .work-grid{align-items:start}
+.work-section .project-card{transform-origin:center}
+.work-section .project-card .project-meta{position:relative}
+.work-section .project-card .project-meta h3{line-height:1.4}
+.work-section .project-card .project-index{font-variant-numeric:tabular-nums}
+@media(min-width:990px){
+ .work-section .project-card:nth-child(4n+2){margin-top:42px}
+ .work-section .project-card:nth-child(4n+4){margin-top:28px}
+}
+@media(prefers-reduced-motion:no-preference){
+ .v15-inview{transition:opacity .78s cubic-bezier(.16,1,.3,1),translate .78s cubic-bezier(.16,1,.3,1);transition-delay:var(--v15-delay,0ms)}
+ .v15-inview:not(.v15-visible){opacity:.25;translate:0 18px}
+ .v15-inview.v15-visible{opacity:1;translate:0 0}
+ .hero-art .portrait-frame{transition:box-shadow .45s ease}
+ .hero-art:hover .portrait-frame{box-shadow:0 24px 80px var(--v15-glow)}
+ .v15-magnetic{--v15-bx:0px;--v15-by:0px;translate:var(--v15-bx) var(--v15-by);transition:translate .3s cubic-bezier(.2,.8,.2,1)}
+ .v15-active-link::after{transform:scaleX(1)!important}
+}
+@media(max-width:989px){.work-section .project-card{margin-top:0!important}}
+@media(prefers-reduced-motion:reduce){
+ .v15-inview{opacity:1!important;translate:none!important;transition:none!important}
+ .v15-magnetic{translate:none!important}
+}

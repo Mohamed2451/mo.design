@@ -14,23 +14,69 @@ export async function getClient() {
   }
   return clientPromise;
 }
+
+// A temporary problem in one content table must not block other public sections.
+// Keep transient network errors separate from legitimate empty published collections.
+// Do not fall back to demo projects or unverified reviews on a live website.
 export async function getPublicContent() {
   if (!connected) return readDemo();
-  const db = await getClient();
-  const [s,p,v] = await Promise.all([
-    db.from('site_settings').select('*').eq('id',1).single(),
-    db.from('projects').select('*').eq('is_published', true).order('sort_order'),
-    db.from('services').select('*').eq('is_published', true).order('sort_order')
+
+  const warnings = [];
+  let db;
+  try {
+    db = await getClient();
+  } catch (error) {
+    console.warn('Mo Design: Supabase client unavailable:', error);
+    return {
+      settings: seed.settings, projects: [], services: seed.services || [],
+      testimonials: [], learning_items: [],
+      _loadWarnings: ['connection']
+    };
+  }
+
+  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+  async function safelyRead(label, query) {
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const result = await query();
+        if (!result?.error) return result?.data ?? null;
+        const error = result.error;
+        // Only retry likely transient errors, not SQL, authorization or missing-table errors.
+        const code = String(error.code || '');
+        const status = Number(error.status || 0);
+        const transient = status === 408 || status === 429 || status >= 500 ||
+          /^(08|53|57P|58)/.test(code) || /fetch|network|timeout|temporar/i.test(error.message || '');
+        if (transient && attempt < 2) { await wait(350); continue; }
+        console.warn(`Mo Design: could not load ${label}:`, error.message);
+      } catch (error) {
+        if (attempt < 2) { await wait(350); continue; }
+        console.warn(`Mo Design: ${label} request failed:`, error);
+      }
+      warnings.push(label);
+      return null;
+    }
+    warnings.push(label);
+    return null;
+  }
+
+  const [settings, projects, services, reviews, lessons] = await Promise.all([
+    safelyRead('site settings', () => db.from('site_settings').select('*').eq('id',1).single()),
+    safelyRead('projects', () => db.from('projects').select('*').eq('is_published', true).order('sort_order')),
+    safelyRead('services', () => db.from('services').select('*').eq('is_published', true).order('sort_order')),
+    safelyRead('testimonials', () => db.from('testimonials').select('*').eq('is_published',true).eq('is_verified',true).order('sort_order')),
+    safelyRead('learning items', () => db.from('learning_items').select('*').eq('is_published',true).order('sort_order').order('created_at',{ascending:false}))
   ]);
-  if (s.error || p.error || v.error) throw new Error(s.error?.message || p.error?.message || v.error?.message);
-  const [reviews,lessons] = await Promise.all([
-    db.from('testimonials').select('*').eq('is_published',true).eq('is_verified',true).order('sort_order'),
-    db.from('learning_items').select('*').eq('is_published',true).order('sort_order').order('created_at',{ascending:false})
-  ]);
-  if(reviews.error)console.warn('Testimonials are not available:',reviews.error.message);
-  if(lessons.error)console.warn('Learning studio not installed yet: run migration 005:',lessons.error.message);
-  return {settings:s.data || seed.settings,projects:p.data || [],services:v.data || [],testimonials:reviews.data || [],learning_items:lessons.data || []};
+
+  return {
+    settings: settings || seed.settings,
+    projects: Array.isArray(projects) ? projects : [],
+    services: Array.isArray(services) ? services : (seed.services || []),
+    testimonials: Array.isArray(reviews) ? reviews : [],
+    learning_items: Array.isArray(lessons) ? lessons : [],
+    _loadWarnings: warnings
+  };
 }
+
 export async function sendInquiry(details) {
   if (!connected) return {mode:'email'};
   const db = await getClient();
