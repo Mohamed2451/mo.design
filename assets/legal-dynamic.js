@@ -2,7 +2,7 @@ import {connected,getClient} from './api.js';
 import {DEFAULT_LEGAL,legalPages} from './legal-config.js';
 const escapeText=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function language(){return localStorage.getItem('portfolio_lang')==='en'?'en':'ar'}
-function contentHTML(s){return String(s||'').split(/\n\s*\n/).filter(Boolean).map(p=>'<p>'+escapeText(p).replace(/\n/g,'<br>')+'</p>').join('')}
+function contentHTML(s){return String(s||'').split(/\n/).reduce((out,line)=>{const t=line.trim();if(!t)return out+'<div style="height:12px"></div>';if(/^#{1,3}\s+/.test(t)){const level=Math.min(3,t.match(/^#+/)[0].length)+1;return out+'<h'+level+'>'+escapeText(t.replace(/^#{1,3}\s+/,''))+'</h'+level+'>'}return out+'<p>'+escapeText(t)+'</p>'},'')}
 async function start(){
  let settings={};
  if(connected){try{const db=await getClient();const {data,error}=await db.from('site_settings').select('content_ar').eq('id',1).maybeSingle();if(!error)settings=data||{};}catch(e){console.warn('Legal settings unavailable',e)}}
