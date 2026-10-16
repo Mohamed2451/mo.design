@@ -438,13 +438,13 @@ document.addEventListener('change',event=>{
 });
 function renderLegalPages(){
  const pages=legalPages(data.settings);
- return `<section class="admin-panel"><h2>الصفحات والروابط أسفل الموقع</h2><p class="admin-note">غير أسماء الصفحات ومحتواها، أو أضف صفحة جديدة. الروابط الأصلية ثابتة حتى لا تتعطل الروابط القديمة. لو تركت محتوى صفحة أصلية فارغًا سيظل النص الحالي كما هو.</p><form data-entity="legal_pages"><div data-legal-list>${pages.map(p=>legalRow(p)).join('')}</div><button type="button" class="admin-btn secondary" data-legal-add>+ إضافة صفحة</button><button type="submit" class="admin-btn">حفظ الصفحات والروابط</button></form></section>`;
+ return `<section class="admin-panel"><h2>الصفحات والروابط أسفل الموقع</h2><p class="admin-note">غير أسماء الصفحات ومحتواها، أو أضف صفحة جديدة. الروابط الأصلية ثابتة حتى لا تتعطل الروابط القديمة. لإضافة عنوان داخل الصفحة اكتب # عنوان ثم في السطر التالي الشرح. ولعنوان فرعي اكتب ## عنوان. لو تركت محتوى الصفحة الأصلية فارغًا سيظل النص الحالي كما هو.</p><form data-entity="legal_pages"><div data-legal-list>${pages.map(p=>legalRow(p)).join('')}</div><button type="button" class="admin-btn secondary" data-legal-add>+ إضافة صفحة</button><button type="submit" class="admin-btn">حفظ الصفحات والروابط</button></form></section>`;
 }
 function legalRow(p={}){
  return `<fieldset data-legal-row data-legal-id="${esc(p.id||'')}" style="border:1px solid #ffffff33;border-radius:12px;padding:14px;margin:12px 0"><legend>${esc(p.ar||'صفحة جديدة')}</legend><div class="admin-form-grid">
  ${field('legal_ar','الاسم بالعربي',p.ar||'',{required:true})}${field('legal_en','الاسم بالإنجليزي',p.en||'')}
- ${field('legal_body_ar','محتوى الصفحة بالعربي (يمكن تركه فارغًا للاحتفاظ بالمحتوى الأصلي)',p.body_ar||'',{type:'textarea',full:true,rows:8})}
- ${field('legal_body_en','محتوى الصفحة بالإنجليزي',p.body_en||'',{type:'textarea',full:true,rows:8})}
+ ${field('legal_body_ar','محتوى الصفحة بالعربي — اكتب # ثم مسافة لعنوان رئيسي، أو ## لعنوان فرعي، وباقي السطور نص عادي',p.body_ar||'',{type:'textarea',full:true,rows:8})}
+ ${field('legal_body_en','محتوى الصفحة بالإنجليزي — نفس تنسيق العناوين باستخدام # أو ##',p.body_en||'',{type:'textarea',full:true,rows:8})}
  <label class="form-field"><input type="checkbox" name="legal_enabled" ${p.enabled!==false?'checked':''}/> إظهار الرابط</label>
  ${['privacy','terms','copyright'].includes(p.id)?'<small>الصفحة الأصلية — نحافظ على عنوان رابطها القديم.</small>':'<button type="button" class="admin-btn secondary" data-legal-remove>حذف الصفحة الجديدة</button>'}
  </div></fieldset>`;
