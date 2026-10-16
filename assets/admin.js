@@ -209,6 +209,7 @@ function renderItems(table){
   ${richField('objective_en','الهدف بالإنجليزي',item.objective_en||'',8)}
   ${field('text_font','خط النص الطويل',item.text_style?.font||'Alexandria',{select:FONT_CHOICES})}${field('text_size','حجم النص بالبكسل (14–30)',item.text_style?.size||17,{type:'number'})}
   <div class="form-field full cms-tool-entry"><span>الأدوات المستخدمة في المشروع</span><div class="cms-tools-box" data-tools-box><div data-tools-tags class="cms-tools-tags"></div><input data-tool-add placeholder="اكتب Photoshop واضغط Enter" aria-label="اكتب أداة واضغط Enter" maxlength="70"></div><input type="hidden" name="tools_used" value="${esc(formatTools(item.tools_used).join(', '))}"><small>اضغط Enter بعد كل برنامج علشان يظهر في خانة مستقلة، أو اضغط × لإزالته.</small></div>
+  <label class="form-field full">ارفع فيديو المشروع من جهازك (MP4 / WebM، حتى 45 ميجابايت)<input name="project_video_file" type="file" accept="video/mp4,video/webm" ${connected?'':'disabled'}><small>الفيديو يُرفع إلى Supabase Storage عند حفظ المشروع. للفيديوهات الأكبر استخدم YouTube.</small></label>
   <label class="form-field full">ارفع صورة غلاف المشروع من جهازك (اختياري) <input type="file" name="media_file" accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'} /> <small>صورة بحد أقصى 8 MB. ترفع بصورة آمنة فقط عند تفعيل التخزين وسياسات الصلاحيات.</small></label>
   <label class="form-field full">ارفع صور المشروع الإضافية من جهازك (حتى 15 صورة)<input type="file" name="gallery_files" multiple accept="image/png,image/jpeg,image/webp,image/avif" ${connected?'':'disabled'}/><small data-project-gallery-count role="status" aria-live="polite">الحد الأقصى 15 صورة إضافية، شامل الروابط والملفات الجديدة.</small></label>
   <details class="cms-advanced full"><summary>رابط خارجي للعمل (اختياري) ▾</summary>${field('external_url','رابط لعرض العمل على Behance أو موقع خارجي',item.external_url,{type:'url',full:true})}<small>اتركه فارغًا لو مش عايز تحول الزائر لموقع آخر. صفحة المشروع عندك تعمل بدونه.</small></details>
@@ -576,6 +577,8 @@ async function saveForm(form){
       }
     }
     if(connected && table==='projects'){
+      const projectVideo=form.querySelector('input[name="project_video_file"]')?.files?.[0];
+      if(projectVideo){formStatus(form,'جاري رفع فيديو المشروع...');entry.video_url=await uploadLearningVideo(projectVideo);}
       const file=form.querySelector('input[name="media_file"]')?.files?.[0];
       if(file)entry.image_url=await uploadImage(file,'projects');
       const images=[...(form.querySelector('input[name="gallery_files"]')?.files||[])];
