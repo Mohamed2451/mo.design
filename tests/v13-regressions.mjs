@@ -66,7 +66,7 @@ const baseStyle=read('assets/styles.css');
 assert.match(admin,/دليل صفحات الخدمات الفعلية/,'service management distinguishes pages from actual CMS service rows');
 assert.match(admin,/cms-advanced/,'advanced CMS controls are collapsed');
 assert.match(admin,/refreshNewCaptionInputs/,'per-new-file caption inputs are rendered');
-assert.match(admin,/gallery_captions:readMediaCaptions/,'project captions persist');
+assert.match(admin,/const captions=readMediaCaptions\(form,'gallery'\)/,'project captions persist');
 assert.match(admin,/image_captions:readMediaCaptions/,'lesson captions persist');
 assert.match(projectDetails,/gallery_captions/,'project image captions render');
 assert.match(lessons,/image_captions/,'lesson image captions render');
