@@ -2,6 +2,7 @@ import { seed, readDemo, saveDemo, escapeHTML as esc, safeUrl, ar, en } from './
 import { connected, getClient, adminAuthenticated, getAdminContent } from './api.js';
 import {PORTFOLIO_CATEGORIES, categoryFor, formatTools} from './categories.js';
 import {getToolsCatalog,TOOLS_CATALOG_KEY} from './tools-catalog.js';
+import {SERVICE_PAGES,SERVICE_PAGE_KEY,serviceConfig,projectServiceGroups} from './service-config.js';
 import {getAcademyCategories,getAcademyMembership,ACADEMY_CATEGORIES_KEY,ACADEMY_MEMBERSHIP_KEY,ACADEMY_TEXT_KEYS,academyText} from './academy-config.js';
 
 const $ = s => document.querySelector(s);
@@ -180,6 +181,20 @@ function renderSettings(){
   ${field('stats_verified','أؤكد صحة الأرقام (+100 مشروع، +3 سنوات خبرة، 100% رضا عملاء) وأوافق على إظهارها علنًا',s.stats_verified,{type:'checkbox',full:true})}
   </div><div class="admin-actions"><button class="admin-btn" type="submit">حفظ التعديلات</button></div></form></div>`;
 }
+function servicePageEditor(){
+ const cfg=serviceConfig(data.settings);
+ return `<section class="admin-panel"><h2>إدارة صفحات الخدمات والتصنيفات</h2><p class="admin-note">أضف أقسامًا داخل كل صفحة، وحدد عدد الأعمدة وطريقة عرض الصور. المشاريع تختار أقسامها من نموذج إضافة المشروع.</p>
+ <form data-entity="service_pages"><div class="admin-form-grid">${SERVICE_PAGES.map(page=>{
+ const d=cfg[page.slug];return `<fieldset class="full" data-service-config="${page.slug}" style="border:1px solid #ffffff33;padding:16px;border-radius:14px;margin-bottom:15px"><legend>${esc(page.ar)}</legend>
+ ${field('sp_title_ar','عنوان الصفحة بالعربي',d.title_ar)}${field('sp_title_en','عنوان الصفحة بالإنجليزي',d.title_en)}
+ ${field('sp_description_ar','وصف الصفحة بالعربي',d.description_ar,{type:'textarea'})}
+ ${field('sp_description_en','وصف الصفحة بالإنجليزي',d.description_en,{type:'textarea'})}
+ ${field('sp_columns','عدد الأعمدة',d.columns,{select:[[2,'2'],[3,'3'],[4,'4']]})}
+ ${field('sp_ratio','أبعاد صور المشاريع',d.ratio,{select:[['landscape','أفقي'],['square','مربع'],['portrait','طولي'],['original','النسبة الأصلية']]})}
+ <label class="form-field full">التصنيفات الإضافية (اسم عربي | اسم إنجليزي، كل تصنيف في سطر)
+ <textarea name="sp_categories" rows="4" placeholder="إعلانات مطاعم | Restaurant Ads">${esc(d.categories.map(c=>c.ar+' | '+c.en).join('\n'))}</textarea></label></fieldset>`;
+ }).join('')}</div><button class="admin-btn" type="submit">حفظ صفحات الخدمات</button></form></section>`;
+}
 function renderItems(table){
   const isProjects=table==='projects';
   const isTestimonials=table==='testimonials';
@@ -187,7 +202,7 @@ function renderItems(table){
   const noun=isProjects?'مشروع':isTestimonials?'رأي عميل':'خدمة';
   const list=`<div class="admin-panel"><div class="admin-heading"><h2>${isProjects?'الأعمال المعروضة':isTestimonials?'آراء العملاء':'الخدمات المعروضة'}</h2>${uiButton(`+ إضافة ${noun}`,'add',table,'')}</div><div class="admin-rows">${arr.length?arr.map(row=>`<div class="admin-row"><div class="admin-row-content">${isProjects && safeUrl(row.image_url)?`<img class="admin-row-thumb" src="${esc(safeUrl(row.image_url))}" loading="lazy" alt=""/>`:''}<div><h3>${esc(isTestimonials?row.author_ar:row.title_ar)}</h3><p>${esc(isTestimonials?row.author_en:row.title_en)} · ${row.is_published?'منشور':'مسودة'} · #${esc(row.sort_order)}</p></div></div><div class="row-actions">${!isTestimonials?uiButton(row.is_published?'إخفاء':'نشر','togglepublish',`${table}|${row.id}`):''}${uiButton('تعديل','edit',`${table}|${row.id}`)}${uiButton('حذف','delete',`${table}|${row.id}`,'danger')}</div></div>`).join(''):`<p class="admin-empty">لا توجد عناصر بعد.</p>`}</div></div>`;
   const servicePages=table==='services'?`<div class="admin-panel"><h3>دليل صفحات الخدمات الفعلية</h3><p class="admin-note">الروابط الأربعة أدناه هي المعاينات المقابلة للخدمات الأساسية الظاهرة على الموقع. الخدمات الفعلية تتعدل من القائمة أسفل هذا الدليل، والمشاريع في كل صفحة تتحدد من تصنيف المشروع المنشور. لإضافة أعمال للصفحة افتح «المشاريع» واختر تصنيفها. عدّل أسماء الخدمات الفعلية من القائمة التالية.</p><div class="admin-rows">${[['social-media','السوشيال ميديا والإعلانات'],['video-motion','الريلز والبودكاست'],['ai-creative','التصميم بالذكاء الاصطناعي'],['branding','الهوية البصرية']].map(([slug,name])=>`<a class="admin-btn secondary" target="_blank" rel="noopener" href="./services/${slug}/">فتح تخصص ${name} ↗</a>`).join('')}</div></div>`:'';
-  if(!editing || editing.table!==table)return servicePages+list;
+  if(!editing || editing.table!==table)return servicePageEditor()+servicePages+list;
   const item=arr.find(a=>a.id===editing.id) || {};
   const isNew=!item.id;
   const main=isTestimonials ? `${field('author_ar','اسم العميل بالعربي',item.author_ar,{required:true})}${field('author_en','اسم العميل بالإنجليزي',item.author_en,{required:true})}
@@ -198,7 +213,10 @@ function renderItems(table){
   ${field('sort_order','الترتيب',item.sort_order??arr.length+1,{type:'number'})}${field('is_published','منشور على الموقع',item.is_published??false,{type:'checkbox'})}` : `${field('title_ar','العنوان بالعربي',item.title_ar,{required:true})}${field('title_en','عنوان المشروع بالإنجليزي',item.title_en,{required:true})}
   ${isProjects?`<details class="cms-advanced full"><summary>إعدادات الرابط المتقدمة (اختيارية) ▾</summary>${field('slug','عنوان رابط المشروع — يُنشأ تلقائيًا إذا تركته فارغًا',item.slug||'',{full:true})}<small>هذا الجزء يظهر في عنوان صفحة المشروع. اتركه فارغًا لنولّد رابطًا فريدًا بدلًا منك. لا تغيّره لمشروع منشور حتى لا ينكسر الرابط القديم.</small></details>
   <label class="form-field full">تصنيف المشروع (من التصنيفات المعتمدة)<select name="category_id" required>${PORTFOLIO_CATEGORIES.map(c=>`<option value="${esc(c.id)}" ${categoryFor(item)?.id===c.id?'selected':''}>${esc(c.ar)} — ${esc(c.en)}</option>`).join('')}</select><small>الاسم العربي والإنجليزي بيتسجلوا تلقائيًا لتجنب التكرار في المعرض.</small></label>
-  ${field('project_type','نوع المشروع',item.project_type||'concept',{select:[['concept','تصوّر إبداعي / تجربة شخصية'],['personal','عمل شخصي'],['client','مشروع عميل مصرح بنشره']]})}
+  <fieldset class="form-field full" style="border:1px solid #ffffff33;border-radius:12px;padding:12px"><legend>التصنيفات داخل صفحات الخدمات</legend>
+ <p class="admin-note">حدد الأقسام اللي هيظهر فيها المشروع داخل صفحة خدمته.</p>
+ ${SERVICE_PAGES.filter(page=>page.category===(categoryFor(item)?.id||PORTFOLIO_CATEGORIES[0].id)).map(page=>`<div><strong>${esc(page.ar)}</strong>${serviceConfig(data.settings)[page.slug].categories.map(c=>`<label class="form-field checkbox"><input type="checkbox" name="service_group_${page.slug}" value="${esc(c.id)}" ${projectServiceGroups(item,page.slug).includes(c.id)?'checked':''}>${esc(c.ar)}</label>`).join('')}</div>`).join('')||'<small>يمكن إضافة تصنيفات من قسم الخدمات.</small>'}</fieldset>
+   ${field('project_type','نوع المشروع',item.project_type||'concept',{select:[['concept','تصوّر إبداعي / تجربة شخصية'],['personal','عمل شخصي'],['client','مشروع عميل مصرح بنشره']]})}
   ${richField('summary_ar','شرح المشروع بالعربي',item.summary_ar,6)}${richField('summary_en','وصف المشروع بالإنجليزي',item.summary_en,6)}
   <details class="cms-advanced full"><summary>مظهر افتراضي لو لم ترفع صورة ▾</summary>${field('cover_style','ستايل الصورة الافتراضية',item.cover_style || 'aurora',{select:[['aurora','تدرجات فنية'],['type','حروف وتايبوجرافي'],['orbit','أشكال دائرية'],['pop','ألوان جريئة']]})}</details>
   <details class="cms-advanced full"><summary>استخدام رابط صورة جاهزة بدل الرفع (اختياري) ▾</summary>${field('image_url','رابط صورة الغلاف',item.image_url,{type:'text',full:true})}<small>استخدمه فقط لو الصورة موجودة بالفعل على الإنترنت برابط HTTPS. الأسهل: ارفع الصورة من جهازك في الأسفل.</small></details>
@@ -421,7 +439,7 @@ function setupToolTags(root){
 function getFields(form,table){
   const f=new FormData(form);
   const get=k=>String(f.get(k)||'').trim();
-  if(table==='tools')return {};
+  if(table==='tools'||table==='service_pages')return {};
    if(table==='academy_categories')return {};
    if(table==='content'){
     const content_ar={...(data.settings?.content_ar||{})},content_en={...(data.settings?.content_en||{})};
@@ -472,7 +490,7 @@ function getFields(form,table){
   }
   const common={sort_order:Number(get('sort_order'))||0,is_published:f.has('is_published')};
   if(table==='testimonials')return {...common,author_ar:get('author_ar'),author_en:get('author_en'),job_ar:get('job_ar'),job_en:get('job_en'),quote_ar:get('quote_ar'),quote_en:get('quote_en'),rating:Math.max(0,Math.min(5,Number(get('rating'))||0)),is_verified:f.has('is_verified')};
-  if(table==='projects'){const category=PORTFOLIO_CATEGORIES.find(c=>c.id===get('category_id'))||PORTFOLIO_CATEGORIES[0];return {...common,gallery_captions:readMediaCaptions(form,'gallery'),text_style:{font:get('text_font')||'Alexandria',size:Math.max(14,Math.min(30,Number(get('text_size'))||17))},title_ar:get('title_ar'),title_en:get('title_en'),category_ar:category.ar,category_en:category.en,summary_ar:get('summary_ar'),summary_en:get('summary_en'),cover_style:get('cover_style'),image_url:get('image_url'),external_url:get('external_url'),featured:f.has('featured'),video_url:get('video_url'),gallery_urls:get('gallery_urls'),objective_ar:get('objective_ar'),objective_en:get('objective_en'),tools_used:get('tools_used'),youtube_url:get('youtube_url'),project_type:get('project_type'),slug:get('slug') || `project-${Date.now()}-${Math.random().toString(36).slice(2,7)}`};}
+  if(table==='projects'){const captions=readMediaCaptions(form,'gallery');const groups={};for(const page of SERVICE_PAGES)groups[page.slug]=[...form.querySelectorAll('[name="service_group_'+page.slug+'"]:checked')].map(x=>x.value);captions.__service_groups=groups;const category=PORTFOLIO_CATEGORIES.find(c=>c.id===get('category_id'))||PORTFOLIO_CATEGORIES[0];return {...common,gallery_captions:captions,text_style:{font:get('text_font')||'Alexandria',size:Math.max(14,Math.min(30,Number(get('text_size'))||17))},title_ar:get('title_ar'),title_en:get('title_en'),category_ar:category.ar,category_en:category.en,summary_ar:get('summary_ar'),summary_en:get('summary_en'),cover_style:get('cover_style'),image_url:get('image_url'),external_url:get('external_url'),featured:f.has('featured'),video_url:get('video_url'),gallery_urls:get('gallery_urls'),objective_ar:get('objective_ar'),objective_en:get('objective_en'),tools_used:get('tools_used'),youtube_url:get('youtube_url'),project_type:get('project_type'),slug:get('slug') || `project-${Date.now()}-${Math.random().toString(36).slice(2,7)}`};}
   return {...common,title_ar:get('title_ar'),title_en:get('title_en'),description_ar:get('description_ar'),description_en:get('description_en'),icon:get('icon')};
 }
 async function saveForm(form){
@@ -534,6 +552,20 @@ async function saveForm(form){
       for(const [key] of ACADEMY_TEXT_KEYS){content_ar[key]=String(form.elements.namedItem('ar_'+key)?.value||'').trim();content_en[key]=String(form.elements.namedItem('en_'+key)?.value||'').trim();}
       entry={content_ar,content_en};
     }
+    if(table==='service_pages'){
+      const output={};const previous=serviceConfig(data.settings);
+      for(const row of form.querySelectorAll('[data-service-config]')){
+       const slug=row.dataset.serviceConfig,get=n=>row.querySelector('[name="'+n+'"]')?.value||'';
+       const old=previous[slug].categories;
+       const categories=String(get('sp_categories')).split(/\r?\n/).map(v=>v.trim()).filter(Boolean).slice(0,25).map((line,i)=>{
+        const [ar,en='']=line.split('|').map(x=>x.trim());
+        const existing=old.find(c=>c.ar===ar||c.en&&c.en===en);
+        return {id:existing?.id||('group-'+i+'-'+ar.length),ar:ar.slice(0,75),en:en.slice(0,75),enabled:true};
+       });
+       output[slug]={title_ar:get('sp_title_ar'),title_en:get('sp_title_en'),description_ar:get('sp_description_ar'),description_en:get('sp_description_en'),columns:Number(get('sp_columns')),ratio:get('sp_ratio'),categories};
+      }
+      entry={content_ar:{...(data.settings?.content_ar||{}),[SERVICE_PAGE_KEY]:JSON.stringify(output)}};
+    }
     if(table==='tools'){
       const rows=[...form.querySelectorAll('[data-admin-tool-row]')];
       if(rows.length>40)throw new Error('الحد الأقصى 40 أداة.');
@@ -592,7 +624,7 @@ async function saveForm(form){
     if(connected){
       formStatus(form,'اكتمل رفع الملفات، جاري تسجيل المشروع والبيانات في Supabase...');
       const db=await getClient(); let result;
-      if(['settings','content','future','appearance','notice','tools','academy_categories'].includes(table))result=await db.from('site_settings').update(entry).eq('id',1);
+      if(['settings','content','future','appearance','notice','tools','academy_categories','service_pages'].includes(table))result=await db.from('site_settings').update(entry).eq('id',1);
       else {
         const payload={...entry};
         if(id)payload.id=id;
