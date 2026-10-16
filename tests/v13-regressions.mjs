@@ -236,3 +236,9 @@ assert.match(read('assets/legal-dynamic.js'),/Array\.isArray\(p\.sections\)/,'le
 
 assert.match(read('assets/legal-dynamic.js'),/getPublicContent\(\)/,'legal pages reuse public site settings loader');
 assert.match(admin,/verified\?\.content_ar\?\.\[LEGAL_KEY\]!==expected/,'legal save requires persisted data verification');
+
+for(const legalPath of ['privacy.html','terms.html','copyright.html','legal-page.html']){
+ const html=read(legalPath);
+ assert.match(html,/src="\.\/config\.js"/,'legal page loads Supabase config: '+legalPath);
+ assert.ok(html.indexOf('src="./config.js"')<html.indexOf('src="./assets/legal-dynamic.js'),'config precedes legal reader: '+legalPath);
+}
