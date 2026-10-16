@@ -17,8 +17,17 @@ async function start(){
  if(!p)return;
  const heading=document.querySelector('.case-main .case-title');
  if(heading){heading.textContent=p[lang]||p.ar;document.title=heading.textContent+' | Mo Design'}
- const value=p['body_'+lang]||p.body_ar;
  const section=document.querySelector('.case-main .case-content');
- if(value&&section)section.innerHTML=contentHTML(value);
+ const sections=Array.isArray(p.sections)?p.sections:[];
+ if(section&&sections.length){
+   section.innerHTML=sections.map(part=>{
+     const heading=part['title_'+lang]||part.title_ar||'';
+     const text=part['text_'+lang]||part.text_ar||'';
+     return '<section class="legal-section">'+(heading?'<h2>'+escapeText(heading)+'</h2>':'')+(text?'<p>'+escapeText(text).replace(/\\n/g,'<br>')+'</p>':'')+'</section>';
+   }).join('');
+ }else{
+   const value=p['body_'+lang]||p.body_ar;
+   if(value&&section)section.innerHTML=contentHTML(value);
+ }
 }
 start();
