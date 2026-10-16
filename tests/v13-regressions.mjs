@@ -215,7 +215,7 @@ assert.match(publicService,/if\(activeGroup!=='all'&&!groups\.some/,'hidden cate
 
 assert.match(admin,/const cmsConnected=connected && new URLSearchParams\(location\.search\)\.get\('demo'\)!=='1'/,'demo query disables live database');
 assert.match(admin,/table==='legal_pages'\)data.settings/,'offline settings editors save locally');
-assert.match(read('admin.html'),/legal-editor-20261016/,'fresh dashboard code requested');
+assert.match(read('admin.html'),/legal-headings-20261016/,'fresh dashboard code requested');
 
 assert.match(admin,/function renderLegalPages\(/,'legal content editor is available');
 assert.match(admin,/data-legal-add/,'additional legal pages can be created');
@@ -223,3 +223,10 @@ assert.match(admin,/\[LEGAL_KEY\]:JSON\.stringify\(output\)/,'legal page changes
 assert.match(read('index.html'),/assets\/legal-dynamic\.js/,'homepage footer reads legal links');
 assert.match(read('privacy.html'),/data-legal-page="privacy"/,'privacy route remains intact');
 assert.match(read('legal-page.html'),/legal-dynamic\.js/,'additional pages have a public view');
+
+// Academy visibility must match the selected publishing state.
+assert.match(app,/action\.removeAttribute\('href'\)/,'coming soon cannot navigate to academy');
+assert.match(app,/section\.style\.setProperty\('display',section\.hidden\?'none'/,'hidden academy cannot be made visible by CSS');
+assert.match(app,/if\(mode==='live'\)/,'academy link enabled only when live');
+assert.match(read('assets/legal-dynamic.js'),/\^#\{1,3\}/,'legal page supports headings');
+assert.match(admin,/محتوى الصفحة بالعربي — اكتب #/,'legal heading instructions exist');
