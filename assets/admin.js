@@ -3,6 +3,7 @@ import { connected, getClient, adminAuthenticated, getAdminContent } from './api
 import {PORTFOLIO_CATEGORIES, categoryFor, formatTools} from './categories.js';
 import {getToolsCatalog,TOOLS_CATALOG_KEY} from './tools-catalog.js';
 import {SERVICE_PAGES,SERVICE_PAGE_KEY,serviceConfig,projectServiceGroups} from './service-config.js';
+import {LEGAL_KEY,legalPages} from './legal-config.js';
 import {getAcademyCategories,getAcademyMembership,ACADEMY_CATEGORIES_KEY,ACADEMY_MEMBERSHIP_KEY,ACADEMY_TEXT_KEYS,academyText} from './academy-config.js';
 
 const $ = s => document.querySelector(s);
@@ -27,7 +28,7 @@ window.addEventListener('beforeunload',event=>{
 });
 
 // Dashboard always uses its own neutral dark palette; the public site's theme remains unchanged.
-const labels = {notice:'إشعارات الموقع',overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',appearance:'مظهر الأقسام',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى',tools:'إدارة الأدوات'};
+const labels = {notice:'إشعارات الموقع',overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',appearance:'مظهر الأقسام',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى',tools:'إدارة الأدوات',legal:'الصفحات والروابط'};
 const FONT_CHOICES=[['Alexandria','Alexandria — حديث'],['Cairo','Cairo — واضح'],['Readex Pro','Readex Pro — هادي'],['IBM Plex Sans Arabic','IBM Plex Sans Arabic — احترافي']];
 const EXTRA_CONTENT_KEYS=[...ACADEMY_TEXT_KEYS.map(x=>x[0]),'hero_intro','hero_merged_role','hero_merged_description','hero_point_1','hero_point_2','hero_point_3','about_story_label','about_story_value','about_kicker','about_ribbon','portrait_tag','portrait_pill','hero_side','footer_line','learn_eyebrow','learn_big1','learn_big2','cta_kicker','tool_kicker','tools_eyebrow','ticker_items','project_about_title','project_objective_title','selected_real_sub','reviews_real_sub','featured_real_sub','portrait_copyright','hero_year','footer_copyright'];
 const ALL_COPY_KEYS=()=>[...new Set([...Object.keys(ar),...Object.keys(en),...EXTRA_CONTENT_KEYS])].filter(k=>EXTRA_CONTENT_KEYS.includes(k)||typeof ar[k]==='string'||typeof en[k]==='string');
@@ -435,10 +436,27 @@ document.addEventListener('change',event=>{
  const selected=event.target.value;
  editor.querySelectorAll('[data-service-group-for]').forEach(group=>{group.hidden=group.dataset.serviceGroupFor!==selected;});
 });
+function renderLegalPages(){
+ const pages=legalPages(data.settings);
+ return `<section class="admin-panel"><h2>الصفحات والروابط أسفل الموقع</h2><p class="admin-note">غير أسماء الصفحات ومحتواها، أو أضف صفحة جديدة. الروابط الأصلية ثابتة حتى لا تتعطل الروابط القديمة. لو تركت محتوى صفحة أصلية فارغًا سيظل النص الحالي كما هو.</p><form data-entity="legal_pages"><div data-legal-list>${pages.map(p=>legalRow(p)).join('')}</div><button type="button" class="admin-btn secondary" data-legal-add>+ إضافة صفحة</button><button type="submit" class="admin-btn">حفظ الصفحات والروابط</button></form></section>`;
+}
+function legalRow(p={}){
+ return `<fieldset data-legal-row data-legal-id="${esc(p.id||'')}" style="border:1px solid #ffffff33;border-radius:12px;padding:14px;margin:12px 0"><legend>${esc(p.ar||'صفحة جديدة')}</legend><div class="admin-form-grid">
+ ${field('legal_ar','الاسم بالعربي',p.ar||'',{required:true})}${field('legal_en','الاسم بالإنجليزي',p.en||'')}
+ ${field('legal_body_ar','محتوى الصفحة بالعربي (يمكن تركه فارغًا للاحتفاظ بالمحتوى الأصلي)',p.body_ar||'',{type:'textarea',full:true,rows:8})}
+ ${field('legal_body_en','محتوى الصفحة بالإنجليزي',p.body_en||'',{type:'textarea',full:true,rows:8})}
+ <label class="form-field"><input type="checkbox" name="legal_enabled" ${p.enabled!==false?'checked':''}/> إظهار الرابط</label>
+ ${['privacy','terms','copyright'].includes(p.id)?'<small>الصفحة الأصلية — نحافظ على عنوان رابطها القديم.</small>':'<button type="button" class="admin-btn secondary" data-legal-remove>حذف الصفحة الجديدة</button>'}
+ </div></fieldset>`;
+}
+document.addEventListener('click',event=>{
+ if(event.target.closest('[data-legal-add]')){const list=document.querySelector('[data-legal-list]');if(list&&list.children.length<15)list.insertAdjacentHTML('beforeend',legalRow());}
+ if(event.target.closest('[data-legal-remove]'))event.target.closest('[data-legal-row]')?.remove();
+});
 function renderPanel(){
   if(!data)return;
   const main=$('#adminMain'); if(!main) return;
-  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,services:()=>renderItems('services'),testimonials:()=>renderItems('testimonials'),messages:renderMessages,future:renderFuture,notice:renderNoticeEditor})[tab]();
+  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,legal:renderLegalPages,services:()=>renderItems('services'),testimonials:()=>renderItems('testimonials'),messages:renderMessages,future:renderFuture,notice:renderNoticeEditor})[tab]();
   main.innerHTML=`<header class="admin-heading v10-page-head"><div><span class="v10-page-path">Mo Design <span>/</span> مساحة العمل <span>/</span> ${esc(labels[tab])}</span><h1>${esc(labels[tab])}</h1><p>أدواتك ومحتواك وطلبات الشغل في مكان واحد.</p></div><div class="v10-page-actions"><span class="admin-badge">${cmsConnected?`<span class="v10-online-dot"></span> متصل`:'◌ وضع تجربة محلية'}</span><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">↗ شوف الموقع</a></div></header>${!cmsConnected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
   document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
   if(tab==='media')void loadMedia();
@@ -459,7 +477,7 @@ function setupToolTags(root){
 function getFields(form,table){
   const f=new FormData(form);
   const get=k=>String(f.get(k)||'').trim();
-  if(table==='tools'||table==='service_pages')return {};
+  if(table==='tools'||table==='service_pages'||table==='legal_pages')return {};
    if(table==='academy_categories')return {};
    if(table==='content'){
     const content_ar={...(data.settings?.content_ar||{})},content_en={...(data.settings?.content_en||{})};
@@ -572,6 +590,17 @@ async function saveForm(form){
       for(const [key] of ACADEMY_TEXT_KEYS){content_ar[key]=String(form.elements.namedItem('ar_'+key)?.value||'').trim();content_en[key]=String(form.elements.namedItem('en_'+key)?.value||'').trim();}
       entry={content_ar,content_en};
     }
+    if(table==='legal_pages'){
+      const existing=legalPages(data.settings);const output=[];
+      for(const [i,row] of [...form.querySelectorAll('[data-legal-row]')].entries()){
+        const val=n=>String(row.querySelector('[name="'+n+'"]')?.value||'').trim();
+        const ar=val('legal_ar');if(!ar)throw new Error('اكتب اسم الصفحة بالعربي.');
+        const id=row.dataset.legalId||('custom-'+Date.now().toString(36)+'-'+i);
+        const previous=existing.find(p=>p.id===id)||{};
+        output.push({id,ar:ar.slice(0,100),en:val('legal_en').slice(0,100),body_ar:val('legal_body_ar').slice(0,15000),body_en:val('legal_body_en').slice(0,15000),enabled:!!row.querySelector('[name="legal_enabled"]')?.checked,...(previous.url?{url:previous.url}:{})});
+      }
+      entry={content_ar:{...(data.settings?.content_ar||{}),[LEGAL_KEY]:JSON.stringify(output)}};
+    }
     if(table==='service_pages'){
       const previous=serviceConfig(data.settings);
       const output=Object.fromEntries(Object.entries(previous).map(([slug,config])=>[slug,{...config}]));
@@ -669,7 +698,7 @@ async function saveForm(form){
     if(cmsConnected){
       formStatus(form,'اكتمل رفع الملفات، جاري تسجيل المشروع والبيانات في Supabase...');
       const db=await getClient(); let result;
-      if(['settings','content','future','appearance','notice','tools','academy_categories','service_pages'].includes(table))result=await db.from('site_settings').update(entry).eq('id',1);
+      if(['settings','content','future','appearance','notice','tools','academy_categories','service_pages','legal_pages'].includes(table))result=await db.from('site_settings').update(entry).eq('id',1);
       else {
         const payload={...entry};
         if(id)payload.id=id;
@@ -689,7 +718,7 @@ async function saveForm(form){
       }
       data=await getAdminContent();
     } else {
-      if(table==='service_pages'||table==='tools'||table==='academy_categories')data.settings={...data.settings,...entry};
+      if(table==='service_pages'||table==='tools'||table==='academy_categories'||table==='legal_pages')data.settings={...data.settings,...entry};
       else if(['settings','content','future','appearance','notice'].includes(table))data.settings={...data.settings,...entry};
       else if(id){const index=data[table].findIndex(x=>x.id===id);if(index!==-1)data[table][index]={...data[table][index],...entry};}
       else data[table].push({...entry,id:`local-${Date.now()}`,slug:`project-${Date.now()}`});
