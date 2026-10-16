@@ -85,3 +85,7 @@ body{background-image:none!important}html{scroll-padding-top:92px}main{overflow:
 .tool-badge{display:grid;place-items:center;padding:6px;overflow:hidden;background:transparent;border:0;width:64px;height:64px}
 .tool-badge img{display:block;width:100%;height:100%;object-fit:contain}
 :root[lang="ar"] .about-title{letter-spacing:0}
+
+/* V13: readable project titles across Arabic, English and mobile screens */
+.case-main .case-hero .case-title{font-size:clamp(30px,4vw,58px);line-height:1.28;letter-spacing:-.035em;overflow-wrap:anywhere;max-width:1050px;margin-inline:auto;text-wrap:balance}
+@media(max-width:650px){.case-main .case-hero .case-title{font-size:clamp(27px,7vw,39px);line-height:1.35;letter-spacing:-.025em}}
