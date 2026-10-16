@@ -259,10 +259,10 @@ async function uploadImage(file,folder='general'){
  if(error)throw error;
  return db.storage.from('portfolio-media').getPublicUrl(path).data.publicUrl;
 }
-async function uploadLearningVideo(file){
+async function uploadLearningVideo(file,folder='learning'){
  if(!['video/mp4','video/webm'].includes(file.type)||file.size>45*1024*1024)throw Error('الفيديو لازم يكون MP4 أو WebM وحجمه أقل من 45 ميجابايت.');
  const db=await getClient();const ext=file.type==='video/mp4'?'mp4':'webm';
- const path=`learning/${crypto.randomUUID()}.${ext}`;
+ const path=`${folder}/${crypto.randomUUID()}.${ext}`;
  const {error}=await db.storage.from('portfolio-video').upload(path,file,{contentType:file.type,upsert:false,cacheControl:'3600'});
  if(error)throw error;
  return db.storage.from('portfolio-video').getPublicUrl(path).data.publicUrl;
@@ -621,7 +621,7 @@ async function saveForm(form){
       const newVideos=[];
       for(let i=0;i<projectVideos.length;i++){
        formStatus(form,'جاري رفع فيديو المشروع '+(i+1)+' من '+projectVideos.length+'...');
-       newVideos.push(await uploadLearningVideo(projectVideos[i]));
+       newVideos.push(await uploadLearningVideo(projectVideos[i],'projects'));
       }
       if(newVideos.length){
        if(!entry.video_url)entry.video_url=newVideos[0];
