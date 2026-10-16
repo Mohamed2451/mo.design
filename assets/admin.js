@@ -724,6 +724,12 @@ async function saveForm(form){
         result=table==='learning_items'?await db.from(table).upsert(payload).select('id').single():await db.from(table).upsert(payload);
       }
       if(result.error)throw result.error;
+      if(table==='legal_pages'){
+        const {data:verified,error:readError}=await db.from('site_settings').select('content_ar').eq('id',1).single();
+        if(readError)throw new Error('الحفظ تم لكن التحقق من المحتوى فشل: '+readError.message);
+        const expected=entry.content_ar?.[LEGAL_KEY];
+        if(verified?.content_ar?.[LEGAL_KEY]!==expected)throw new Error('لم يتم تأكيد حفظ نصوص الصفحات في قاعدة البيانات. راجع صلاحيات الحفظ.');
+      }
       if(table==='learning_items'){
         const savedId=String(result.data?.id||id||'');
         if(!savedId)throw new Error('تم حفظ المحتوى لكن تعذر معرفة رقمه لحفظ التصنيفات. افتح المحتوى من القائمة وحاول تاني.');
