@@ -565,7 +565,7 @@ async function saveForm(form){
        const old=previous[slug].categories;
        const categories=String(get('sp_categories')).split(/\r?\n/).map(v=>v.trim()).filter(Boolean).slice(0,25).map((line,i)=>{
         const [ar,en='']=line.split('|').map(x=>x.trim());
-        const existing=old.find(c=>c.ar===ar||c.en&&c.en===en);
+        const existing=old.find(c=>c.ar===ar||c.en&&c.en===en)||old[i];
         return {id:existing?.id||('group-'+i+'-'+ar.length),ar:ar.slice(0,75),en:en.slice(0,75),enabled:true};
        });
        output[slug]={title_ar:get('sp_title_ar'),title_en:get('sp_title_en'),description_ar:get('sp_description_ar'),description_en:get('sp_description_en'),columns:Number(get('sp_columns')),ratio:get('sp_ratio'),categories};
