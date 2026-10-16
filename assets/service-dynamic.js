@@ -44,9 +44,11 @@ function render(){
  count.textContent=projectsLoaded?tr('المشاريع المنشورة: ','Published projects: ')+projects.length:'';
  if(!projectsLoaded){gallery.innerHTML='<p class="v17-empty">'+tr('جاري تحميل المشاريع المنشورة...','Loading published projects...')+'</p>';return;}
  gallery.innerHTML=projects.length?projects.map(p=>{
-  const image=safeUrl(p.image_url);
+  const image=safeUrl(p.image_url),video=safeUrl(p.video_url);
+  const directVideo=video&&/\.(mp4|webm)(\?|$)/i.test(video);
   const href=root+'project.html?slug='+encodeURIComponent(p.slug||'');
-  return '<a class="v17-work" href="'+esc(href)+'">'+(image?'<img src="'+esc(image)+'" alt="'+esc(label(p,'title'))+'" loading="lazy">':'<div class="v17-fallback" aria-hidden="true">◇</div>')+'<span>'+esc(label(p,'title'))+'</span></a>';
+  const cover=image?'<img src="'+esc(image)+'" alt="'+esc(label(p,'title'))+'" loading="lazy">':directVideo?'<video muted playsinline preload="metadata" aria-label="'+esc(label(p,'title'))+'"><source src="'+esc(video)+'" type="'+(/\.webm/i.test(video)?'video/webm':'video/mp4')+'"></video>':'<div class="v17-fallback" aria-hidden="true">◇</div>';
+  return '<a class="v17-work" href="'+esc(href)+'">'+cover+'<span>'+esc(label(p,'title'))+(directVideo?' ▷':'')+'</span></a>';
  }).join(''):'<p class="v17-empty">'+tr('لا توجد مشاريع منشورة في هذا التصنيف حاليًا. أضف مشروعًا من لوحة التحكم وحدد نفس التصنيف ثم انشره.','No published projects in this category yet. Add and publish one in the dashboard.')+'</p>';
 }
 document.getElementById('serviceFilters')?.addEventListener('click',e=>{const btn=e.target.closest('[data-service-filter]');if(btn){activeGroup=btn.dataset.serviceFilter;render();}});
