@@ -242,3 +242,11 @@ for(const legalPath of ['privacy.html','terms.html','copyright.html','legal-page
  assert.match(html,/src="\.\/config\.js"/,'legal page loads Supabase config: '+legalPath);
  assert.ok(html.indexOf('src="./config.js"')<html.indexOf('src="./assets/legal-dynamic.js'),'config precedes legal reader: '+legalPath);
 }
+
+// Supabase integration audit: dynamic routes must load configuration before data modules.
+for(const page of ['index.html','admin.html','project.html','learning.html','lesson.html','privacy.html','terms.html','copyright.html','legal-page.html','services/social-media/index.html','services/video-motion/index.html','services/branding/index.html','services/ai-creative/index.html']){
+ const html=read(page);
+ assert.match(html,/src="(?:\.\/|\.\.\/\.\.\/)config\.js"/,'Supabase config required: '+page);
+}
+assert.match(read('assets/learning-page.js'),/mode==='live'/,'academy public listing respects live status');
+assert.match(read('assets/lesson.js'),/settings\.education_mode!=='live'/,'academy direct lessons respect live status');
