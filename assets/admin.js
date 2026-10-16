@@ -101,10 +101,10 @@ function renderLogin(error=''){
 function baseShell(){
  const groups=[
   {title:'المكتب',items:['overview','messages']},
-  {title:'إدارة المحتوى',items:['content','appearance','projects','media','services','tools','testimonials','future','notice']},
+  {title:'إدارة المحتوى',items:['content','appearance','projects','media','services','tools','legal','testimonials','future','notice']},
   {title:'الهوية والإعدادات',items:['settings']}
  ];
- const icons={overview:'◫',messages:'✉',content:'▤',appearance:'◈',projects:'▦',media:'▧',tools:'◈',services:'◇',testimonials:'❞',future:'▷',notice:'♧',settings:'⚙'};
+ const icons={overview:'◫',messages:'✉',content:'▤',appearance:'◈',projects:'▦',media:'▧',tools:'◈',services:'◇',testimonials:'❞',future:'▷',notice:'♧',legal:'▣',settings:'⚙'};
  $('#adminApp').innerHTML=`<div class="admin-layout v10-shell"><aside class="admin-sidebar">
  <div class="studio-sidebar-top"><a href="./index.html" class="brand v10-brand"><span class="brand-mark"><img src="./assets/images/mo-logo-white.webp" alt="" data-admin-brand-logo /></span><span><strong>Mo Design</strong><small>مساحة الإدارة الإبداعية</small></span></a><div class="v10-workspace-badge"><span class="v10-online-dot"></span> مساحة الإدارة الخاصة</div></div>
  <nav class="sidebar-nav" id="adminNav" aria-label="أقسام لوحة الإدارة">${groups.map(group=>`<div class="v10-nav-group"><div class="v10-nav-label">${group.title}</div>${group.items.map(key=>`<button type="button" data-tab="${key}" class="${tab===key?'active':''}"><span class="v10-nav-icon" aria-hidden="true">${icons[key]}</span><span>${labels[key]}</span><span class="v10-nav-chevron" aria-hidden="true">‹</span></button>`).join('')}</div>`).join('')}</nav>
