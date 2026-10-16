@@ -216,3 +216,10 @@ assert.match(publicService,/if\(activeGroup!=='all'&&!groups\.some/,'hidden cate
 assert.match(admin,/const cmsConnected=connected && new URLSearchParams\(location\.search\)\.get\('demo'\)!=='1'/,'demo query disables live database');
 assert.match(admin,/if\(table==='service_pages'\|\|table==='tools'\|\|table==='academy_categories'\)/,'offline settings editors save locally');
 assert.match(read('admin.html'),/replace-media-20261016/,'fresh dashboard code requested');
+
+assert.match(admin,/function renderLegalPages\(/,'legal content editor is available');
+assert.match(admin,/data-legal-add/,'additional legal pages can be created');
+assert.match(admin,/\[LEGAL_KEY\]:JSON\.stringify\(output\)/,'legal page changes persist to settings');
+assert.match(read('index.html'),/assets\/legal-dynamic\.js/,'homepage footer reads legal links');
+assert.match(read('privacy.html'),/data-legal-page="privacy"/,'privacy route remains intact');
+assert.match(read('legal-page.html'),/legal-dynamic\.js/,'additional pages have a public view');
