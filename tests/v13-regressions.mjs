@@ -178,4 +178,13 @@ assert.match(app,/prefers-reduced-motion/,'animations honor reduced motion');
 assert.match(sitemap,/mo\.design\/learning\.html/,'academy route is in sitemap');
 assert.match(sitemap,/mo\.design\/services\/social-media\//,'service route is in sitemap');
 assert.match(robots,/mohamed2451\.github\.io\/mo\.design\/sitemap\.xml/,'robots points to GitHub Pages sitemap');
+const serviceDynamic=read('assets/service-dynamic.js');
+assert.match(serviceDynamic,/\.eq\('is_published',true\)/,'service projects are read from published Supabase rows');
+assert.match(serviceDynamic,/categoryFor\(p\)/,'service work is mapped by its real project category');
+assert.match(serviceDynamic,/if\(!projectsLoaded\)/,'service pages wait for actual data');
+for(const servicePath of ['social-media','video-motion','ai-creative','branding','prompt-engineering']){
+ const page=read('services/'+servicePath+'/index.html');
+ assert.match(page,/service-dynamic\.js\?v=published-only/,'service '+servicePath+' uses live renderer');
+ assert.doesNotMatch(page,/Social Posts|Product Ads|Campaign Systems|GLOW LAB|SOLAR POP/,'service '+servicePath+' has no static demo content');
+}
 console.log('V13 regression checks passed');
