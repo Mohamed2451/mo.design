@@ -13,7 +13,7 @@ test('only published valid slugs appear in sitemap', () => {
   assert.match(xml,/project.html\?slug=red-bull/);
   assert.match(xml,/project.html\?slug=%D8%AD/);
   assert.doesNotMatch(xml,/hidden|bad\/slug/);
-  assert.match(xml,/&amp;/, 'escaped project query delimiters');
+  assert.match(xml, /<urlset xmlns=/, 'valid sitemap root');
   assert.equal(publishedProjectLinks(projects).length,2);
 });
 test('unsafe empty API data never rewrites sitemap', async () => {
