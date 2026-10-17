@@ -94,7 +94,7 @@ function setBrandContent() {
 }
 function caseUrl(project){
   const slug=String(project.slug||'').trim();
-  return `./project.html?slug=${encodeURIComponent(slug)}`;
+  return /^[a-zA-Z0-9_-]{1,140}$/.test(slug)?`./projects/${encodeURIComponent(slug)}/`:`./project.html?slug=${encodeURIComponent(slug)}`;
 }
 
 function graphicHTML(project) {

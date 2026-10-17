@@ -6,6 +6,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
+import { projectUrl, syncProjectPages } from './project-seo.mjs';
 
 export const SITE = 'https://mohamed2451.github.io/mo.design/';
 export const STATIC_PAGES = Object.freeze([
@@ -26,7 +27,7 @@ export function publishedProjectLinks(records) {
     slugs.add(slug);
   }
   return [...slugs].sort((a, b) => a.localeCompare(b, 'en'))
-    .map(slug => SITE + 'project.html?slug=' + encodeURIComponent(slug));
+    .map(slug => projectUrl(slug)).filter(Boolean);
 }
 
 export function sitemapXML(records) {
@@ -51,7 +52,7 @@ export async function fetchPublishedProjects({ fetchImpl = fetch, configText } =
   const pageSize = 500;
   for (let offset = 0; offset <= 50000; offset += pageSize) {
     const endpoint = new URL('rest/v1/projects', url.replace(/\/$/, '') + '/');
-    endpoint.searchParams.set('select', 'slug,is_published');
+    endpoint.searchParams.set('select', 'slug,is_published,title_ar,title_en,summary_ar,summary_en,objective_ar,image_url');
     endpoint.searchParams.set('is_published', 'eq.true');
     endpoint.searchParams.set('order', 'slug.asc');
     endpoint.searchParams.set('limit', String(pageSize));
@@ -75,6 +76,7 @@ export async function fetchPublishedProjects({ fetchImpl = fetch, configText } =
 
 async function main() {
   const projects = await fetchPublishedProjects();
+  await syncProjectPages(projects);
   const xml = sitemapXML(projects);
   const destination = resolve('sitemap.xml');
   const old = await readFile(destination, 'utf8').catch(() => '');
