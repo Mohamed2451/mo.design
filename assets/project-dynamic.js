@@ -13,6 +13,23 @@ const fld=k=>tField(entry,k,lang)||'';
 const route=new URLSearchParams(location.search).get('slug') || document.body.dataset.projectSlug || null;
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 
+// Fast, read-only REST query: avoids downloading the Supabase JS SDK before the
+// user can see the actual project. Uses only the site's PUBLIC publishable key.
+async function publicRow(table, filters) {
+ const cfg=window.PORTFOLIO_CONFIG || {};
+ if(!cfg.supabaseUrl || !cfg.supabasePublishableKey)throw new Error('Public CMS unavailable');
+ const url=new URL('/rest/v1/'+table, cfg.supabaseUrl);
+ url.searchParams.set('select','*');
+ url.searchParams.set('limit','1');
+ for(const [name,value] of Object.entries(filters)) url.searchParams.set(name,'eq.'+String(value));
+ const response=await fetch(url,{headers:{apikey:cfg.supabasePublishableKey,Accept:'application/json'},
+   signal:AbortSignal.timeout(9000)});
+ if(!response.ok)throw new Error('CMS public request HTTP '+response.status);
+ const rows=await response.json();
+ if(!Array.isArray(rows))throw new Error('Unexpected CMS public response');
+ return rows[0]||null;
+}
+
 function updateProjectSEO(project) {
   let robots = document.querySelector('meta[name="robots"]');
 
@@ -104,7 +121,9 @@ if (!route || !/^[a-zA-Z0-9_-]{1,140}$/.test(route)) {
   showLoadError(tr('رابط المشروع غير صحيح.', 'Invalid project link.'));
   return;
 }
- $('dynamicProject').innerHTML=`<section class="case-hero"><h1 class="case-title">${tr('جاري تحميل المشروع…','Loading project…')}</h1></section>`;
+ // Keep the pre-rendered title, cover, and summary visible during network work.
+ if(document.body.dataset.seoPrerender!=='1')
+   $('dynamicProject').innerHTML=`<section class="case-hero"><h1 class="case-title">${tr('جاري تحميل المشروع…','Loading project…')}</h1></section>`;
  if(!connected){
   const demo=readDemo();settings=demo.settings;entry=(demo.projects||[]).find(p=>p.slug===route&&p.is_published)||null;
   try{render()}catch(error){console.error('Project render failed',error);showLoadError(tr('حصل خطأ أثناء عرض المشروع.','Could not display this project.'))}
@@ -112,24 +131,30 @@ if (!route || !/^[a-zA-Z0-9_-]{1,140}$/.test(route)) {
  }
  for(let attempt=1;attempt<=3;attempt++){
   try{
-   const db=await getClient();
-   // Only request this project: errors in services/reviews/lessons must never block it.
-   const {data:project,error}=await db.from('projects').select('*').eq('slug',route).eq('is_published',true).maybeSingle();
-   if(error)throw error;
+   // Public REST is significantly faster than importing an external SDK.
+   // The existing SDK remains a fallback if an API gateway behaves differently.
+   let project;
+   try { project=await publicRow('projects',{slug:route,is_published:true}); }
+   catch(restError) {
+     console.warn('Fast public project request failed; trying SDK fallback',restError);
+     const db=await getClient();
+     const response=await db.from('projects').select('*').eq('slug',route).eq('is_published',true).maybeSingle();
+     if(response.error)throw response.error;
+     project=response.data;
+   }
    entry=project||null;
    // Render immediately after the required project query. Settings are optional.
    settings={};
    try{render()}catch(renderError){console.error('Project display error',renderError);showLoadError(tr('حصل خطأ أثناء عرض بيانات المشروع.','Project rendering failed.'));return;}
-   void db.from('site_settings').select('*').eq('id',1).maybeSingle()
-     .then(({data:site,error:settingsError})=>{
-       if(settingsError){console.warn('Optional project settings unavailable:',settingsError.message);return;}
-       if(site){settings=site;try{render()}catch(renderError){console.warn('Optional settings render failed:',renderError);}}
-     }).catch(settingsError=>console.warn('Optional project settings request failed:',settingsError));
+   void publicRow('site_settings',{id:1})
+     .then(site=>{if(site){settings=site;try{render()}catch(err){console.warn('Optional settings render failed',err);}}})
+     .catch(err=>console.warn('Optional project settings request failed:',err));
    return;
   }catch(error){
    console.warn(`Mo Design project loading attempt ${attempt}/3`,error);
    if(attempt<3)await wait(450*attempt);
-   else showLoadError(tr('تعذر تحميل المشروع مؤقتًا.','Unable to load the project right now.'));
+   else if(document.body.dataset.seoPrerender!=='1')showLoadError(tr('تعذر تحميل المشروع مؤقتًا.','Unable to load the project right now.'));
+   else console.warn('Displaying cached project information while CMS is temporarily unavailable');
   }
  }
 }
