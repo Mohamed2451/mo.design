@@ -1,4 +1,4 @@
-import {getPublicContent} from './api.js';
+import {readPublicRows} from './public-content-reader.js';
 import {safeUrl,escapeHTML as esc,tField} from './data.js';
 import {getAcademyCategories,getAcademyMembership,academyText} from './academy-config.js';
 
@@ -67,13 +67,20 @@ $('#learningLang').addEventListener('click',()=>{
  try{localStorage.setItem('portfolio_lang',lang)}catch{}
  render();
 });
-getPublicContent().then(data=>{
- if(data._loadWarnings?.includes('learning items'))throw new Error('Academy content temporarily unavailable');
- settings=data.settings||{};
- items=(data.learning_items||[]).filter(item=>item.is_published).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0));
- render();
-}).catch(error=>{
- console.error('Mo Design: academy loading failed',error);
- $('#learningGrid').setAttribute('aria-busy','false');
- $('#learningGrid').innerHTML='<p class="academy-empty">'+esc(copy[lang].error)+'</p>';
-});
+async function loadAcademy() {
+ try {
+  const [siteRows,learningRows] = await Promise.all([
+   readPublicRows('site_settings',{eq:{id:1},limit:1}),
+   readPublicRows('learning_items',{eq:{is_published:true},limit:500})
+  ]);
+  settings=siteRows[0]||{};
+  items=learningRows.filter(item=>item.is_published===true)
+   .sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0));
+  render();
+ } catch(error) {
+  console.warn('Mo Design academy public data unavailable',error);
+  $('#learningGrid').setAttribute('aria-busy','false');
+  $('#learningGrid').innerHTML='<p class="academy-empty">'+esc(copy[lang].error)+'</p>';
+ }
+}
+void loadAcademy();

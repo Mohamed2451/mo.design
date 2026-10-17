@@ -53,7 +53,7 @@ assert.match(admin,/restoreInquiry/,'inquiries offer restore action');
 assert.match(admin,/تم تحديث حالة الطلب والعداد/,'inquiry status updates the counter');
 assert.match(app,/requestAnimationFrame/,'restored pointer interactions are frame-throttled');
 const servicePageJs=read('assets/service-dynamic.js');
-assert.match(servicePageJs,/\.from\('projects'\)/,'service pages query published CMS projects');
+assert.match(servicePageJs,/readPublicRows\('projects',\{eq:\{is_published:true\}/,'service pages query published CMS projects');
 assert.match(servicePageJs,/categoryFor\(p\)/,'service pages filter actual CMS categories');
 assert.match(servicePageJs,/sort_order/,'service pages respect project order');
 assert.match(servicePageJs,/project\.html\?slug=/,'service projects link to live project details');
@@ -179,7 +179,7 @@ assert.match(sitemap,/mo\.design\/learning\.html/,'academy route is in sitemap')
 assert.match(sitemap,/mo\.design\/services\/social-media\//,'service route is in sitemap');
 assert.match(robots,/mohamed2451\.github\.io\/mo\.design\/sitemap\.xml/,'robots points to GitHub Pages sitemap');
 const serviceDynamic=read('assets/service-dynamic.js');
-assert.match(serviceDynamic,/\.eq\('is_published',true\)/,'service projects are read from published Supabase rows');
+assert.match(serviceDynamic,/readPublicRows\('projects',\{eq:\{is_published:true\}/,'service projects are read from published Supabase rows');
 assert.match(serviceDynamic,/categoryFor\(p\)/,'service work is mapped by its real project category');
 assert.match(serviceDynamic,/if\(!projectsLoaded\)/,'service pages wait for actual data');
 for(const servicePath of ['social-media','video-motion','ai-creative','branding','prompt-engineering']){

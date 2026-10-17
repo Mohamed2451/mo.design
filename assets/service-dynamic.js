@@ -1,4 +1,4 @@
-import {connected,getClient} from './api.js';
+import {readPublicRows} from './public-content-reader.js';
 import {escapeHTML as esc,safeUrl} from './data.js';
 import {PORTFOLIO_CATEGORIES,categoryFor} from './categories.js';
 import {serviceConfig,projectServiceGroups} from './service-config.js';
@@ -57,17 +57,16 @@ document.getElementById('switchLang')?.addEventListener('click',()=>{localStorag
 document.getElementById('switchTheme')?.addEventListener('click',()=>{const light=document.documentElement.classList.toggle('light');localStorage.setItem('portfolio_theme',light?'light':'dark');});
 try{if(localStorage.getItem('portfolio_theme')==='light')document.documentElement.classList.add('light')}catch{}
 render();
-if(connected){
- try{
-  const db=await getClient();
-  const [ps,ss,st]=await Promise.all([
-   db.from('projects').select('*').eq('is_published',true).order('sort_order'),
-   db.from('services').select('*').eq('is_published',true).order('sort_order'),
-   db.from('site_settings').select('*').eq('id',1).maybeSingle()
-  ]);
-  if(ps.error)throw ps.error;
-  snapshot={projects:ps.data||[],services:ss.error?[]:ss.data||[],settings:st.error?{}:(st.data||{})};
-  projectsLoaded=true;
-  render();
- }catch(e){console.warn('Service page data unavailable',e);gallery.innerHTML='<p class="v17-empty">'+tr('تعذر تحميل المشاريع مؤقتًا. حاول تحديث الصفحة.','Projects could not be loaded. Please refresh.')+'</p>';}
-}else{gallery.innerHTML='<p class="v17-empty">'+tr('يجب توصيل قاعدة البيانات لعرض المشاريع.','Connect the database to show projects.')+'</p>';}
+try {
+ const [ps,ss,st]=await Promise.all([
+  readPublicRows('projects',{eq:{is_published:true},limit:500}),
+  readPublicRows('services',{eq:{is_published:true},limit:100}),
+  readPublicRows('site_settings',{eq:{id:1},limit:1})
+ ]);
+ snapshot={projects:ps,services:ss,settings:st[0]||{}};
+ projectsLoaded=true;
+ render();
+} catch(error) {
+ console.warn('Service page data unavailable',error);
+ gallery.innerHTML='<p class="v17-empty">'+tr('تعذر تحميل المشاريع مؤقتًا. حاول تحديث الصفحة.','Projects could not be loaded. Please refresh.')+'</p>';
+}
