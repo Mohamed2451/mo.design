@@ -10,8 +10,8 @@ test('only published valid slugs appear in sitemap', () => {
     {slug:'bad/slug',is_published:true}
   ];
   const xml=sitemapXML(projects);
-  assert.match(xml,/project.html\?slug=red-bull/);
-  assert.match(xml,/project.html\?slug=%D8%AD/);
+  assert.match(xml,/projects\/red-bull\//);
+  assert.match(xml,/projects\//);
   assert.doesNotMatch(xml,/hidden|bad\/slug/);
   assert.match(xml, /<urlset xmlns=/, 'valid sitemap root');
   assert.equal(publishedProjectLinks(projects).length,2);
@@ -21,4 +21,18 @@ test('unsafe empty API data never rewrites sitemap', async () => {
     configText:`window.PORTFOLIO_CONFIG={supabaseUrl:'https://example.supabase.co',supabasePublishableKey:'publishable'}`,
     fetchImpl:async()=>({ok:true,json:async()=>[]})
   }),/No published projects/);
+});
+
+test('static SEO page embeds a unique project heading and canonical URL', async () => {
+ const { renderProjectPage } = await import('../scripts/project-seo.mjs');
+ const { readFile } = await import('node:fs/promises');
+ const template = await readFile('project.html','utf8');
+ const page = renderProjectPage(template,{
+  slug:'test-project',is_published:true,title_ar:'مشروع تجريبي',summary_ar:'تفاصيل المشروع',image_url:'https://example.org/image.png'
+ });
+ assert.match(page, /مشروع تجريبي \| مو ديزاين Mo Design/);
+ assert.match(page, /<h1 class="case-title">مشروع تجريبي<\/h1>/);
+ assert.match(page, /projects\/test-project\//);
+ assert.match(page, /data-project-slug="test-project"/);
+ assert.match(page, /<base href="\.\.\/\.\.\/"/);
 });
