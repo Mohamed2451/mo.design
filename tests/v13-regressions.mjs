@@ -53,7 +53,7 @@ assert.match(admin,/restoreInquiry/,'inquiries offer restore action');
 assert.match(admin,/تم تحديث حالة الطلب والعداد/,'inquiry status updates the counter');
 assert.match(app,/requestAnimationFrame/,'restored pointer interactions are frame-throttled');
 const servicePageJs=read('assets/service-dynamic.js');
-assert.match(servicePageJs,/\.from\('projects'\)/,'service pages query published CMS projects');
+assert.match(servicePageJs,/readPublicRows\('projects',\{eq:\{is_published:true\}/,'service pages query published CMS projects');
 assert.match(servicePageJs,/categoryFor\(p\)/,'service pages filter actual CMS categories');
 assert.match(servicePageJs,/sort_order/,'service pages respect project order');
 assert.match(servicePageJs,/project\.html\?slug=/,'service projects link to live project details');
