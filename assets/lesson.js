@@ -1,4 +1,4 @@
-import {getPublicContent} from './api.js';
+import {readPublicRows} from './public-content-reader.js';
 import {escapeHTML as esc, safeUrl, tField} from './data.js';
 import {renderRich,textStyle} from './rich-text.js';
 const qs=new URLSearchParams(location.search);
@@ -43,7 +43,7 @@ function render(){applyTheme();if(!article)return;
 }
 document.getElementById('lessonLang').onclick=()=>{lang=lang==='ar'?'en':'ar';localStorage.setItem('portfolio_lang',lang);render()};
 document.getElementById('lessonTheme').onclick=()=>{theme=theme==='light'?'dark':'light';localStorage.setItem('portfolio_theme',theme);render()};
-try{const id=qs.get('id')||'';const content=await getPublicContent();settings=content.settings||{};article=(content.learning_items||[]).find(item=>String(item.id)===id&&item.is_published);
+try{const id=qs.get('id')||'';const [siteRows, lessonRows]=await Promise.all([readPublicRows('site_settings',{eq:{id:1},limit:1}),readPublicRows('learning_items',{eq:{id,is_published:true},limit:1})]);settings=siteRows[0]||{};article=lessonRows[0]||null;
  if(!article||settings.education_mode!=='live'||settings.section_visibility?.learn===false){root.innerHTML='<div class="lesson-error"><h1>الدرس مش متاح حاليًا</h1><p>يمكن يكون لسه مسودة أو اتخفى من لوحة التحكم.</p><a href="./index.html#learn">ارجع للمحتوى</a></div>'}
  else render();
 }catch(e){root.innerHTML='<div class="lesson-error"><h1>حصلت مشكلة في تحميل الدرس</h1><p>جرّب تحديث الصفحة أو ارجع لقائمة المحتوى.</p><a href="./index.html#learn">رجوع</a></div>';console.warn(e)}
