@@ -94,7 +94,10 @@ function setBrandContent() {
 }
 function caseUrl(project){
   const slug=String(project.slug||'').trim();
-  return /^[a-zA-Z0-9_-]{1,140}$/.test(slug)?`./projects/${encodeURIComponent(slug)}/`:`./project.html?slug=${encodeURIComponent(slug)}`;
+  // Always open the immediately available dynamic route. The hourly build
+  // provides an independently indexed static page and XML sitemap for Google.
+  // Linking straight to the static page can yield a 404 for a newly published item.
+  return `./project.html?slug=${encodeURIComponent(slug)}`;
 }
 
 function graphicHTML(project) {
