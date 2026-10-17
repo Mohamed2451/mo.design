@@ -39,8 +39,8 @@ export function sitemapXML(records) {
 }
 
 function publicConfig(source) {
-  const url = source.match(/supabaseUrl:\\s*['"]([^'"]+)['"]/);
-  const key = source.match(/supabasePublishableKey:\\s*['"]([^'"]+)['"]/);
+  const url = source.match(/supabaseUrl:\s*['"]([^'"]+)['"]/);
+  const key = source.match(/supabasePublishableKey:\s*['"]([^'"]+)['"]/);
   if (!url || !key) throw new Error('Missing public Supabase configuration');
   return { url: url[1], key: key[1] };
 }
@@ -50,7 +50,7 @@ export async function fetchPublishedProjects({ fetchImpl = fetch, configText } =
   const all = [];
   const pageSize = 500;
   for (let offset = 0; offset <= 50000; offset += pageSize) {
-    const endpoint = new URL('rest/v1/projects', url.replace(/\\/$/, '') + '/');
+    const endpoint = new URL('rest/v1/projects', url.replace(/\/$/, '') + '/');
     endpoint.searchParams.set('select', 'slug,is_published');
     endpoint.searchParams.set('is_published', 'eq.true');
     endpoint.searchParams.set('order', 'slug.asc');
