@@ -4,7 +4,7 @@
  * Run: node scripts/update-sitemap.mjs
  */
 import { readFile, writeFile } from 'node:fs/promises';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 
 export const SITE = 'https://mohamed2451.github.io/mo.design/';
@@ -64,6 +64,7 @@ export async function fetchPublishedProjects({ fetchImpl = fetch, configText } =
     const rows = await response.json();
     if (!Array.isArray(rows)) throw new Error('Supabase response was not a project list');
     all.push(...rows);
+    // Public RLS may return only published rows; never read or write private content.
     if (rows.length < pageSize) break;
     if (offset === 50000) throw new Error('Project pagination safety limit reached');
   }
