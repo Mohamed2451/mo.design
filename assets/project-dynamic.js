@@ -10,7 +10,7 @@ const $=id=>document.getElementById(id);
 const tr=(a,b)=>lang==='ar'?a:b;
 const txt=tr;
 const fld=k=>tField(entry,k,lang)||'';
-const route=new URLSearchParams(location.search).get('slug');
+const route=new URLSearchParams(location.search).get('slug') || document.body.dataset.projectSlug || null;
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 
 function updateProjectSEO(project) {
@@ -33,10 +33,9 @@ function updateProjectSEO(project) {
       document.head.appendChild(canonical);
     }
 
-    canonical.href = new URL(
-      './project.html?slug=' + encodeURIComponent(route),
-      location.href
-    ).href;
+    canonical.href = document.body.dataset.seoPrerender === '1'
+      ? new URL('./projects/' + encodeURIComponent(route) + '/', document.baseURI).href
+      : new URL('./project.html?slug=' + encodeURIComponent(route), document.baseURI).href;
   } else if (canonical) {
     canonical.remove();
   }
@@ -65,7 +64,11 @@ function chrome(){
 }
 function render(){chrome();updateProjectSEO(entry);
  if(!entry){$('dynamicProject').innerHTML=`<section class="case-hero"><h1 class="case-title">${tr('المشروع غير متاح','Project unavailable')}</h1><a href="./index.html#work" class="inner-primary">${tr('شوف الأعمال','Explore portfolio')}</a></section>`;return;}
- document.title=`${fld('title')} | Mo Design`;
+ document.title=`${fld('title')} | مو ديزاين Mo Design`;
+ const seoDescription=document.querySelector('meta[name="description"]');
+ if(seoDescription){seoDescription.content=String(fld('summary')||fld('objective')||fld('title')).replace(/<[^>]*>/g,' ').slice(0,200);}
+ const ogTitle=document.querySelector('meta[property="og:title"]');if(ogTitle)ogTitle.content=document.title;
+ const ogDescription=document.querySelector('meta[property="og:description"]');if(ogDescription&&seoDescription)ogDescription.content=seoDescription.content;
  const media=safeUrl(entry.image_url);
  const video=safeUrl(entry.video_url);
  const isConcept=entry.project_type==='concept' || String(entry.id).startsWith('demo-');
