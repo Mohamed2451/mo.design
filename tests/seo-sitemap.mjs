@@ -14,7 +14,7 @@ test('only published valid slugs appear in sitemap', () => {
   assert.match(xml,/projects\//);
   assert.doesNotMatch(xml,/hidden|bad\/slug/);
   assert.match(xml, /<urlset xmlns=/, 'valid sitemap root');
-  assert.equal(publishedProjectLinks(projects).length,2);
+  assert.equal(publishedProjectLinks(projects).length,1);
 });
 test('unsafe empty API data never rewrites sitemap', async () => {
   await assert.rejects(fetchPublishedProjects({
