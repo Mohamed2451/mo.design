@@ -1,6 +1,12 @@
 name: Refresh search sitemap (development)
 
 on:
+  push:
+    branches:
+      - mo-design-v13-dev
+    paths:
+      - '.github/workflows/refresh-sitemap.yml'
+      - 'scripts/update-sitemap.mjs'
   schedule:
     - cron: '15 5 * * *'
   workflow_dispatch:
