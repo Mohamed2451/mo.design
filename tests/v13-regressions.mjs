@@ -257,3 +257,7 @@ assert.match(signatureCSS,/#signature \.editorial-intro\{/,'signature intro has 
 assert.match(signatureCSS,/object-fit:contain!important/,'signature images are fully visible');
 assert.match(signatureCSS,/grid-template-columns:minmax\(0,1fr\)/,'single-column mobile signature gallery');
 assert.match(signatureCSS,/position:static/,'signature captions are outside image frames');
+
+// Academy module must parse as JavaScript: a duplicate const grid once froze mobile loading.
+const academyModule=read('assets/learning-page.js');
+assert.equal((academyModule.match(/const grid=\$\('#learningGrid'\)/g)||[]).length,0,'academy grid is not redeclared');

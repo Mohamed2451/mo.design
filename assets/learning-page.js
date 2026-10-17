@@ -46,7 +46,7 @@ function render(){
  $('#learningFilters').innerHTML=options.map(([id,label])=>'<button type="button" data-filter="'+esc(id)+'" class="'+(filter===id?'is-active':'')+'" aria-pressed="'+(filter===id)+'">'+esc(label)+'</button>').join('');
  const membership=getAcademyMembership(settings);
  const visible=items.filter(item=>filter==='all'||(filter==='video'||filter==='article'?item.content_type===filter:(membership[String(item.id)]||[]).includes(filter)));
- const grid=$('#learningGrid');
+ // Reuse the grid defined above; redeclaring it blocks the entire module.
  grid.setAttribute('aria-busy','false');
  if(!visible.length){grid.innerHTML='<p class="academy-empty">'+esc(tr('academy_no_content'))+'</p>';return}
  grid.innerHTML=visible.map(item=>{
