@@ -33,7 +33,7 @@ function updateProjectSEO(project) {
       document.head.appendChild(canonical);
     }
 
-    canonical.href = document.body.dataset.seoPrerender === '1'
+    canonical.href = /^[a-zA-Z0-9_-]{1,140}$/.test(route || '')
       ? new URL('./projects/' + encodeURIComponent(route) + '/', document.baseURI).href
       : new URL('./project.html?slug=' + encodeURIComponent(route), document.baseURI).href;
   } else if (canonical) {
