@@ -45,7 +45,7 @@ assert.match(projects,/esc\(copy\.case_cta_title\|\|txt/,'project CTA title esca
 assert.match(projects,/esc\(copy\.case_cta_button\|\|txt/,'project CTA button escapes CMS text');
 assert.match(app,/\.\/services\/\$\{servicePage\(s\)\}/,'service links open CMS-driven service pages');
 assert.match(app,/new URLSearchParams\(location\.search\)\.get\('category'\)/,'URL category is restored on page load');
-assert.match(app,/projects\/\$\{encodeURIComponent\(slug\)\}/,'CMS projects link to their prerendered detail pages');
+assert.match(app,/return `\.\/project\.html\?slug=\$\{encodeURIComponent\(slug\)\}`/,'new CMS projects open before SEO prerender deploy');
 assert.doesNotMatch(app,/\.\/services\/\$\{serviceSlug/,'legacy static service pages are no longer navigation target');
 assert.match(admin,/archiveInquiry/,'inquiries offer archive action');
 assert.match(admin,/deleteInquiry/,'inquiries offer delete action');
