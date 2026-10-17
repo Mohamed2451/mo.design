@@ -68,7 +68,7 @@ export function renderProjectPage(template, item) {
     '<script type="application/ld+json">'+json+'</script>'
   ].join('\n');
   result=result.replace('</head>',meta+'\n</head>');
-  const cover=image?'<div class="case-lead-media"><img src="'+html(image)+'" alt="'+html(title)+'" loading="eager"></div>':'';
+  const cover=image?'<div class="case-lead-media"><img src="'+html(image)+'" alt="'+html(title)+'" decoding="async" fetchpriority="high"></div>':'';
   const shell='<main class="case-main" id="dynamicProject"><section class="case-hero">'+
     '<span class="case-eyebrow">MO DESIGN / PORTFOLIO</span><h1 class="case-title">'+html(title)+'</h1>'+
     '<p class="case-seo-description">'+html(description)+'</p></section>'+cover+'</main>';
