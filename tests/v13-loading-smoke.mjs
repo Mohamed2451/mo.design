@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const api = readFileSync(new URL('../assets/api.js', import.meta.url), 'utf8');
-const start=api.indexOf('export async function getPublicContent()');
+const start=api.indexOf('export async function getPublicContent({onPartial} = {})');
 const end=api.indexOf('export async function sendInquiry',start);
 assert.ok(start>=0 && end>start,'public content loader present');
-const source=api.slice(start,end).replace('export async function getPublicContent()', 'async function getPublicContent()');
+const source=api.slice(start,end).replace('export async function getPublicContent({onPartial} = {})', 'async function getPublicContent({onPartial} = {})');
 const config={supabaseUrl:'https://demo.supabase.co',supabasePublishableKey:'public-key'};
 function make(fetchMock) {
   const win={PORTFOLIO_CONFIG:config};
