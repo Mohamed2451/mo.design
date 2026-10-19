@@ -1,18 +1,50 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import { readFileSync } from 'node:fs';
+
 const api = readFileSync(new URL('../assets/api.js', import.meta.url), 'utf8');
-const source = api.slice(api.indexOf('export async function getPublicContent()'), api.indexOf('export async function sendInquiry'))
-  .replace('export async function getPublicContent()', 'async function getPublicContent()');
-const make = (getClient) => new Function('getClient', 'connected', 'seed', 'readDemo', `${source}\nreturn getPublicContent;`)(getClient, true, {settings:{brand:'fallback'},services:[{id:'fallback'}]},()=>({}));
-function dbWith(results, attempts={}) {
-  return {from(table){return {select(){return this},eq(){return this},order(){return this},single(){return Promise.resolve(results[table])},then(resolve,reject){attempts[table]=(attempts[table]||0)+1;return Promise.resolve(typeof results[table]==='function'?results[table](attempts[table]):results[table]).then(resolve,reject)}}}};
+const start=api.indexOf('export async function getPublicContent()');
+const end=api.indexOf('export async function sendInquiry',start);
+assert.ok(start>=0 && end>start,'public content loader present');
+const source=api.slice(start,end).replace('export async function getPublicContent()', 'async function getPublicContent()');
+const config={supabaseUrl:'https://demo.supabase.co',supabasePublishableKey:'public-key'};
+function make(fetchMock) {
+  const win={PORTFOLIO_CONFIG:config};
+  const factory=new Function('fetch','window','connected','seed','readDemo',source+'\nreturn getPublicContent;');
+  return factory(fetchMock,win,true,{settings:{fallback:true},services:[]},()=>({}));
 }
-const ok = data=>({data,error:null});
-let load=make(async()=>dbWith({site_settings:ok({brand:'real'}),projects:ok([{id:'real'}]),services:ok([]),testimonials:ok([]),learning_items:ok([])}));
-let res=await load();assert.deepEqual(res._loadWarnings,[]);assert.equal(res.projects[0].id,'real');assert.deepEqual(res.services,[]);
-load=make(async()=>dbWith({site_settings:ok({brand:'real'}),projects:ok([{id:'real'}]),services:{data:null,error:{code:'42501',message:'permission denied'}},testimonials:ok([]),learning_items:ok([])}));
-res=await load();assert.equal(res.projects[0].id,'real');assert.deepEqual(res._loadWarnings,['services']);
-const tries={};load=make(async()=>dbWith({site_settings:ok({}),projects:n=>n===1?{data:null,error:{status:503,message:'network temporarily unavailable'}}:ok([{id:'recovered'}]),services:ok([]),testimonials:ok([]),learning_items:ok([])},tries));
-res=await load();assert.equal(tries.projects,2);assert.equal(res.projects[0].id,'recovered');assert.deepEqual(res._loadWarnings,[]);
-load=make(async()=>{throw new Error('CDN unavailable')});res=await load();assert.deepEqual(res.projects,[]);assert.deepEqual(res._loadWarnings,['connection']);
-console.log('V13 loading checks passed');
+const ok=rows=>({ok:true,json:async()=>rows});
+const results={
+ site_settings: [{id:1,brand_ar:'Real'}],
+ projects:[{id:'live',is_published:true,sort_order:4}],
+ services:[{id:'service',is_published:true}],
+ testimonials:[],learning_items:[]
+};
+let calls=[];
+let load=make(async url=>{
+  const table=new URL(url).pathname.split('/').pop();
+  calls.push({table,url:String(url)});
+  return ok(results[table]||[]);
+});
+let result=await load();
+assert.equal(result.projects[0].id,'live');
+assert.equal(result.settings.brand_ar,'Real');
+assert.deepEqual(result._loadWarnings,[]);
+assert.equal(calls.length,5);
+assert.ok(calls.every(x=>x.url.includes('/rest/v1/')));
+assert.ok(!source.includes('getClient()'),'visitor reads must not load auth SDK');
+
+load=make(async url=>{
+  const table=new URL(url).pathname.split('/').pop();
+  if(table==='services')return {ok:false,status:403};
+  return ok(results[table]||[]);
+});
+result=await load();
+assert.equal(result.projects[0].id,'live','failed services must not hide projects');
+assert.deepEqual(result._loadWarnings,['services']);
+assert.equal(result.services.length,0);
+
+load=make(async()=>{throw new Error('network unavailable')});
+result=await load();
+assert.equal(result.projects.length,0);
+assert.ok(result._loadWarnings.includes('projects'));
+console.log('V13 lightweight public content checks passed');

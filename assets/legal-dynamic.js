@@ -1,4 +1,5 @@
-import {connected,getPublicContent} from './api.js';
+import {connected} from './api.js';
+import {readPublicRows} from './public-content-reader.js';
 import {DEFAULT_LEGAL,legalPages} from './legal-config.js';
 const escapeText=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function language(){return localStorage.getItem('portfolio_lang')==='en'?'en':'ar'}
@@ -7,9 +8,8 @@ async function start(){
  let settings={};
  if(connected){
    try{
-     const publicData=await getPublicContent();
-     if(publicData._loadWarnings?.includes('site settings')||publicData._loadWarnings?.includes('connection'))throw new Error('تعذر قراءة إعدادات الموقع العامة');
-     settings=publicData.settings||{};
+     const rows=await readPublicRows('site_settings',{eq:{id:1},limit:1});
+     settings=rows[0]||{};
    }catch(error){
      console.error('Legal pages: settings could not load',error);
      const section=document.querySelector('.case-main .case-content');
