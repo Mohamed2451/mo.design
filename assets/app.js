@@ -534,7 +534,21 @@ if(window.matchMedia('(hover: hover) and (pointer: fine)').matches){
 }
 render();
 if(connected){
-  getPublicContent().then(data=>{
+  const progressiveLabels = {
+    'site settings': 'settings', 'projects':'projects', 'services':'services',
+    'testimonials':'testimonials', 'learning items':'learning_items'
+  };
+  getPublicContent({onPartial(label,rows) {
+    const key = progressiveLabels[label];
+    if(!key)return;
+    if(key==='settings') {
+      if(!rows[0])return;
+      model={...model,settings:rows[0]};
+    } else {
+      model={...model,[key]:rows.slice().sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0))};
+    }
+    render();
+  }}).then(data=>{
     model=data;
     render();
     if(data._loadWarnings?.length) {
