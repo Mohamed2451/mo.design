@@ -42,7 +42,7 @@ async function boundedDownload(url, fetchImpl) {
   for await (const chunk of response.body) {
     received += chunk.length;
     if (received > MAX_SOURCE_BYTES) {
-      await response.body.cancel?.().catch(()=>{});
+      // The stream reader is closed when the bounded transfer throws.
       throw new Error('Source exceeds size limit');
     }
     chunks.push(chunk);
@@ -73,7 +73,7 @@ export async function generateOptimizedImages({
   originals, supabaseUrl, root=process.cwd(), fetchImpl=fetch,
   sharpImpl, log=console.log
 }) {
-  const sharp = sharpImpl || (await import(pathToFileURL(resolve(process.env.MO_SHARP_MODULE||'node_modules/sharp/lib/index.js')).href)).default;
+  const sharp = sharpImpl || (await import('sharp')).default;
   const folder=join(root,OPTIMIZED_DIR);
   await mkdir(folder,{recursive:true});
   const manifest={};
