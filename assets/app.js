@@ -534,9 +534,39 @@ if(window.matchMedia('(hover: hover) and (pointer: fine)').matches){
 }
 render();
 if(connected){
+  // Render only the section whose verified public data just arrived. Rebuilding
+  // the whole page five times interrupts image downloads and animations.
   const progressiveLabels = {
     'site settings': 'settings', 'projects':'projects', 'services':'services',
     'testimonials':'testimonials', 'learning items':'learning_items'
+  };
+  const safeStage = (name, fn) => {
+    try { fn(); } catch(error) { console.error('Mo Design progressive '+name,error); }
+  };
+  const updateSection = key => {
+    if(key==='settings') {
+      safeStage('document',updateDocument);
+      safeStage('hero',setBrandContent);
+      safeStage('notice',renderNotice);
+      safeStage('appearance',applySectionDesign);
+      safeStage('learning',renderLearning);
+      safeStage('visibility',applySectionVisibility);
+    } else if(key==='projects') {
+      safeStage('projects',renderProjects);
+      safeStage('featured',renderFeatured);
+      safeStage('signature',renderSignature);
+      safeStage('proof',syncRealWorkCopy);
+      safeStage('visibility',applySectionVisibility);
+    } else if(key==='services') {
+      safeStage('services',renderServices);
+    } else if(key==='testimonials') {
+      safeStage('testimonials',renderReviews);
+      safeStage('visibility',applySectionVisibility);
+    } else if(key==='learning_items') {
+      safeStage('learning',renderLearning);
+    }
+    safeStage('deferred media',watchDeferredImages);
+    safeStage('reveal',observeReveal);
   };
   getPublicContent({onPartial(label,rows) {
     const key = progressiveLabels[label];
@@ -547,17 +577,17 @@ if(connected){
     } else {
       model={...model,[key]:rows.slice().sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0))};
     }
-    render();
+    updateSection(key);
   }}).then(data=>{
-    model=data;
-    render();
+    // All available sections have already rendered. Avoid a sixth full
+    // DOM rebuild after the slowest endpoint (and keep successful sections).
+    model={...model,_loadWarnings:data._loadWarnings||[]};
     if(data._loadWarnings?.length) {
       console.warn('Mo Design: some public content is temporarily unavailable:',data._loadWarnings);
       toast(lang==='ar'?'بعض محتويات الموقع غير متاحة مؤقتًا. حاول تحديث الصفحة لاحقًا.':'Some content is temporarily unavailable. Please refresh later.');
     }
   }).catch(err=>{
     console.error('Mo Design: public content loading failed:',err);
-    // Preserve the last successfully rendered state; never erase real projects on an error.
     toast(lang==='ar'?'تعذر تحديث البيانات مؤقتًا. حاول مجددًا لاحقًا.':'Content could not be refreshed. Please try again later.');
   });
 }
