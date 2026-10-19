@@ -2,6 +2,7 @@ import { seed, readDemo, escapeHTML as esc, safeUrl, tField, ar, en } from './da
 import { connected, getPublicContent, sendInquiry } from './api.js';
 import {PORTFOLIO_CATEGORIES, categoryFor} from './categories.js';
 import {getToolsCatalog} from './tools-catalog.js';
+import {TRANSPARENT_PIXEL,watchDeferredImages} from './media-defer.js';
 
 let model = connected ? {...seed, projects:[], testimonials:[]} : readDemo();
 let lang = (()=>{try{return localStorage.getItem('portfolio_lang')==='en'?'en':'ar'}catch{return 'ar'}})();
@@ -174,13 +175,14 @@ function renderFeatured() {
     const asset=safeUrl(p.image_url);
     return `<article class="feature-slide" data-position="${position}" data-slide-index="${i}" ${position==='active'?'':'aria-hidden="true"'}>
       <a class="feature-project-link" href="${esc(caseUrl(p))}" tabindex="${position==='active'?'0':'-1'}" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">
-      ${asset ? `<img src="${esc(asset)}" alt="${esc(field(p,'title'))}" loading="lazy" decoding="async"/>` : `<div class="project-cover ${esc(p.cover_style||'aurora')}" style="height:100%"><div class="cover-graphic">◇</div></div>`}
+      ${asset ? `<img src="${TRANSPARENT_PIXEL}" data-defer-src="${esc(asset)}" alt="${esc(field(p,'title'))}" loading="lazy" decoding="async"/>` : `<div class="project-cover ${esc(p.cover_style||'aurora')}" style="height:100%"><div class="cover-graphic">◇</div></div>`}
       <span class="feature-scrim" aria-hidden="true"></span><span class="feature-info"><span class="feature-tag">${esc(field(p,'category'))}</span><h3>${esc(field(p,'title'))}</h3><p>${p.project_type==='concept'||String(p.id).startsWith('demo-')?(lang==='ar'?'تصوّر إبداعي':'Concept work'):(lang==='ar'?'مشروع من أعمالي':'Portfolio project')} · ${number(i+1)}</p></span>
       </a></article>`;
   }).join('');
   $('#featureCount').textContent=`${number(featureIndex+1)} / ${number(count)}`;
   $('#featureDots').innerHTML=projects.map((p,i)=>`<button type="button" class="feature-dot" data-feature-to="${i}" aria-label="${lang==='ar'?'الذهاب إلى مشروع':'Go to project'} ${i+1}" aria-current="${i===featureIndex}"></button>`).join('');
   stage.querySelectorAll('.feature-slide').forEach(el=>{el.inert=el.dataset.position!=='active';});
+  watchDeferredImages(stage);
   requestAnimationFrame(applyInteractiveFX);
 }
 function moveFeature(delta){const a=featuredItems();if(!a.length)return;featureIndex=(featureIndex+delta+a.length)%a.length;renderFeatured();}
@@ -444,6 +446,7 @@ function render() {
   for(const [name,run] of stages) {
     try { run(); } catch(error) { console.error('Mo Design section failed:',name,error); }
   }
+  try { watchDeferredImages(); } catch(error) { console.warn('Deferred images:',error); }
   try { observeReveal(); } catch(error) {
     console.error('Mo Design reveal fallback:',error);
     $$('.reveal').forEach(el=>el.classList.add('visible'));
