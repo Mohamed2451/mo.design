@@ -30,7 +30,7 @@ export async function getPublicContent() {
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
         const endpoint = new URL('rest/v1/' + table,
-          cfg.supabaseUrl.replace(/\\/+$/, '') + '/');
+          cfg.supabaseUrl.endsWith('/') ? cfg.supabaseUrl : cfg.supabaseUrl + '/');
         endpoint.searchParams.set('select', '*');
         endpoint.searchParams.set('limit', String(limit));
         for (const [field,value] of Object.entries(filters))
