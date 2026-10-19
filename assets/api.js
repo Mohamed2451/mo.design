@@ -21,58 +21,59 @@ export async function getClient() {
 export async function getPublicContent() {
   if (!connected) return readDemo();
 
+  // Public visitor pages do not need the Supabase auth SDK or session.
+  // Isolate each collection: one unavailable table should not hide projects.
   const warnings = [];
-  let db;
-  try {
-    db = await getClient();
-  } catch (error) {
-    console.warn('Mo Design: Supabase client unavailable:', error);
-    return {
-      settings: seed.settings, projects: [], services: seed.services || [],
-      testimonials: [], learning_items: [],
-      _loadWarnings: ['connection']
-    };
-  }
-
+  const cfg = window.PORTFOLIO_CONFIG || {};
   const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
-  async function safelyRead(label, query) {
+  async function publicRead(label, table, filters = {}, limit = 500) {
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
-        const result = await query();
-        if (!result?.error) return result?.data ?? null;
-        const error = result.error;
-        // Only retry likely transient errors, not SQL, authorization or missing-table errors.
-        const code = String(error.code || '');
-        const status = Number(error.status || 0);
-        const transient = status === 408 || status === 429 || status >= 500 ||
-          /^(08|53|57P|58)/.test(code) || /fetch|network|timeout|temporar/i.test(error.message || '');
-        if (transient && attempt < 2) { await wait(350); continue; }
-        console.warn(`Mo Design: could not load ${label}:`, error.message);
+        const endpoint = new URL('rest/v1/' + table,
+          cfg.supabaseUrl.replace(/\\/+$/, '') + '/');
+        endpoint.searchParams.set('select', '*');
+        endpoint.searchParams.set('limit', String(limit));
+        for (const [field,value] of Object.entries(filters))
+          endpoint.searchParams.set(field, 'eq.' + String(value));
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 8000);
+        let response;
+        try {
+          response = await fetch(endpoint, {
+            headers: {apikey:cfg.supabasePublishableKey,Accept:'application/json'},
+            signal: controller.signal
+          });
+        } finally { clearTimeout(timer); }
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const rows = await response.json();
+        if (!Array.isArray(rows)) throw new Error('Unexpected data');
+        return rows;
       } catch (error) {
         if (attempt < 2) { await wait(350); continue; }
-        console.warn(`Mo Design: ${label} request failed:`, error);
+        console.warn('Mo Design: could not load ' + label, error);
+        warnings.push(label);
+        return null;
       }
-      warnings.push(label);
-      return null;
     }
-    warnings.push(label);
     return null;
   }
 
   const [settings, projects, services, reviews, lessons] = await Promise.all([
-    safelyRead('site settings', () => db.from('site_settings').select('*').eq('id',1).single()),
-    safelyRead('projects', () => db.from('projects').select('*').eq('is_published', true).order('sort_order')),
-    safelyRead('services', () => db.from('services').select('*').eq('is_published', true).order('sort_order')),
-    safelyRead('testimonials', () => db.from('testimonials').select('*').eq('is_published',true).eq('is_verified',true).order('sort_order')),
-    safelyRead('learning items', () => db.from('learning_items').select('*').eq('is_published',true).order('sort_order').order('created_at',{ascending:false}))
+    publicRead('site settings', 'site_settings', {id:1}, 1),
+    publicRead('projects', 'projects', {is_published:true}),
+    publicRead('services', 'services', {is_published:true}),
+    publicRead('testimonials', 'testimonials', {is_published:true,is_verified:true}),
+    publicRead('learning items', 'learning_items', {is_published:true})
   ]);
-
+  const byOrder = records => Array.isArray(records)
+    ? records.sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0))
+    : [];
   return {
-    settings: settings || seed.settings,
-    projects: Array.isArray(projects) ? projects : [],
-    services: Array.isArray(services) ? services : (seed.services || []),
-    testimonials: Array.isArray(reviews) ? reviews : [],
-    learning_items: Array.isArray(lessons) ? lessons : [],
+    settings: settings?.[0] || seed.settings,
+    projects: byOrder(projects),
+    services: Array.isArray(services) ? byOrder(services) : (seed.services || []),
+    testimonials: byOrder(reviews),
+    learning_items: byOrder(lessons),
     _loadWarnings: warnings
   };
 }
