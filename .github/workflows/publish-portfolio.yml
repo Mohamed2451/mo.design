@@ -39,6 +39,10 @@ jobs:
           node-version: '22'
       - name: Build fresh public portfolio pages and sitemap
         run: node scripts/update-sitemap.mjs
+      - name: Install image encoder
+        run: npm install --no-save --no-package-lock sharp@0.34.4
+      - name: Generate optimized public portfolio media
+        run: node scripts/build-optimized-public-images.mjs
       - name: Validate generated sitemap and project pages
         run: |
           node --test tests/v13-loading-smoke.mjs tests/v13-regressions.mjs tests/seo-sitemap.mjs
