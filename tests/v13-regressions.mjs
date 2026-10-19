@@ -263,3 +263,7 @@ const academyModule=read('assets/learning-page.js');
 assert.equal((academyModule.match(/const grid=\$\('#learningGrid'\)/g)||[]).length,0,'academy grid is not redeclared');
 
 assert.match(read('index.html'),/home-bundle-20261017\.css/, 'homepage loads bundled styles');
+
+assert.match(read('assets/app.js'),/watchDeferredImages\(stage\)/,'featured media is deferred until approaching viewport');
+assert.match(read('assets/app.js'),/data-defer-src/,'featured media keeps original URLs deferred');
+assert.match(read('assets/media-defer.js'),/IntersectionObserver/,'deferred media uses intersection observer');
