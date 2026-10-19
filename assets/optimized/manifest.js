@@ -1,0 +1,1 @@
+window.MO_OPTIMIZED_IMAGES = window.MO_OPTIMIZED_IMAGES || {};

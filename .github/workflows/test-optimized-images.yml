@@ -1,0 +1,29 @@
+name: Test optimized public images
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/build-optimized-public-images.mjs'
+      - 'assets/presentation-image.js'
+      - 'assets/app.js'
+      - 'assets/optimized/**'
+      - '.github/workflows/test-optimized-images.yml'
+      - '.github/workflows/publish-portfolio.yml'
+permissions:
+  contents: read
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install WebP encoder
+        run: npm install --no-save --no-package-lock sharp@0.34.4
+      - name: Build optimized public images
+        run: node scripts/build-optimized-public-images.mjs
+      - name: Verify production-ready thumbnails
+        run: |
+          node --input-type=module -e "import {readFile,readdir} from 'node:fs/promises';const p='assets/optimized/';const s=await readFile(p+'manifest.js','utf8');const map=JSON.parse(s.match(/=(\{.*\});/s)?.[1]||'{}');if(Object.keys(map).length<3)throw Error('Expected at least 3 optimized images');for(const filename of Object.values(map)){const b=await readFile(p+filename);if(b.toString('ascii',0,4)!=='RIFF'||b.toString('ascii',8,12)!=='WEBP')throw Error('Bad WebP: '+filename)}console.log('Verified '+Object.keys(map).length+' WebP images')"
