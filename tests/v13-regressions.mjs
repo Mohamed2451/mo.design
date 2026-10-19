@@ -31,14 +31,14 @@ assert.match(admin,/if\(referenced\)/,'media deletion guards against known conte
 assert.match(motion,/prefers-reduced-motion/,'motion respects accessibility settings');
 assert.match(style,/prefers-reduced-motion:reduce/,'motion styles respect accessibility');
 assert.match(homepage,/v14-motion\.js/,'motion layer is connected on homepage');
-assert.match(homepage,/v14-motion\.css/,'motion stylesheet is connected on homepage');
+assert.match(read('assets/home-bundle-20261017.css'),/v14-motion\.css/,'bundled homepage stylesheet is present');
 assert.match(adminPage,/v14-motion\.css/,'media deletion buttons styled in admin');
 const studioCss=read('assets/v15-studio.css');
 const studioJs=read('assets/v15-studio.js');
 assert.match(studioCss,/prefers-reduced-motion:reduce/,'V15 respects reduced motion');
 assert.match(studioJs,/IntersectionObserver/,'V15 uses progressive scroll observer');
 assert.match(studioJs,/MutationObserver/,'V15 handles asynchronous project cards');
-assert.match(homepage,/v15-studio\.css/,'V15 stylesheet is loaded');
+assert.match(read('assets/home-bundle-20261017.css'),/v15-studio\.css/,'bundled homepage stylesheet is present');
 assert.match(homepage,/v15-studio\.js/,'V15 interactions are loaded');
 assert.doesNotMatch(homepage,/v16-impact|v16-work-editorial|v16-creative-strip/,'disliked V16 layout is removed');
 assert.match(projects,/esc\(copy\.case_cta_title\|\|txt/,'project CTA title escapes CMS text');
@@ -252,7 +252,7 @@ assert.match(read('assets/learning-page.js'),/mode==='live'/,'academy public lis
 assert.match(read('assets/lesson.js'),/settings\.education_mode!=='live'/,'academy direct lessons respect live status');
 
 const signatureCSS=read('assets/signature-safe-layout.css');
-assert.match(read('index.html'),/signature-safe-layout\.css\?v=1/,'signature fix loaded');
+assert.match(read('assets/home-bundle-20261017.css'),/signature-safe-layout\.css/,'bundled homepage stylesheet is present');
 assert.match(signatureCSS,/#signature \.editorial-intro\{/,'signature intro has scoped layout');
 assert.match(signatureCSS,/object-fit:contain!important/,'signature images are fully visible');
 assert.match(signatureCSS,/grid-template-columns:minmax\(0,1fr\)/,'single-column mobile signature gallery');
@@ -261,3 +261,5 @@ assert.match(signatureCSS,/position:static/,'signature captions are outside imag
 // Academy module must parse as JavaScript: a duplicate const grid once froze mobile loading.
 const academyModule=read('assets/learning-page.js');
 assert.equal((academyModule.match(/const grid=\$\('#learningGrid'\)/g)||[]).length,0,'academy grid is not redeclared');
+
+assert.match(read('index.html'),/home-bundle-20261017\.css/, 'homepage loads bundled styles');
