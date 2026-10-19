@@ -18,7 +18,7 @@ export async function getClient() {
 // A temporary problem in one content table must not block other public sections.
 // Keep transient network errors separate from legitimate empty published collections.
 // Do not fall back to demo projects or unverified reviews on a live website.
-export async function getPublicContent() {
+export async function getPublicContent({onPartial} = {}) {
   if (!connected) return readDemo();
 
   // Public visitor pages do not need the Supabase auth SDK or session.
@@ -47,6 +47,12 @@ export async function getPublicContent() {
         if (!response.ok) throw new Error('HTTP ' + response.status);
         const rows = await response.json();
         if (!Array.isArray(rows)) throw new Error('Unexpected data');
+        // Return each verified published collection immediately; don't wait for
+        // unrelated queries before showing the hero, services or work gallery.
+        if (typeof onPartial === 'function') {
+          try { onPartial(label, rows); }
+          catch (renderError) { console.warn('Mo Design: partial render failed',renderError); }
+        }
         return rows;
       } catch (error) {
         if (attempt < 2) { await wait(350); continue; }
