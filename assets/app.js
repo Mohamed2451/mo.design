@@ -2,6 +2,7 @@ import { seed, readDemo, escapeHTML as esc, safeUrl, tField, ar, en } from './da
 import { connected, getPublicContent, sendInquiry } from './api.js';
 import {PORTFOLIO_CATEGORIES, categoryFor} from './categories.js';
 import {getToolsCatalog} from './tools-catalog.js';
+import {presentationImage} from './presentation-image.js';
 import {TRANSPARENT_PIXEL,watchDeferredImages} from './media-defer.js';
 
 let model = connected ? {...seed, projects:[], testimonials:[]} : readDemo();
@@ -49,7 +50,7 @@ function updateDocument() {
 }
 function setBrandContent() {
   const settings = model.settings || seed.settings;
-  const photo = safeUrl(settings.profile_image_url);
+  const photo = presentationImage(safeUrl(settings.profile_image_url));
   if(photo) {document.querySelector('.hero-portrait').src=photo;const about=document.querySelector('.about-photo-mini img');if(about)about.src=photo;}
   $$('[data-brand-logo]').forEach(img=>{img.src=safeUrl(settings[theme==='dark'?'logo_dark_url':'logo_light_url']) || `./assets/images/mo-logo-${theme==='dark'?'white':'black'}.webp`;});
   $('#brandName').textContent = field(settings, 'brand');
@@ -103,7 +104,7 @@ function caseUrl(project){
 
 function graphicHTML(project) {
   const type = ['aurora','type','orbit','pop'].includes(project.cover_style) ? project.cover_style : 'aurora';
-  const safeImage = safeUrl(project.image_url);
+  const safeImage = presentationImage(safeUrl(project.image_url));
   const isVideo = Boolean(project.video_url || project.youtube_url);
   const art = {aurora:'GO!',type:'aA.',orbit:'',pop:'WOW!'}[type];
   return `<div class="project-cover ${safeImage ? 'custom' : type}">${safeImage ? `<img class="cover-img" src="${esc(safeImage)}" alt="${esc(field(project, 'title'))}" loading="lazy" onerror="this.style.display='none'">` : `<div class="cover-graphic" aria-hidden="true">${art}</div>`}<span class="cover-label">${esc(field(project, 'category'))}${isVideo ? ' ▶ VIDEO' : ''}</span><span class="cover-arrow">↗</span></div>`;
@@ -172,7 +173,7 @@ function renderFeatured() {
   $('#featureCards').innerHTML=projects.map((p,i)=>{
     const d=dist(i,featureIndex), reverse=dist(featureIndex,i);
     const position=d===0?'active':reverse===1?'prev':d===1?'next':reverse===2?'far-prev':d===2?'far-next':'hidden';
-    const asset=safeUrl(p.image_url);
+    const asset=presentationImage(safeUrl(p.image_url));
     return `<article class="feature-slide" data-position="${position}" data-slide-index="${i}" ${position==='active'?'':'aria-hidden="true"'}>
       <a class="feature-project-link" href="${esc(caseUrl(p))}" tabindex="${position==='active'?'0':'-1'}" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">
       ${asset ? `<img src="${TRANSPARENT_PIXEL}" data-defer-src="${esc(asset)}" alt="${esc(field(p,'title'))}" loading="lazy" decoding="async"/>` : `<div class="project-cover ${esc(p.cover_style||'aurora')}" style="height:100%"><div class="cover-graphic">◇</div></div>`}
@@ -281,7 +282,7 @@ function renderSignature() {
   const gallery=document.querySelector('.editorial-gallery');
   if(!gallery)return;
   if(!projects.length){ document.querySelector('#signature').hidden=true; return; }
-  gallery.innerHTML=projects.map((p,i)=>`<a class="editorial-tile editorial-tile-${'abc'[i]}" href="${esc(caseUrl(p))}">${safeUrl(p.image_url)?`<img src="${esc(safeUrl(p.image_url))}" loading="lazy" alt="${esc(field(p,'title'))}">`:`<div class="editorial-fallback">◇</div>`}<span>${esc(field(p,'title'))}</span></a>`).join('');
+  gallery.innerHTML=projects.map((p,i)=>`<a class="editorial-tile editorial-tile-${'abc'[i]}" href="${esc(caseUrl(p))}">${safeUrl(p.image_url)?`<img src="${esc(presentationImage(safeUrl(p.image_url)))}" loading="lazy" alt="${esc(field(p,'title'))}">`:`<div class="editorial-fallback">◇</div>`}<span>${esc(field(p,'title'))}</span></a>`).join('');
   const first=document.querySelector('.editorial-link');if(first)first.href=caseUrl(projects[0]);
 }
 function applySectionVisibility(){
