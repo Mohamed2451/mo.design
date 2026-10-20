@@ -1,0 +1,48 @@
+name: Mo Design main team and media safety
+on:
+  push:
+    branches: [mo-design-main-team-media-20261020]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax-check application scripts
+        run: |
+          node --check assets/admin.js
+          node --check assets/studio-config.js
+          node --check assets/studio-sections.js
+          node --check assets/app.js
+          node --check assets/learning-page.js
+      - name: Test new sections and preservation of site
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const read=p=>fs.readFileSync(p,'utf8');
+          const home=read('index.html');
+          const learning=read('learning.html');
+          const admin=read('assets/admin.js');
+          const config=read('assets/studio-config.js');
+          const sections=read('assets/studio-sections.js');
+          for(const x of ['#home','#work','#services','#contact']) assert.ok(home.includes(x),x);
+          assert.ok(home.includes('id="moStudioSections"'));
+          assert.ok(learning.includes('id="moAcademyVideos"'));
+          assert.ok(admin.includes('function renderStudio()'));
+          assert.ok(admin.includes('function saveStudioForm('));
+          assert.ok(admin.includes('data-studio-add'));
+          assert.ok(config.includes('team_enabled:false'));
+          assert.ok(config.includes('site_videos_enabled:false'));
+          assert.ok(config.includes('academy_videos_enabled:false'));
+          assert.ok(sections.includes('youtube-nocookie.com'));
+          assert.ok(!/<video[^>]+autoplay/i.test(home));
+          console.log('Studio sections smoke tests passed');
+          NODE
+      - name: Existing regressions
+        run: node --test tests/v13-loading-smoke.mjs tests/v13-regressions.mjs tests/seo-sitemap.mjs tests/prelaunch-audit.mjs
