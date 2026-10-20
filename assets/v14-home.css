@@ -76,3 +76,23 @@ html.light .v14-home .v14-motion-main{background:radial-gradient(circle at 55% 5
 @media(max-width:800px){.v14-home .hero{min-height:0;padding-top:125px;padding-bottom:65px}.v14-home .hero-grid{width:min(calc(100% - 38px),690px);display:flex;flex-direction:column;gap:35px;min-height:0}.v14-home .hero .hero-title{font-size:clamp(48px,10vw,74px)}.v14-home .hero-art{height:490px;width:min(100%,460px);margin:0 auto}.v14-home .v14-motion-section .container{width:min(calc(100% - 38px),690px)}.v14-motion-heading{grid-template-columns:1fr;gap:16px}.v14-motion-layout{grid-template-columns:1fr}.v14-motion-side{grid-template-columns:1fr 1fr;grid-template-rows:none}.v14-motion-tile{min-height:205px}.v14-motion-main{min-height:385px}.v14-home .v14-motion-section{padding:75px 0}}
 @media(max-width:540px){.v14-home .hero{padding-top:116px}.v14-home .hero-grid{width:calc(100% - 36px)}.v14-home .hero .hero-title{font-size:clamp(45px,12.6vw,61px);margin:12px 0 22px}.v14-home .hero-description{font-size:15px}.v14-home .hero-art{height:400px;max-width:340px}.v14-home .portrait-frame{inset:25px 14px 28px}.v14-home .portrait-top-tag{top:40px;left:-2px}.v14-home .hero-identity-points{margin-bottom:19px}.v14-home .hero-ctas{gap:8px}.v14-home .hero-ctas .pill-btn,.v14-home .hero-ctas .ghost-btn,.v14-home .v14-hero-video-link{padding:10px 13px;min-height:45px;font-size:11px}.v14-motion-side{grid-template-columns:1fr;grid-template-rows:auto auto}.v14-motion-tile{min-height:190px}.v14-motion-main{min-height:320px}.v14-motion-art:before{width:240px;height:240px}.v14-motion-art:after{width:200px;height:200px}.v14-motion-monogram{font-size:116px}.v14-motion-heading h2{font-size:42px}.v14-motion-footer{align-items:flex-start;flex-direction:column}.v14-home .v14-motion-section .container{width:calc(100% - 36px)}}
 @media(prefers-reduced-motion:reduce){.v14-home .v14-motion-main,.v14-home .v14-motion-tile img{transition:none!important}}
+
+/* V14 second visual pass: less repetition, a clearer academy chapter and safe video dialog. */
+.v14-home #signature{display:none!important}
+.v14-home .featured-section{padding-bottom:72px}
+.v14-home .work-section{padding-top:88px}
+.v14-home .hero .hero-title{font-weight:800;filter:drop-shadow(0 6px 32px color-mix(in srgb,var(--v14-violet) 11%,transparent))}
+.v14-home .hero-eyebrow:before{content:"";height:5px;width:5px;border-radius:50%;background:var(--v14-lime);box-shadow:0 0 16px var(--v14-lime)}
+.v14-home .learn-section{padding-block:100px;background:radial-gradient(ellipse at 75% 60%,color-mix(in srgb,var(--v14-violet) 15%,transparent),transparent 65%),var(--bg)}
+.v14-home .learn-section .learn-panel{border:1px solid color-mix(in srgb,var(--v14-violet) 32%,var(--line));border-radius:30px;overflow:hidden;box-shadow:0 30px 100px rgba(0,0,0,.12)}
+.v14-home .learn-section .learn-copy{max-width:700px}
+.v14-home .learn-section .section-title{font-size:clamp(42px,5.8vw,76px);letter-spacing:-.07em;line-height:1.17}
+.v14-home .learn-section .learn-visual{isolation:isolate}
+.v14-home .stats-strip .stat-item strong{font-variant-numeric:tabular-nums}
+.v14-media-dialog{width:min(900px,calc(100vw - 30px));max-width:900px;padding:0;border:1px solid var(--line);border-radius:22px;background:var(--panel);color:var(--text);box-shadow:0 26px 100px #0009;overflow:visible}
+.v14-media-dialog::backdrop{background:rgba(3,4,9,.84);backdrop-filter:blur(8px)}
+.v14-media-shell{position:relative;padding:12px}
+.v14-media-close{position:absolute;inset-block-start:-20px;inset-inline-end:-12px;z-index:4;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;background:var(--panel);color:var(--text);width:46px;height:46px;font-size:28px;cursor:pointer}
+.v14-media-stage{aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#000;display:grid;place-items:center}
+.v14-media-stage iframe,.v14-media-stage video{width:100%;height:100%;border:0;object-fit:contain}
+@media(max-width:620px){.v14-home .featured-section{padding-block:58px}.v14-home .work-section{padding-top:72px}.v14-home .learn-section{padding-block:64px}.v14-home .learn-section .section-title{font-size:clamp(35px,9vw,56px)}}
