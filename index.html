@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800&family=Cairo:wght@400;700&family=Readex+Pro:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script>try{if(localStorage.getItem("portfolio_theme")==="light")document.documentElement.classList.add("light")}catch(e){}</script>
-  <link rel="stylesheet" href="./assets/home-bundle-20261017.css" />
+  <link rel="stylesheet" href="./assets/home-bundle-20261017.css" /><link rel="stylesheet" href="./assets/studio-sections.css?v=1" />
   <!-- V11.1: content-first reveal; visible when JS, CDN, or data loading fails. -->
   <style id="mo-visibility-failsafe">
     .reveal { opacity:1; transform:none; }
@@ -154,6 +154,7 @@
         <p class="reviews-note" data-i18n="reviews_note">الشهادات المعروضة حاليًا قوالب توضيحية وليست تقييمات حقيقية. سيتم استبدالها بمراجعات موثقة عند إضافتها.</p>
       </div></section>
 
+      <div id="moStudioSections" hidden></div>
       <section class="section faq-section" id="faq"><div class="container faq-layout"><div><span class="eyebrow" data-i18n="faq_kicker">أسئلة مهمة</span><h2 class="section-title" data-i18n="faq_title">أسئلة قبل ما نبدأ؟</h2><p class="section-sub" data-i18n="faq_desc">كل مشروع مختلف، لكن البداية دايمًا سهلة وواضحة.</p></div><div class="faq-list"><details><summary data-i18n="faq_q1">إزاي أبدأ مشروع معاك؟</summary><p data-i18n="faq_a1">ابعتلي Brief مختصر أو راسلني على واتساب، وهنحدد المطلوب والخطوات المناسبة.</p></details><details><summary data-i18n="faq_q2">هل بتعمل فيديوهات وإعلانات بالذكاء الاصطناعي؟</summary><p data-i18n="faq_a2">آه، أقدر أقدم محتوى إعلاني يجمع التصميم والمونتاج والـ AI حسب فكرة المشروع ومتطلباته.</p></details><details><summary data-i18n="faq_q3">متى يتم التسليم؟</summary><p data-i18n="faq_a3">المدة والمراجعات والتسليمات بنحددهم سوا حسب حجم المشروع قبل التنفيذ.</p></details><details><summary data-i18n="faq_q4">هل الأعمال التجريبية مشاريع لعملاء؟</summary><p data-i18n="faq_a4">لا، الأعمال المكتوب عليها Concept هي تجارب بصرية مفاهيمية وليست أعمالًا مدفوعة لعملاء.</p></details></div></div></section>
 
       <section class="section cta-marquee-section" id="cta"><div class="container"><div class="cta-statement reveal"><div class="eyebrow"><span data-i18n="cta_kicker">تفرق معاك</span></div><h2 data-i18n="cta_title">شغلك يستحق <em>يتشاف.</em></h2><p data-i18n="cta_sub">خلّي مشروعك الجاي عمل يوقف الـ Scroll ويفضل في الذاكرة.</p><a href="https://wa.me/201097865616" id="ctaWhatsApp" class="pill-btn primary-btn" target="_blank" rel="noopener noreferrer"><span data-i18n="cta_button">نبدأ مشروعك؟</span> ↗</a></div></div></section>
@@ -181,5 +182,5 @@
   <dialog id="learningDialog" class="learning-dialog"><div class="learning-dialog-inner"><button type="button" id="learningClose" class="learning-close" aria-label="إغلاق">×</button><div id="learningDialogBody"></div></div></dialog>
   <dialog id="projectDialog" class="project-dialog"><button class="dialog-close icon-btn" id="dialogClose" aria-label="Close">×</button><div id="dialogContents"></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-<script type="module" src="./assets/legal-dynamic.js?v=legal-verified-20261016"></script></body>
+<script type="module" src="./assets/legal-dynamic.js?v=legal-verified-20261016"></script><script type="module">import {mountStudio} from "./assets/studio-sections.js";mountStudio({target:document.getElementById("moStudioSections"),scope:"site"});</script></body>
 </html>
