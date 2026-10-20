@@ -11,7 +11,17 @@ let theme = (()=>{try{return localStorage.getItem('portfolio_theme')==='light'?'
 let activeCategory = (()=>{const id=new URLSearchParams(location.search).get('category');return PORTFOLIO_CATEGORIES.some(c=>c.id===id)?id:'*';})();
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
-const txt = () => ({...(lang === 'ar' ? ar : en), ...(model.settings?.[lang==='ar'?'content_ar':'content_en']||{})});
+const txt = () => {
+ const copy={...(lang === 'ar' ? ar : en),...(model.settings?.[lang==='ar'?'content_ar':'content_en']||{})};
+ // Clean only previously used decorative labels / sample copy; retain all genuine CMS text.
+ const key='signature_kicker',v=String(copy[key]||'').trim();
+ if(/^(حملة تجريبية مختارة|SELECTED CONCEPT CAMPAIGN)$/i.test(v))copy[key]=lang==='ar'?'من الفكرة للصورة':'CREATIVE DIRECTION';
+ for(const k of ['method_kicker','about_kicker','tools_kicker','editorial_tag_1','editorial_tag_2','editorial_tag_3']){
+  if(typeof copy[k]==='string')copy[k]=copy[k].replace(/^(?:0?[1-9]\d*\s*\/\s*|\s*\/\s*0?[1-9]\d*\s*$)/g,'').trim();
+ }
+ if(typeof copy.services_eyebrow==='string')copy.services_eyebrow=copy.services_eyebrow.trim();
+ return copy;
+};
 const field = (obj, key) => tField(obj, key, lang);
 const number = (n) => String(n).padStart(2, '0');
 
