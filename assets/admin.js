@@ -136,9 +136,9 @@ function renderOverview(){
 function renderContent(){
  const settings=data.settings||seed.settings, vis=settings.section_visibility||{};
  const controls=SECTIONS.map(([id,label])=>`<label class="cms-toggle"><input type="checkbox" name="section_${id}" ${vis[id]===false?'':'checked'}><span><strong>${esc(label)}</strong><small>${vis[id]===false?'مخفي':'يظهر على الموقع'}</small></span></label>`).join('');
- const groups={'التعريف المدمج في بداية الموقع':[['hero_intro','سطر أنا محمد محمود وكل فكرة ليها حكاية'],['hero_merged_role','المسمى المهني والخدمات'],['hero_merged_description','النبذة التعريفية المدمجة'],['hero_point_1','فهم حقيقي للبراند'],['hero_point_2','تنفيذ منظم ومرن'],['hero_point_3','إبداع بشري بمساعدة الذكاء الاصطناعي']],'حقوق النشر والسنة — تعديل مباشر':[['portrait_copyright','© MO DESIGN / 2026 — حقوق الصورة الشخصية'],['hero_side','استوديو مو ديزاين — 2026 | النص الجانبي'],['hero_year','2026 — السنة بجوار الاستوديو'],['footer_copyright','حقوق النشر أسفل الموقع']],...CONTENT_GROUPS,'كل العبارات والأزرار الإضافية':copyGroup().filter(([key])=>!['portrait_copyright','hero_side','hero_year','footer_copyright','hero_intro','hero_merged_role','hero_merged_description','hero_point_1','hero_point_2','hero_point_3'].includes(key))};
+ const groups={'التعريف المدمج في بداية الموقع':[['hero_intro','سطر أنا محمد محمود وكل فكرة ليها حكاية'],['hero_merged_role','المسمى المهني والخدمات'],['hero_merged_description','النبذة التعريفية المدمجة'],['hero_point_1','فهم حقيقي للبراند'],['hero_point_2','تنفيذ منظم ومرن'],['hero_point_3','إبداع بشري بمساعدة الذكاء الاصطناعي']],'حقوق النشر والسنة — تعديل مباشر':[['portrait_copyright','© MO DESIGN / 2026 — حقوق الصورة الشخصية'],['hero_side','استوديو مو ديزاين — 2026 | النص الجانبي'],['hero_year','2026 — السنة بجوار الاستوديو'],['footer_copyright','حقوق النشر أسفل الموقع']],...Object.fromEntries(Object.entries(CONTENT_GROUPS).filter(([label])=>label!=='نصوص فريق العمل')),'كل العبارات والأزرار الإضافية':copyGroup().filter(([key])=>!['portrait_copyright','hero_side','hero_year','footer_copyright','hero_intro','hero_merged_role','hero_merged_description','hero_point_1','hero_point_2','hero_point_3'].includes(key))};
  const sections=Object.entries(groups).map(([label,fields],i)=>`<details class="cms-editor-group" ${i===0?'open':''}><summary>${esc(label)} <span>▾</span></summary><div class="admin-form-grid">${fields.map(([key,name])=>`${field('ar_'+key,`${name} — بالعربي المصري`,(settings.content_ar||{})[key]??ar[key]??'',{type:'textarea',full:true,rows:2})}${field('en_'+key,`${name} — النسخة الإنجليزية`,(settings.content_en||{})[key]??en[key]??'',{type:'textarea',full:true,rows:2})}`).join('')}</div></details>`).join('');
- return `<div class="admin-panel"><div class="admin-heading"><div><h2>إدارة كل أقسام الموقع</h2><p class="admin-note">فعّل أو اخفي أي قسم، وعدّل عناوينه ووصفه بالعربي والإنجليزي. مش هتحتاج ترجع لـ GitHub.</p></div><a class="admin-btn secondary" href="./index.html" target="_blank" rel="noopener">معاينة ↗</a></div><form data-entity="content" id="contentForm"><div class="v10-home-copy"><h3>◈ كلام الصفحة الرئيسية</h3><p class="admin-note">ده أول كلام العميل بيشوفه في الموقع. عدّله من هنا واحفظ مع باقي الأقسام.</p><div class="admin-form-grid">${field('headline_ar','العنوان الرئيسي — عربي',settings.headline_ar,{type:'textarea',required:true,rows:2})}${field('headline_en','العنوان الرئيسي — إنجليزي',settings.headline_en,{type:'textarea',required:true,rows:2})}${field('subheadline_ar','نبذة البداية — عربي',settings.subheadline_ar,{type:'textarea',rows:3})}${field('subheadline_en','نبذة البداية — إنجليزي',settings.subheadline_en,{type:'textarea',rows:3})}</div></div><h3>الأقسام اللي تظهر للزائر</h3><div class="cms-toggle-grid">${controls}</div><h3 style="margin-block:35px 15px">تحرير النصوص</h3><style id="v13-cms-search-style">.cms-search-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:15px}.cms-search-controls small{margin-inline-end:auto}.cms-search-controls .admin-btn{font-size:12px;padding:8px 10px}.cms-editor-group[hidden],.cms-editor-group .form-field[hidden]{display:none!important}</style><div class="cms-search-tools"><label class="form-field full" style="margin-block:12px 8px">ابحث عن اسم الحقل أو النص الموجود بالعربي أو الإنجليزي<input id="cmsCopySearch" type="search" placeholder="مثلاً: آراء العملاء، الزر، أو كلمات من النص نفسه" autocomplete="off"></label><div class="cms-search-controls"><small id="cmsSearchResults" role="status" aria-live="polite">تقدر تبحث في أسماء الحقول ومحتواها.</small><button class="admin-btn secondary" type="button" data-cms-groups="open">فتح كل المجموعات</button><button class="admin-btn secondary" type="button" data-cms-groups="close">طي كل المجموعات</button></div></div>${sections}<div class="admin-sticky-actions"><button type="submit" class="admin-btn">حفظ المحتوى والتغييرات ✓</button><small id="cmsSaveStatus" role="status">المحتوى بيتحفظ على Supabase ويظهر على الموقع من غير GitHub</small></div></form></div>`;
+ return `<div class="admin-panel"><div class="admin-heading"><div><h2>إدارة كل أقسام الموقع</h2><p class="admin-note">فعّل أو اخفي أي قسم، وعدّل عناوينه ووصفه بالعربي والإنجليزي. مش هتحتاج ترجع لـ GitHub.</p></div><a class="admin-btn secondary" href="./index.html" target="_blank" rel="noopener">معاينة ↗</a></div><form data-entity="content" id="contentForm"><div class="v10-home-copy"><h3>◈ كلام الصفحة الرئيسية</h3><p class="admin-note">ده أول كلام العميل بيشوفه في الموقع. عدّله من هنا واحفظ مع باقي الأقسام.</p><div class="admin-form-grid">${field('headline_ar','العنوان الرئيسي — عربي',settings.headline_ar,{type:'textarea',required:true,rows:2})}${field('headline_en','العنوان الرئيسي — إنجليزي',settings.headline_en,{type:'textarea',required:true,rows:2})}${field('subheadline_ar','نبذة البداية — عربي',settings.subheadline_ar,{type:'textarea',rows:3})}${field('subheadline_en','نبذة البداية — إنجليزي',settings.subheadline_en,{type:'textarea',rows:3})}</div></div><h3>الأقسام اللي تظهر للزائر</h3><div class="cms-toggle-grid">${controls}</div><h3 style="margin-block:35px 15px">تحرير النصوص</h3>${teamCopyEditor(settings)}<style id="v13-cms-search-style">.cms-search-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:15px}.cms-search-controls small{margin-inline-end:auto}.cms-search-controls .admin-btn{font-size:12px;padding:8px 10px}.cms-editor-group[hidden],.cms-editor-group .form-field[hidden]{display:none!important}</style><div class="cms-search-tools"><label class="form-field full" style="margin-block:12px 8px">ابحث عن اسم الحقل أو النص الموجود بالعربي أو الإنجليزي<input id="cmsCopySearch" type="search" placeholder="مثلاً: آراء العملاء، الزر، أو كلمات من النص نفسه" autocomplete="off"></label><div class="cms-search-controls"><small id="cmsSearchResults" role="status" aria-live="polite">تقدر تبحث في أسماء الحقول ومحتواها.</small><button class="admin-btn secondary" type="button" data-cms-groups="open">فتح كل المجموعات</button><button class="admin-btn secondary" type="button" data-cms-groups="close">طي كل المجموعات</button></div></div>${sections}<div class="admin-sticky-actions"><button type="submit" class="admin-btn">حفظ المحتوى والتغييرات ✓</button><small id="cmsSaveStatus" role="status">المحتوى بيتحفظ على Supabase ويظهر على الموقع من غير GitHub</small></div></form></div>`;
 }
 
 function toolEditorRow(tool={}){
@@ -483,9 +483,22 @@ function teamRow(item={},index=0){
   '<label class="form-field checkbox"><input type="checkbox" name="enabled" '+(item.enabled?'checked':'')+'> إظهار هذا العضو</label>'+
   '</div></div>';
 }
+const TEAM_COPY_FIELDS=[
+ ['team_eyebrow','النص الصغير أعلى قسم الفريق','MO DESIGN / PEOPLE','MO DESIGN / PEOPLE'],
+ ['team_title','العنوان الرئيسي لقسم الفريق','فريقنا وراء كل تفصيلة.','People behind the work.'],
+ ['team_description','الوصف تحت عنوان الفريق','تعرف على الناس اللي بتشتغل على الأفكار والتصاميم.','Meet the people creating the work.']
+];
+function teamCopyEditor(settings){
+ const arCopy=settings?.content_ar||{}, enCopy=settings?.content_en||{};
+ return '<section class="mo-team-copy-panel" id="teamCopyEditor"><h3>نصوص قسم فريق العمل</h3><p class="admin-note">عدّل الثلاث عبارات الظاهرة فوق أعضاء الفريق بالعربي والإنجليزي، واضغط حفظ أسفل النموذج.</p><div class="admin-form-grid">'+
+ TEAM_COPY_FIELDS.map(([key,label,defaultAr,defaultEn])=>
+   field('ar_'+key,label+' — عربي',arCopy[key]??defaultAr,{type:'textarea',rows:2})+
+   field('en_'+key,label+' — English',enCopy[key]??defaultEn,{type:'textarea',rows:2})
+ ).join('')+'</div></section>';
+}
 function renderTeam(){
  const cfg=readStudio(data.settings);
- return '<section class="admin-panel"><h2>إدارة فريق العمل</h2><p class="admin-note">القسم يظهر أسفل «06 / نبدأ شغل جديد؟» وقبل الفوتر. تقدر تضيف الأعضاء وتعدل الاسم والوظيفة والصورة والترتيب وتخفي أي عضو. في المعاينة الصور المرفوعة من جهازك محفوظة محليًا في نفس المتصفح فقط.</p><form id="teamForm"><div class="mo-studio-toggles"><label class="cms-toggle"><input name="team_enabled" type="checkbox" '+(cfg.team_enabled?'checked':'')+'> إظهار قسم الفريق في الموقع</label></div><div id="teamRows">'+cfg.team.map((x,i)=>teamRow(x,i)).join('')+'</div><button type="button" class="admin-btn secondary" data-team-add>+ إضافة عضو جديد</button><div class="admin-actions"><button type="submit" class="admin-btn">حفظ فريق العمل</button></div><p id="teamStatus" role="status"></p></form></section>';
+ return '<section class="admin-panel"><h2>إدارة فريق العمل</h2><p class="admin-note">القسم يظهر بعد نموذج التواصل وقبل الفوتر. هنا تقدر تتحكم في نصوصه وأعضائه وصورهم وترتيبهم من مكان واحد.</p><form id="teamForm">'+teamCopyEditor(data.settings)+'<div class="mo-studio-toggles"><label class="cms-toggle"><input name="team_enabled" type="checkbox" '+(cfg.team_enabled?'checked':'')+'> إظهار قسم الفريق في الموقع</label></div><h3>أعضاء الفريق وصورهم</h3><div id="teamRows">'+cfg.team.map((x,i)=>teamRow(x,i)).join('')+'</div><button type="button" class="admin-btn secondary" data-team-add>+ إضافة عضو جديد</button><div class="admin-actions"><button type="submit" class="admin-btn">حفظ نصوص وأعضاء الفريق</button></div><p id="teamStatus" role="status"></p></form></section>';
 }
 async function saveTeamForm(form){
  const button=form.querySelector('button[type="submit"]'),status=form.querySelector('#teamStatus');
@@ -509,16 +522,23 @@ async function saveTeamForm(form){
   // Replace the old team+video settings with team-only content when saved;
   // existing team members and their image URLs are preserved.
   const content_ar={...(data.settings?.content_ar||{}),[STUDIO_KEY]:JSON.stringify(next)};
+  const content_en={...(data.settings?.content_en||{})};
+  for(const [key] of TEAM_COPY_FIELDS){
+    const arField=form.elements.namedItem('ar_'+key),enField=form.elements.namedItem('en_'+key);
+    if(!arField||!enField)throw Error('حقول نصوص الفريق غير ظاهرة في نموذج الحفظ');
+    content_ar[key]=arField.value.trim().slice(0,500);
+    content_en[key]=enField.value.trim().slice(0,500);
+  }
   if(cmsConnected){
    const db=await getClient();
-   const {data:updated,error}=await db.from('site_settings').update({content_ar}).eq('id',1).select().single();
+   const {data:updated,error}=await db.from('site_settings').update({content_ar,content_en}).eq('id',1).select().single();
    if(error)throw error;
    data.settings=updated;
   }else{
-   data.settings={...data.settings,content_ar};
+   data.settings={...data.settings,content_ar,content_en};
    saveDemo(data);
   }
-  status.textContent=cmsConnected?'تم حفظ أعضاء الفريق.':'تم حفظ فريق العمل في نفس المتصفح التجريبي. افتح الموقع من نفس رابط المعاينة لمشاهدة التغيير.';
+  status.textContent=cmsConnected?'تم حفظ نصوص الفريق والأعضاء بنجاح. حدّث الموقع لمشاهدة التغيير.':'تم حفظ نصوص الفريق والأعضاء في نفس المتصفح التجريبي.';
   toast('تم حفظ فريق العمل');
  }catch(error){status.textContent='تعذر الحفظ: '+error.message;toast('تعذر الحفظ: '+error.message);}
  finally{if(button)button.disabled=false}
