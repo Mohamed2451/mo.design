@@ -1,0 +1,31 @@
+name: Team copy collapsible checks
+on:
+  push:
+    branches: [mo-design-team-copy-collapsible-20261020]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify syntax and search group
+        run: |
+          node --check assets/admin.js
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const s=fs.readFileSync('assets/admin.js','utf8');
+          assert.match(s,/\.\.\.CONTENT_GROUPS,'كل العبارات والأزرار الإضافية'/);
+          assert.doesNotMatch(s,/<h3 style="margin-block:35px 15px">تحرير النصوص<\/h3>\$\{teamCopyEditor\(settings\)\}/);
+          assert.match(s,/const sections=Object.entries\(groups\)/);
+          for(const key of ['team_eyebrow','team_title','team_description'])assert.ok(s.includes(key));
+          assert.match(s,/group\.querySelectorAll\('\.form-field'\)/);
+          assert.match(s,/group\.hidden=!!q&&!found/);
+          console.log('Collapsible Team copy present within searchable CMS groups.');
+          NODE
+      - name: Regression suite
+        run: node --test tests/v13-loading-smoke.mjs tests/v13-regressions.mjs tests/seo-sitemap.mjs tests/prelaunch-audit.mjs
