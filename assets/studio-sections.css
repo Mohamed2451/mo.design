@@ -28,3 +28,16 @@
 #signature .editorial-gallery>.editorial-tile img{width:100%!important;height:100%!important;max-height:430px!important;aspect-ratio:auto!important;object-fit:contain!important;object-position:center center;padding:0!important;background:transparent!important}
 #signature .editorial-gallery>.editorial-tile img[src$=".webp"],#signature .editorial-gallery>.editorial-tile img[src$=".jpg"],#signature .editorial-gallery>.editorial-tile img[src$=".png"]{object-fit:cover!important}
 #signature .editorial-gallery>.editorial-tile span{background:linear-gradient(transparent,rgba(0,0,0,.75));width:100%;z-index:2}
+
+/* Small team entrance only. Original site reveal/ticker/hero animations stay unchanged. */
+@media(prefers-reduced-motion:no-preference){
+ #moTeam .mo-studio-card{animation:moTeamAppear .65s cubic-bezier(.2,.8,.2,1) both;animation-timeline:view();animation-range:entry 0% entry 65%}
+ #moTeam .mo-studio-card:nth-child(2){animation-delay:.09s}
+ #moTeam .mo-studio-card:nth-child(3){animation-delay:.18s}
+ #moTeam .mo-studio-card:hover{transform:translateY(-5px);transition:transform .25s ease,box-shadow .25s ease;box-shadow:0 18px 50px rgba(0,0,0,.12)}
+ @keyframes moTeamAppear{from{opacity:.4;translate:0 18px}to{opacity:1;translate:0 0}}
+}
+@media(prefers-reduced-motion:reduce){#moTeam .mo-studio-card{animation:none!important;transform:none!important}}
+/* Decorative numbering only; preserve genuine statistical values and project titles. */
+.hero-seq,.process-n,.service-number,.project-index,#featureCount,#learningCount{display:none!important}
+.feature-disclaimer,.editorial-caption,.demo-hint,.reviews-note{display:none!important}
