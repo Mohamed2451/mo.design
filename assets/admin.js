@@ -9,7 +9,8 @@ import {getAcademyCategories,getAcademyMembership,ACADEMY_CATEGORIES_KEY,ACADEMY
 
 const $ = s => document.querySelector(s);
 // ?demo=1 forces a local-only sandbox; never access live Supabase from this mode.
-const cmsConnected=connected && new URLSearchParams(location.search).get('demo')!=='1';
+// Cloudflare staging must never update the production Supabase database.
+const cmsConnected=connected && new URLSearchParams(location.search).get('demo')!=='1' && !location.hostname.endsWith('.pages.dev');
 let data = cmsConnected ? null : readDemo();
 let currentUser = null;
 let tab = 'overview';
