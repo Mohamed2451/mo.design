@@ -96,3 +96,26 @@ html.light .v14-home .v14-motion-main{background:radial-gradient(circle at 55% 5
 .v14-media-stage{aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#000;display:grid;place-items:center}
 .v14-media-stage iframe,.v14-media-stage video{width:100%;height:100%;border:0;object-fit:contain}
 @media(max-width:620px){.v14-home .featured-section{padding-block:58px}.v14-home .work-section{padding-top:72px}.v14-home .learn-section{padding-block:64px}.v14-home .learn-section .section-title{font-size:clamp(35px,9vw,56px)}}
+
+/* V14: always-visible content. Full-page captures and slow devices must not
+   show empty sections waiting for IntersectionObserver or a motion frame.
+   Preserve pointer hover and decorative effects, but never conceal content. */
+.v14-home [hidden]{display:none!important}
+.v14-home .reveal,
+.v14-home .reveal.will-reveal:not(.visible),
+.v14-home .v15-inview:not(.v15-visible){
+  opacity:1!important;
+  visibility:visible!important;
+  filter:none!important;
+  transform:none!important;
+  translate:none!important
+}
+.v14-home .v14-preview-marker{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--panel);color:var(--text-soft);
+  border:1px solid var(--line);border-radius:999px;
+  padding:5px 12px;font:750 10px/1.7 "DM Sans",sans-serif;
+  letter-spacing:.10em;direction:ltr;margin:8px 0 0;
+}
+.v14-home .v14-preview-marker::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+@media(max-width:600px){.v14-home .v14-preview-marker{font-size:9px}}
