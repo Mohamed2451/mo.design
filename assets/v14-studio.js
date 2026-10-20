@@ -2,7 +2,7 @@
 const localText=(ar,en)=>lang()==='ar'?ar:en;
 const previewNote=()=>localText('بيانات معاينة محفوظة في متصفحك فقط، وليست منشورة للزوار الآخرين.','Local browser preview only; these items are not published for other visitors.');
 const title=(a,b)=>localText(a,b);
-const card=(x,heading,description,img)=>'<article class="v14-studio-card">'+(M.link(img)?'<img src="'+e(M.link(img))+'" loading="lazy" alt="">':'')+'<small>MO / STUDIO</small><h3>'+e(heading)+'</h3><p>'+e(description||'')+'</p></article>';
+const card=(x,heading,description,img)=>'<article class="v14-studio-card">'+(M.link(img)?'<img src="'+e(M.link(img))+'" loading="lazy" alt="">':x.demo?'<div class="v14-member-art" aria-hidden="true"><span>'+e(heading.trim().slice(0,1))+'</span><b>MO / PEOPLE</b></div>':'')+'<small>'+(x.demo?'FICTIONAL DEMO / ':'')+'MO / STUDIO</small><h3>'+e(heading)+'</h3><p>'+e(description||'')+'</p></article>';
 const block=(id,number,h,subtitle,items,extra='')=>'<section class="v14-studio-block '+(id==='stats'?'v14-studio-stats':'')+'" id="v14-'+id+'"><div class="container"><div class="v14-studio-heading"><div><small>'+number+' / MO DESIGN</small><h2>'+e(h)+'</h2><p>'+e(subtitle)+'</p></div><a href="./v14-dashboard.html">'+title('لوحة التجربة ↗','Preview control ↗')+'</a></div><div class="v14-studio-grid">'+items+'</div><p class="v14-platform-note">'+e(previewNote())+'</p>'+extra+'</div></section>';
 function render(){const st=M.get(),settings=st.settings,visible=x=>settings.sections[x]!==false,approved=x=>x.visible!==false,stat=st.stats.filter(approved),team=st.team.filter(approved),videos=st.videos.filter(approved);
 let markup='';
