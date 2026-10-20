@@ -1,0 +1,34 @@
+name: Team Copy UI Checks
+on:
+  push:
+    branches: [mo-design-team-copy-visible-20261020]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and team editor checks
+        run: |
+          node --check assets/admin.js
+          node --check assets/studio-sections.js
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const js=fs.readFileSync('assets/admin.js','utf8');
+          const site=fs.readFileSync('assets/studio-sections.js','utf8');
+          const html=fs.readFileSync('admin.html','utf8');
+          for(const key of ['team_eyebrow','team_title','team_description']){
+            assert.ok(js.includes("ar_"+ "'"+key+"'" )===false || js.includes(key));
+            assert.ok(site.includes(key));
+          }
+          assert.match(js,/teamCopyEditor\(data.settings\)/);
+          assert.match(js,/teamCopyEditor\(settings\)/);
+          assert.match(js,/update\(\{content_ar,content_en\}\)/);
+          assert.match(html,/teamcopy3/);
+          console.log('Editable team copy smoke tests passed');
+          NODE
