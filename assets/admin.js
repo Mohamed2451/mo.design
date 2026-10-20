@@ -1,4 +1,6 @@
 import { seed, readDemo, saveDemo, escapeHTML as esc, safeUrl, ar, en } from './data.js';
+import {STUDIO_KEY,readStudio,safeStudioUrl} from './studio-config.js';
+import {isStudioPreviewHost,isPreviewMediaRef,storeStudioPreviewMedia} from './studio-preview-media.js';
 import { connected, getClient, adminAuthenticated, getAdminContent } from './api.js';
 import {PORTFOLIO_CATEGORIES, categoryFor, formatTools} from './categories.js';
 import {getToolsCatalog,TOOLS_CATALOG_KEY} from './tools-catalog.js';
@@ -8,7 +10,8 @@ import {getAcademyCategories,getAcademyMembership,ACADEMY_CATEGORIES_KEY,ACADEMY
 
 const $ = s => document.querySelector(s);
 // ?demo=1 forces a local-only sandbox; never access live Supabase from this mode.
-const cmsConnected=connected && new URLSearchParams(location.search).get('demo')!=='1';
+// Cloudflare staging must never update the production Supabase database.
+const cmsConnected=connected && new URLSearchParams(location.search).get('demo')!=='1' && !location.hostname.endsWith('.pages.dev');
 let data = cmsConnected ? null : readDemo();
 let currentUser = null;
 let tab = 'overview';
@@ -28,7 +31,7 @@ window.addEventListener('beforeunload',event=>{
 });
 
 // Dashboard always uses its own neutral dark palette; the public site's theme remains unchanged.
-const labels = {notice:'إشعارات الموقع',overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',appearance:'مظهر الأقسام',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى',tools:'إدارة الأدوات',legal:'الصفحات والروابط'};
+const labels = {notice:'إشعارات الموقع',overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',appearance:'مظهر الأقسام',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى',team:'فريق العمل',tools:'إدارة الأدوات',legal:'الصفحات والروابط'};
 const FONT_CHOICES=[['Alexandria','Alexandria — حديث'],['Cairo','Cairo — واضح'],['Readex Pro','Readex Pro — هادي'],['IBM Plex Sans Arabic','IBM Plex Sans Arabic — احترافي']];
 const EXTRA_CONTENT_KEYS=[...ACADEMY_TEXT_KEYS.map(x=>x[0]),'hero_intro','hero_merged_role','hero_merged_description','hero_point_1','hero_point_2','hero_point_3','about_story_label','about_story_value','about_kicker','about_ribbon','portrait_tag','portrait_pill','hero_side','footer_line','learn_eyebrow','learn_big1','learn_big2','cta_kicker','tool_kicker','tools_eyebrow','ticker_items','project_about_title','project_objective_title','selected_real_sub','reviews_real_sub','featured_real_sub','portrait_copyright','hero_year','footer_copyright'];
 const ALL_COPY_KEYS=()=>[...new Set([...Object.keys(ar),...Object.keys(en),...EXTRA_CONTENT_KEYS])].filter(k=>EXTRA_CONTENT_KEYS.includes(k)||typeof ar[k]==='string'||typeof en[k]==='string');
@@ -102,9 +105,10 @@ function baseShell(){
  const groups=[
   {title:'المكتب',items:['overview','messages']},
   {title:'إدارة المحتوى',items:['content','appearance','projects','media','services','tools','legal','testimonials','future','notice']},
-  {title:'الهوية والإعدادات',items:['settings']}
+  {title:'الهوية والإعدادات',items:['settings']},
+  {title:'فريق العمل',items:['team']}
  ];
- const icons={overview:'◫',messages:'✉',content:'▤',appearance:'◈',projects:'▦',media:'▧',tools:'◈',services:'◇',testimonials:'❞',future:'▷',notice:'♧',legal:'▣',settings:'⚙'};
+ const icons={overview:'◫',messages:'✉',content:'▤',appearance:'◈',projects:'▦',media:'▧',tools:'◈',services:'◇',testimonials:'❞',future:'▷',team:'♧',notice:'♧',legal:'▣',settings:'⚙'};
  $('#adminApp').innerHTML=`<div class="admin-layout v10-shell"><aside class="admin-sidebar">
  <div class="studio-sidebar-top"><a href="./index.html" class="brand v10-brand"><span class="brand-mark"><img src="./assets/images/mo-logo-white.webp" alt="" data-admin-brand-logo /></span><span><strong>Mo Design</strong><small>مساحة الإدارة الإبداعية</small></span></a><div class="v10-workspace-badge"><span class="v10-online-dot"></span> مساحة الإدارة الخاصة</div></div>
  <nav class="sidebar-nav" id="adminNav" aria-label="أقسام لوحة الإدارة">${groups.map(group=>`<div class="v10-nav-group"><div class="v10-nav-label">${group.title}</div>${group.items.map(key=>`<button type="button" data-tab="${key}" class="${tab===key?'active':''}"><span class="v10-nav-icon" aria-hidden="true">${icons[key]}</span><span>${labels[key]}</span><span class="v10-nav-chevron" aria-hidden="true">‹</span></button>`).join('')}</div>`).join('')}</nav>
@@ -465,10 +469,64 @@ document.addEventListener('click',event=>{
  if(event.target.closest('[data-legal-add-section]')){const list=event.target.closest('[data-legal-row]')?.querySelector('[data-legal-sections]');if(list&&list.children.length<30)list.insertAdjacentHTML('beforeend',legalSectionRow());}
  if(event.target.closest('[data-legal-remove-section]'))event.target.closest('[data-legal-section]')?.remove();
 });
+
+function teamRow(item={},index=0){
+ const val=key=>esc(item[key]||'');
+ const field=(id,title)=>'<label>'+title+'<input name="'+id+'" value="'+val(id)+'" placeholder="'+title+'"></label>';
+ return '<div class="mo-studio-edit-row" data-team-row data-id="'+val('id')+'"><div class="mo-studio-row-head"><strong>عضو فريق '+(index+1)+'</strong><button type="button" class="admin-btn secondary" data-team-remove>حذف العضو</button></div><div class="admin-form-grid">'+
+  field('name_ar','اسم العضو بالعربي')+field('name_en','Name in English')+
+  field('role_ar','الوظيفة بالعربي')+field('role_en','Role in English')+
+  field('image_url','رابط الصورة HTTPS')+field('link_url','رابط أعمال العضو')+
+  '<label>رفع صورة العضو<input type="file" name="team_file" accept="image/png,image/jpeg,image/webp,image/avif" '+(cmsConnected||isStudioPreviewHost()?'':'disabled')+'></label>'+
+  '<label>الترتيب<input type="number" name="sort_order" value="'+Number(item.sort_order||index)+'"></label>'+
+  '<label class="form-field checkbox"><input type="checkbox" name="enabled" '+(item.enabled?'checked':'')+'> إظهار هذا العضو</label>'+
+  '</div></div>';
+}
+function renderTeam(){
+ const cfg=readStudio(data.settings);
+ return '<section class="admin-panel"><h2>إدارة فريق العمل</h2><p class="admin-note">القسم يظهر أسفل «06 / نبدأ شغل جديد؟» وقبل الفوتر. تقدر تضيف الأعضاء وتعدل الاسم والوظيفة والصورة والترتيب وتخفي أي عضو. في المعاينة الصور المرفوعة من جهازك محفوظة محليًا في نفس المتصفح فقط.</p><form id="teamForm"><div class="mo-studio-toggles"><label class="cms-toggle"><input name="team_enabled" type="checkbox" '+(cfg.team_enabled?'checked':'')+'> إظهار قسم الفريق في الموقع</label></div><div id="teamRows">'+cfg.team.map((x,i)=>teamRow(x,i)).join('')+'</div><button type="button" class="admin-btn secondary" data-team-add>+ إضافة عضو جديد</button><div class="admin-actions"><button type="submit" class="admin-btn">حفظ فريق العمل</button></div><p id="teamStatus" role="status"></p></form></section>';
+}
+async function saveTeamForm(form){
+ const button=form.querySelector('button[type="submit"]'),status=form.querySelector('#teamStatus');
+ if(button)button.disabled=true;status.textContent='جاري حفظ أعضاء الفريق...';
+ try{
+  const rows=[...form.querySelectorAll('[data-team-row]')];
+  if(rows.length>30)throw Error('الحد الأقصى لفريق العمل 30 عضوًا');
+  const items=[];
+  for(const row of rows){
+   const get=n=>row.querySelector('[name="'+n+'"]')?.value?.trim()||'';
+   const item={id:row.dataset.id||crypto.randomUUID(),enabled:!!row.querySelector('[name="enabled"]')?.checked,sort_order:Number(get('sort_order'))||0};
+   for(const key of ['name_ar','name_en','role_ar','role_en','image_url','link_url'])item[key]=get(key).slice(0,350);
+   if(!item.name_ar)throw Error('اكتب الاسم بالعربي لكل عضو في الفريق');
+   const file=row.querySelector('[name="team_file"]')?.files?.[0];
+   if(file)item.image_url=cmsConnected?await uploadImage(file,'team'):await storeStudioPreviewMedia(file,'image');
+   if(item.image_url&&!safeStudioUrl(item.image_url)&&!(isStudioPreviewHost()&&isPreviewMediaRef(item.image_url)))throw Error('رابط صورة عضو الفريق غير صحيح');
+   if(item.link_url&&!safeStudioUrl(item.link_url))throw Error('رابط أعمال عضو الفريق غير صحيح');
+   items.push(item);
+  }
+  const next={team_enabled:!!form.querySelector('[name="team_enabled"]')?.checked,team:items};
+  // Replace the old team+video settings with team-only content when saved;
+  // existing team members and their image URLs are preserved.
+  const content_ar={...(data.settings?.content_ar||{}),[STUDIO_KEY]:JSON.stringify(next)};
+  if(cmsConnected){
+   const db=await getClient();
+   const {data:updated,error}=await db.from('site_settings').update({content_ar}).eq('id',1).select().single();
+   if(error)throw error;
+   data.settings=updated;
+  }else{
+   data.settings={...data.settings,content_ar};
+   saveDemo(data);
+  }
+  status.textContent=cmsConnected?'تم حفظ أعضاء الفريق.':'تم حفظ فريق العمل في نفس المتصفح التجريبي. افتح الموقع من نفس رابط المعاينة لمشاهدة التغيير.';
+  toast('تم حفظ فريق العمل');
+ }catch(error){status.textContent='تعذر الحفظ: '+error.message;toast('تعذر الحفظ: '+error.message);}
+ finally{if(button)button.disabled=false}
+}
+
 function renderPanel(){
   if(!data)return;
   const main=$('#adminMain'); if(!main) return;
-  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,legal:renderLegalPages,services:()=>renderItems('services'),testimonials:()=>renderItems('testimonials'),messages:renderMessages,future:renderFuture,notice:renderNoticeEditor})[tab]();
+  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,legal:renderLegalPages,services:()=>renderItems('services'),testimonials:()=>renderItems('testimonials'),messages:renderMessages,future:renderFuture,team:renderTeam,notice:renderNoticeEditor})[tab]();
   main.innerHTML=`<header class="admin-heading v10-page-head"><div><span class="v10-page-path">Mo Design <span>/</span> مساحة العمل <span>/</span> ${esc(labels[tab])}</span><h1>${esc(labels[tab])}</h1><p>أدواتك ومحتواك وطلبات الشغل في مكان واحد.</p></div><div class="v10-page-actions"><span class="admin-badge">${cmsConnected?`<span class="v10-online-dot"></span> متصل`:'◌ وضع تجربة محلية'}</span><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">↗ شوف الموقع</a></div></header>${!cmsConnected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
   document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
   if(tab==='media')void loadMedia();
@@ -851,6 +909,8 @@ $('#adminApp').addEventListener('click',async e=>{
     const out=rb.dataset.rich==='bold'?`**${selected}**`:rb.dataset.rich==='italic'?`*${selected}*`:rb.dataset.rich==='heading'?`## ${selected}`:`- ${selected}`;
     area.setRangeText(out,a,b,'select');area.focus();return;
   }
+  const addTeam=e.target.closest('[data-team-add]');if(addTeam){const host=document.querySelector('#teamRows');if(host)host.insertAdjacentHTML('beforeend',teamRow({},host.children.length));return;}
+  const removeTeam=e.target.closest('[data-team-remove]');if(removeTeam){removeTeam.closest('[data-team-row]')?.remove();return;}
   const nav=e.target.closest('button[data-tab]');
   if(nav){
     if(cmsDirty && !confirm('عندك تغييرات غير محفوظة في محرر الموقع. هل تريد مغادرة القسم وفقدان التعديلات؟'))return;
@@ -1009,6 +1069,7 @@ $('#adminApp').addEventListener('click',async e=>{
 $('#adminApp').addEventListener('submit',async e=>{
   e.preventDefault();
   const form=e.target;
+  if(form.id==='teamForm'){await saveTeamForm(form);return;}
   if(form.id==='mediaUploadForm'){
     if(!cmsConnected)return;
     const button=form.querySelector('button[type=submit]');const files=[...(form.querySelector('[name="uploads"]')?.files||[])];

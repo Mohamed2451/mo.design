@@ -85,7 +85,7 @@ function setBrandContent() {
   $$('.stats-strip [data-count]').forEach((el,i)=>{ const newCount=Math.max(0,Number(countValues[i]??[100,3,100][i])||0);el.dataset.count=String(newCount);el.textContent=String(newCount); });
   const hasStats = countValues.some(v => Number(v) > 0);
   $('.stats-strip').hidden = !settings.stats_verified || !hasStats;
-  $('#demoHint').style.display = model.projects.some(p=>String(p.id).startsWith('demo-') && p.is_published) ? 'flex' : 'none';
+  // Demo disclaimer removed from homepage; project concepts remain marked in project metadata.
   const socials = [
     ['Behance',settings.behance_url,'Bē'],['LinkedIn',settings.linkedin_url,'in'],
     ['Instagram',settings.instagram_url,'◎'],['TikTok',settings.tiktok_url,'♪'],
@@ -120,7 +120,7 @@ function renderProjects() {
  const items = model.projects.filter(p=>p.is_published&&(activeCategory==='*'||categoryFor(p)?.id===activeCategory)).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
  $('#worksCount').textContent=lang==='ar'?`${number(items.length)} عمل`:`${number(items.length)} projects`;
  $('#projectGrid').setAttribute('aria-live','polite');
- $('#projectGrid').innerHTML=items.length?items.map((p,i)=>`<article class="project-card reveal"><a class="project-cover-button" href="${esc(caseUrl(p))}" style="display:block;width:100%" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">${graphicHTML(p)}</a><div class="project-meta"><div><h3>${esc(field(p,'title'))}</h3><p>${esc((categoryFor(p)||{})[lang]||field(p,'category'))}</p></div><span class="project-index">/${number(i+1)}</span></div></article>`).join(''):`<p class="admin-empty">${esc(txt().no_projects)}</p>`;
+ $('#projectGrid').innerHTML=items.length?items.map((p,i)=>`<article class="project-card reveal"><a class="project-cover-button" href="${esc(caseUrl(p))}" style="display:block;width:100%" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">${graphicHTML(p)}</a><div class="project-meta"><div><h3>${esc(field(p,'title'))}</h3><p>${esc((categoryFor(p)||{})[lang]||field(p,'category'))}</p></div></div></article>`).join(''):`<p class="admin-empty">${esc(txt().no_projects)}</p>`;
  observeReveal();
  // Project filters rebuild the cards, so attach effects to newly added cards too.
  if(typeof applyInteractiveFX==='function')requestAnimationFrame(applyInteractiveFX);
@@ -147,7 +147,7 @@ function renderServices() {
     if(id==='service-ads'||/social|advertis|ads|سوشيال|إعلان/.test(name))return 'social-media';
     return '';
   };
-  $('#servicesList').innerHTML = items.map((s,i)=>`<article class="service-item reveal"><span class="service-number">/${number(i+1)}</span><h3 class="service-title"><a href="${servicePage(s)?`./services/${servicePage(s)}/`:`./index.html?category=${encodeURIComponent(serviceCategory(s)||"")}#work`}" style="color:inherit;text-decoration:none">${esc(field(s,'title'))}</a></h3><p class="service-desc">${esc(field(s,'description'))}</p><a href="${servicePage(s)?`./services/${servicePage(s)}/`:`./index.html?category=${encodeURIComponent(serviceCategory(s)||"")}#work`}" class="service-mark" aria-label="${esc(txt().details)}: ${esc(field(s,'title'))}">${icons[s.icon] || '↗'}</a></article>`).join('');
+  $('#servicesList').innerHTML = items.map((s,i)=>`<article class="service-item reveal"><h3 class="service-title"><a href="${servicePage(s)?`./services/${servicePage(s)}/`:`./index.html?category=${encodeURIComponent(serviceCategory(s)||"")}#work`}" style="color:inherit;text-decoration:none">${esc(field(s,'title'))}</a></h3><p class="service-desc">${esc(field(s,'description'))}</p><a href="${servicePage(s)?`./services/${servicePage(s)}/`:`./index.html?category=${encodeURIComponent(serviceCategory(s)||"")}#work`}" class="service-mark" aria-label="${esc(txt().details)}: ${esc(field(s,'title'))}">${icons[s.icon] || '↗'}</a></article>`).join('');
   observeReveal();
 }
 function showProject(id) {
@@ -177,10 +177,10 @@ function renderFeatured() {
     return `<article class="feature-slide" data-position="${position}" data-slide-index="${i}" ${position==='active'?'':'aria-hidden="true"'}>
       <a class="feature-project-link" href="${esc(caseUrl(p))}" tabindex="${position==='active'?'0':'-1'}" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">
       ${asset ? `<img src="${TRANSPARENT_PIXEL}" data-defer-src="${esc(asset)}" alt="${esc(field(p,'title'))}" loading="lazy" decoding="async"/>` : `<div class="project-cover ${esc(p.cover_style||'aurora')}" style="height:100%"><div class="cover-graphic">◇</div></div>`}
-      <span class="feature-scrim" aria-hidden="true"></span><span class="feature-info"><span class="feature-tag">${esc(field(p,'category'))}</span><h3>${esc(field(p,'title'))}</h3><p>${p.project_type==='concept'||String(p.id).startsWith('demo-')?(lang==='ar'?'تصوّر إبداعي':'Concept work'):(lang==='ar'?'مشروع من أعمالي':'Portfolio project')} · ${number(i+1)}</p></span>
+      <span class="feature-scrim" aria-hidden="true"></span><span class="feature-info"><span class="feature-tag">${esc(field(p,'category'))}</span><h3>${esc(field(p,'title'))}</h3><p>${p.project_type==='concept'||String(p.id).startsWith('demo-')?(lang==='ar'?'تصوّر إبداعي':'Concept work'):(lang==='ar'?'مشروع من أعمالي':'Portfolio project')}</p></span>
       </a></article>`;
   }).join('');
-  $('#featureCount').textContent=`${number(featureIndex+1)} / ${number(count)}`;
+  $('#featureCount').textContent='';
   $('#featureDots').innerHTML=projects.map((p,i)=>`<button type="button" class="feature-dot" data-feature-to="${i}" aria-label="${lang==='ar'?'الذهاب إلى مشروع':'Go to project'} ${i+1}" aria-current="${i===featureIndex}"></button>`).join('');
   stage.querySelectorAll('.feature-slide').forEach(el=>{el.inert=el.dataset.position!=='active';});
   watchDeferredImages(stage);
@@ -193,7 +193,7 @@ function renderReviews() {
     const verified=Boolean(r.is_verified);
     const name=field(r,'author')|| (lang==='ar'?'مساحة لرأي عميل':'Client review space');
     return `<article class="review-card reveal ${verified?'verified':''}"><div class="review-person"><div class="review-avatar" aria-hidden="true">${esc(name.trim().slice(0,1).toUpperCase())}</div><div><h3>${esc(name)}</h3><p>${esc(field(r,'job'))}</p></div><span class="review-badge">${esc(verified?txt().review_verified:txt().review_placeholder)}</span></div>
-    <div class="review-stars" aria-label="${verified&&Number(r.rating)>0?`${Number(r.rating)}/5`:''}">${Number(r.rating)>0 ? '★'.repeat(Math.min(5,Math.max(1,Number(r.rating)))) : '✦  MO DESIGN  ✦'}</div><p class="review-quote">${esc(field(r,'quote'))}</p><div class="review-bottom"><span>${verified?'✓':'◎'} ${esc(verified?txt().review_verified:txt().review_placeholder)}</span><span>MO DESIGN / ${number(i+1)}</span></div></article>`;
+    <div class="review-stars" aria-label="${verified&&Number(r.rating)>0?`${Number(r.rating)}/5`:''}">${Number(r.rating)>0 ? '★'.repeat(Math.min(5,Math.max(1,Number(r.rating)))) : '✦  MO DESIGN  ✦'}</div><p class="review-quote">${esc(field(r,'quote'))}</p><div class="review-bottom"><span>${verified?'✓':'◎'} ${esc(verified?txt().review_verified:txt().review_placeholder)}</span></div></article>`;
   }).join('') || `<p class="admin-empty">${esc(lang==='ar'?'قريبًا: تقييمات العملاء':'Client feedback coming soon')}</p>`;
   $('#testimonials').hidden = items.length===0;
   $('#testimonials').classList.toggle('no-reviews',items.length===0);
@@ -336,7 +336,7 @@ function renderLearning(){
   el.dataset.position=position;el.setAttribute('aria-hidden',String(position!=='active'));el.inert=position!=='active';
   el.querySelector('a').tabIndex=position==='active'?0:-1;
  });
- $('#learningCount').textContent=number(learningIndex+1)+' / '+number(count);
+ $('#learningCount').textContent='';
  $('#learningDots').innerHTML=lessons.map((_,i)=>`<button type="button" data-learning-to="${i}" aria-label="${lang==='ar'?'المحتوى':'Item'} ${i+1}" aria-current="${i===learningIndex}"></button>`).join('');
  $('#learningPrev').disabled=count<2;$('#learningNext').disabled=count<2;
 }
