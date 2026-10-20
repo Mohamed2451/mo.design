@@ -1,0 +1,37 @@
+/* Scoped studio extensions for original V13/V15 design system. */
+.mo-studio-edit-row{border:1px solid var(--line,#393945);background:var(--panel,#171821);padding:20px;margin:14px 0;border-radius:18px}
+.mo-studio-row-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:14px}
+.mo-studio-toggles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:24px}
+#studioForm h3{margin:32px 0 12px}
+.mo-studio-edit-row .admin-form-grid label{display:grid;gap:6px}
+.mo-studio-edit-row input:not([type=checkbox]){width:100%;min-width:0}
+.mo-studio-section{padding:clamp(65px,7vw,115px) 0;background:var(--bg,#0b0c13);border-top:1px solid var(--line,rgba(255,255,255,.12))}
+.mo-studio-section[hidden]{display:none!important}
+.mo-studio-section .container{max-width:1250px}
+.mo-studio-title{font-size:clamp(32px,5vw,62px);letter-spacing:-.06em;margin:7px 0 14px}
+.mo-studio-subtitle{color:var(--text-soft,#aeb0b6);font-size:14px;margin-bottom:28px}
+.mo-studio-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.mo-studio-card{position:relative;overflow:hidden;border:1px solid var(--line,rgba(255,255,255,.15));border-radius:23px;background:var(--panel,#191922)}
+.mo-studio-card figure{margin:0;aspect-ratio:4/3;background:radial-gradient(circle at 50% 30%,rgba(150,106,230,.21),transparent 65%),var(--panel,#1a1b22);display:grid;place-items:center;overflow:hidden}
+.mo-studio-card figure img{width:100%;height:100%;object-fit:cover}
+.mo-studio-card figure .mo-studio-monogram{color:var(--accent,#c6fa8a);font-size:clamp(52px,9vw,110px);font-weight:850}
+.mo-studio-card-body{padding:18px 20px 23px}
+.mo-studio-card-body h3{font-size:20px;margin:0 0 5px}
+.mo-studio-card-body p{font-size:13px;line-height:1.8;color:var(--text-soft,#aeb0b6);margin:0}
+.mo-studio-card-body a{color:var(--accent,#c6fa8a);display:inline-block;margin-top:12px;font-size:12px;font-weight:800}
+.mo-studio-video-card{cursor:pointer;text-align:inherit;color:inherit;font:inherit;padding:0;width:100%;border:1px solid var(--line,rgba(255,255,255,.16))}
+.mo-studio-video-card:focus-visible{outline:3px solid var(--accent,#c6fa8a);outline-offset:4px}
+.mo-studio-play{position:absolute;top:38%;left:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:58px;height:58px;border-radius:50%;background:var(--accent,#c6fa8a);color:#10180b;font-size:23px;box-shadow:0 12px 38px #0008}
+.mo-studio-media{width:min(920px,calc(100vw - 25px));border:1px solid #555;overflow:visible;border-radius:18px;background:#0b0c13;color:white;padding:11px}
+.mo-studio-media::backdrop{background:rgba(0,0,0,.84)}
+.mo-studio-media video,.mo-studio-media iframe{width:100%;display:block;aspect-ratio:16/9;border:0;border-radius:10px;background:black}
+.mo-studio-close{background:#222;color:white;border:1px solid #444;border-radius:50%;font-size:27px;width:43px;height:43px;float:right;cursor:pointer;margin-bottom:8px}
+@media(max-width:900px){.mo-studio-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.mo-studio-cards{grid-template-columns:1fr}.mo-studio-section{padding:55px 0}}
+@media(prefers-reduced-motion:reduce){.mo-studio-card{transition:none}}
+/* Restore confident portfolio presentation without returning to overlapping imagery.
+   Wide graphics fill their frame; portrait art is fully visible (no crop). */
+#signature .editorial-gallery>.editorial-tile{display:flex;align-items:center;justify-content:center;min-height:235px;background:#121516;overflow:hidden}
+#signature .editorial-gallery>.editorial-tile img{width:100%!important;height:100%!important;max-height:430px!important;aspect-ratio:auto!important;object-fit:contain!important;object-position:center center;padding:0!important;background:transparent!important}
+#signature .editorial-gallery>.editorial-tile img[src$=".webp"],#signature .editorial-gallery>.editorial-tile img[src$=".jpg"],#signature .editorial-gallery>.editorial-tile img[src$=".png"]{object-fit:cover!important}
+#signature .editorial-gallery>.editorial-tile span{background:linear-gradient(transparent,rgba(0,0,0,.75));width:100%;z-index:2}
