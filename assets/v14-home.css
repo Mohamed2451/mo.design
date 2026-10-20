@@ -119,3 +119,8 @@ html.light .v14-home .v14-motion-main{background:radial-gradient(circle at 55% 5
 }
 .v14-home .v14-preview-marker::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
 @media(max-width:600px){.v14-home .v14-preview-marker{font-size:9px}}
+
+/* Featured imagery is always legible even when a remote media URL expires. */
+.v14-home .feature-slide{background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--violet) 36%,var(--panel)),var(--panel) 75%)}
+.v14-home .feature-slide.feature-asset-unavailable:before{content:"MO.";position:absolute;inset:0;display:grid;place-items:center;font:900 clamp(70px,11vw,140px)/1 "DM Sans",sans-serif;color:var(--accent);opacity:.46;pointer-events:none}
+.v14-home .feature-slide.feature-asset-unavailable .feature-scrim{inset:0;background:linear-gradient(transparent,rgba(0,0,0,.7))}
