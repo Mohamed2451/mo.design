@@ -17,7 +17,7 @@ export function mountStudio({target}){
   const english=document.documentElement.lang==='en';
   const copy=settings?.[english?'content_en':'content_ar']||{};
   const phrase=(key,fallback)=>typeof copy[key]==='string'&&copy[key].trim()?copy[key].trim():fallback;
-  target.innerHTML='<section class="mo-studio-section" id="moTeam" aria-label="'+(english?'Meet the team':'فريق العمل')+'"><div class="container"><div class="eyebrow">MO DESIGN / PEOPLE</div><h2 class="mo-studio-title">'+(english?'People behind the work.':'فريقنا وراء كل تفصيلة.')+'</h2><p class="mo-studio-subtitle">'+(english?'Meet the people creating the work.':'تعرف على الناس اللي بتشتغل على الأفكار والتصاميم.')+'</p><div class="mo-studio-cards">'+members.map(teamCard).join('')+'</div></div></section>';
+  target.innerHTML='<section class="mo-studio-section" id="moTeam" aria-label="'+(english?'Meet the team':'فريق العمل')+'"><div class="container"><div class="eyebrow">'+esc(phrase('team_eyebrow','MO DESIGN / PEOPLE'))+'</div><h2 class="mo-studio-title">'+esc(phrase('team_title',english?'People behind the work.':'فريقنا وراء كل تفصيلة.'))+'</h2><p class="mo-studio-subtitle">'+esc(phrase('team_description',english?'Meet the people creating the work.':'تعرف على الناس اللي بتشتغل على الأفكار والتصاميم.'))+'</p><div class="mo-studio-cards">'+members.map(teamCard).join('')+'</div></div></section>';
   if(isStudioPreviewHost())target.querySelectorAll('[data-preview-img]').forEach(async image=>{try{const url=await resolveStudioPreviewMedia(image.dataset.previewImg);if(url){image.src=url;image.hidden=false}}catch(err){console.warn('Preview team photo unavailable',err)}});
  };
  const refresh=async()=>{
