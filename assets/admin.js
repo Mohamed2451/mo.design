@@ -1,5 +1,6 @@
 import { seed, readDemo, saveDemo, escapeHTML as esc, safeUrl, ar, en } from './data.js';
 import {STUDIO_KEY,readStudio,safeStudioUrl,isYouTube} from './studio-config.js';
+import {isStudioPreviewHost,isPreviewMediaRef,storeStudioPreviewMedia} from './studio-preview-media.js';
 import { connected, getClient, adminAuthenticated, getAdminContent } from './api.js';
 import {PORTFOLIO_CATEGORIES, categoryFor, formatTools} from './categories.js';
 import {getToolsCatalog,TOOLS_CATALOG_KEY} from './tools-catalog.js';
@@ -474,13 +475,13 @@ function studioRow(kind,item={},index=0){
  return '<div class="mo-studio-edit-row" data-studio-row="'+kind+'" data-id="'+v('id')+'"><div class="mo-studio-row-head"><strong>'+(kind==='team'?'عضو فريق':'فيديو')+' '+(index+1)+'</strong><button type="button" class="admin-btn secondary" data-studio-remove>حذف</button></div><div class="admin-form-grid">'+
  (kind==='team'?row('name_ar','اسم العضو بالعربي')+row('name_en','Name in English')+row('role_ar','الوظيفة بالعربي')+row('role_en','Role in English')+row('image_url','رابط الصورة HTTPS')+row('link_url','رابط أعمال العضو'):row('title_ar','عنوان الفيديو بالعربي')+row('title_en','Video title in English')+row('video_url','رابط YouTube أو MP4/WebM')+row('poster_url','غلاف الفيديو — رابط صورة HTTPS')+row('description_ar','وصف الفيديو بالعربي')+row('description_en','Description in English'))+
  '<label>الترتيب<input type="number" name="sort_order" value="'+Number(item.sort_order||index)+'"></label>'+
- (kind==='team'?'<label>رفع صورة العضو<input type="file" name="team_file" accept="image/png,image/jpeg,image/webp,image/avif" '+(cmsConnected?'':'disabled')+'></label>':'<label>رفع غلاف الفيديو<input type="file" name="poster_file" accept="image/png,image/jpeg,image/webp,image/avif" '+(cmsConnected?'':'disabled')+'></label><label>رفع فيديو (MP4 / WebM حتى 45MB)<input type="file" name="video_file" accept="video/mp4,video/webm" '+(cmsConnected?'':'disabled')+'></label>')+
+ (kind==='team'?'<label>رفع صورة العضو<input type="file" name="team_file" accept="image/png,image/jpeg,image/webp,image/avif" '+(cmsConnected||isStudioPreviewHost()?'':'disabled')+'></label>':'<label>رفع غلاف الفيديو<input type="file" name="poster_file" accept="image/png,image/jpeg,image/webp,image/avif" '+(cmsConnected||isStudioPreviewHost()?'':'disabled')+'></label><label>رفع فيديو (MP4 / WebM حتى 45MB)<input type="file" name="video_file" accept="video/mp4,video/webm" '+(cmsConnected||isStudioPreviewHost()?'':'disabled')+'></label>')+
  '<label class="form-field checkbox"><input type="checkbox" name="enabled" '+(item.enabled?'checked':'')+'> نشر هذا العنصر</label>'+
  (kind==='video'?'<label class="form-field checkbox"><input type="checkbox" name="on_site" '+(item.on_site?'checked':'')+'> العرض في الموقع العام</label><label class="form-field checkbox"><input type="checkbox" name="in_academy" '+(item.in_academy?'checked':'')+'> العرض في الأكاديمية</label>':'')+'</div></div>';
 }
 function renderStudio(){
  const cfg=readStudio(data.settings);
- return '<section class="admin-panel"><h2>الفريق والفيديوهات العامة</h2><p class="admin-note">تعديل مباشر من لوحة التحكم الأصلية. الأقسام الجديدة مخفية افتراضيًا حتى تنشرها. الفيديوهات لا تعمل تلقائيًا ولا يتم تحميلها قبل الضغط على تشغيل.</p><form id="studioForm"><div class="mo-studio-toggles"><label class="cms-toggle"><input name="team_enabled" type="checkbox" '+(cfg.team_enabled?'checked':'')+'> إظهار قسم الفريق</label><label class="cms-toggle"><input name="site_videos_enabled" type="checkbox" '+(cfg.site_videos_enabled?'checked':'')+'> إظهار فيديوهات الموقع</label><label class="cms-toggle"><input name="academy_videos_enabled" type="checkbox" '+(cfg.academy_videos_enabled?'checked':'')+'> إظهار الفيديوهات العامة في الأكاديمية</label></div><h3>فريق العمل</h3><div id="studioTeamRows">'+cfg.team.map((x,i)=>studioRow('team',x,i)).join('')+'</div><button type="button" class="admin-btn secondary" data-studio-add="team">+ إضافة عضو</button><h3>الفيديوهات</h3><div id="studioVideoRows">'+cfg.videos.map((x,i)=>studioRow('video',x,i)).join('')+'</div><button type="button" class="admin-btn secondary" data-studio-add="video">+ إضافة فيديو</button><div class="admin-actions"><button type="submit" class="admin-btn">حفظ الفريق والفيديوهات</button></div><p id="studioStatus" role="status"></p></form></section>';
+ return '<section class="admin-panel"><h2>الفريق والفيديوهات العامة</h2><p class="admin-note">تعديل مباشر من لوحة التحكم الأصلية. الأقسام الجديدة مخفية افتراضيًا حتى تنشرها. الفيديوهات لا تعمل تلقائيًا ولا يتم تحميلها قبل الضغط على تشغيل. في رابط المعاينة يمكنك رفع صور وفيديوهات من جهازك؛ تُحفظ في هذا المتصفح فقط وتُعرض في نفس رابط المعاينة، ولا تصل للموقع الرسمي.</p><form id="studioForm"><div class="mo-studio-toggles"><label class="cms-toggle"><input name="team_enabled" type="checkbox" '+(cfg.team_enabled?'checked':'')+'> إظهار قسم الفريق</label><label class="cms-toggle"><input name="site_videos_enabled" type="checkbox" '+(cfg.site_videos_enabled?'checked':'')+'> إظهار فيديوهات الموقع</label><label class="cms-toggle"><input name="academy_videos_enabled" type="checkbox" '+(cfg.academy_videos_enabled?'checked':'')+'> إظهار الفيديوهات العامة في الأكاديمية</label></div><h3>فريق العمل</h3><div id="studioTeamRows">'+cfg.team.map((x,i)=>studioRow('team',x,i)).join('')+'</div><button type="button" class="admin-btn secondary" data-studio-add="team">+ إضافة عضو</button><h3>الفيديوهات</h3><div id="studioVideoRows">'+cfg.videos.map((x,i)=>studioRow('video',x,i)).join('')+'</div><button type="button" class="admin-btn secondary" data-studio-add="video">+ إضافة فيديو</button><div class="admin-actions"><button type="submit" class="admin-btn">حفظ الفريق والفيديوهات</button></div><p id="studioStatus" role="status"></p></form></section>';
 }
 async function saveStudioForm(form){
  const button=form.querySelector('button[type="submit"]'),status=form.querySelector('#studioStatus');
@@ -497,16 +498,16 @@ async function saveStudioForm(form){
     for(const key of kind==='team'?['name_ar','name_en','role_ar','role_en','image_url','link_url']:['title_ar','title_en','description_ar','description_en','video_url','poster_url'])item[key]=get(key).slice(0,kind==='video'&&key.startsWith('description')?800:350);
     if(!item[kind==='team'?'name_ar':'title_ar'])throw Error('اكتب اسم أو عنوان عربي لكل عنصر');
     if(kind==='team'){
-     const upload=row.querySelector('[name="team_file"]')?.files?.[0];if(upload){if(!cmsConnected)throw Error('رفع الصور متاح بعد تسجيل دخول المدير');item.image_url=await uploadImage(upload,'team');}
-     if(item.image_url&&!safeStudioUrl(item.image_url))throw Error('رابط صورة عضو الفريق غير صحيح');
+     const upload=row.querySelector('[name="team_file"]')?.files?.[0];if(upload){item.image_url=cmsConnected?await uploadImage(upload,'team'):await storeStudioPreviewMedia(upload,'image');}
+     if(item.image_url&&!safeStudioUrl(item.image_url)&&!(isStudioPreviewHost()&&isPreviewMediaRef(item.image_url)))throw Error('رابط صورة عضو الفريق غير صحيح');
      if(item.link_url&&!safeStudioUrl(item.link_url))throw Error('رابط أعمال العضو غير صحيح');
     } else{
      const poster=row.querySelector('[name="poster_file"]')?.files?.[0],video=row.querySelector('[name="video_file"]')?.files?.[0];
-     if(poster){if(!cmsConnected)throw Error('رفع الغلاف يحتاج اتصال المدير');item.poster_url=await uploadImage(poster,'studio-videos');}
-     if(video){if(!cmsConnected)throw Error('رفع الفيديو يحتاج اتصال المدير');item.video_url=await uploadLearningVideo(video,'studio-videos');}
-     if(item.poster_url&&!safeStudioUrl(item.poster_url))throw Error('رابط غلاف الفيديو غير صحيح');
-     if(item.video_url&&!safeStudioUrl(item.video_url))throw Error('رابط الفيديو غير صحيح');
-     if(item.video_url&&!isYouTube(item.video_url)&&!/^https:\/\/.+\.(mp4|webm)(?:[?#].*)?$/i.test(item.video_url))throw Error('الفيديو لازم يكون يوتيوب أو رابط MP4/WebM مباشر');
+     if(poster){item.poster_url=cmsConnected?await uploadImage(poster,'studio-videos'):await storeStudioPreviewMedia(poster,'image');}
+     if(video){item.video_url=cmsConnected?await uploadLearningVideo(video,'studio-videos'):await storeStudioPreviewMedia(video,'video');}
+     if(item.poster_url&&!safeStudioUrl(item.poster_url)&&!(isStudioPreviewHost()&&isPreviewMediaRef(item.poster_url)))throw Error('رابط غلاف الفيديو غير صحيح');
+     if(item.video_url&&!safeStudioUrl(item.video_url)&&!(isStudioPreviewHost()&&isPreviewMediaRef(item.video_url)))throw Error('رابط الفيديو غير صحيح');
+     if(item.video_url&&!isYouTube(item.video_url)&&!(isStudioPreviewHost()&&isPreviewMediaRef(item.video_url))&&!/^https:\/\/.+\.(mp4|webm)(?:[?#].*)?$/i.test(item.video_url))throw Error('الفيديو لازم يكون يوتيوب أو رابط MP4/WebM مباشر');
      item.on_site=!!row.querySelector('[name="on_site"]')?.checked;
      item.in_academy=!!row.querySelector('[name="in_academy"]')?.checked;
     }items.push(item);
@@ -516,7 +517,7 @@ async function saveStudioForm(form){
   const content_ar={...(data.settings?.content_ar||{}),[STUDIO_KEY]:JSON.stringify(next)};
   if(cmsConnected){const db=await getClient();const {data:updated,error}=await db.from('site_settings').update({content_ar}).eq('id',1).select().single();if(error)throw error;data.settings=updated;}
   else {data.settings={...data.settings,content_ar};saveDemo(data);}
-  status.textContent='تم حفظ الفريق والفيديوهات بنجاح.';toast('تم الحفظ');
+  status.textContent=cmsConnected?'تم حفظ الفريق والفيديوهات بنجاح.':'اتحفظت الملفات في متصفحك التجريبي. افتح الموقع أو الأكاديمية من نفس رابط المعاينة ونفس المتصفح.';toast('تم الحفظ');
  }catch(error){status.textContent='تعذر الحفظ: '+error.message;toast('تعذر الحفظ: '+error.message);}
  finally{if(button)button.disabled=false;}
 }
