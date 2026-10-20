@@ -1,4 +1,4 @@
-name: Mo Design main team and media safety
+name: Mo Design team-only safety
 on:
   push:
     branches: [mo-design-main-team-media-20261020]
@@ -33,14 +33,19 @@ jobs:
           const sections=read('assets/studio-sections.js');
           for(const x of ['#home','#work','#services','#contact']) assert.ok(home.includes(x),x);
           assert.ok(home.includes('id="moStudioSections"'));
-          assert.ok(learning.includes('id="moAcademyVideos"'));
-          assert.ok(admin.includes('function renderStudio()'));
-          assert.ok(admin.includes('function saveStudioForm('));
-          assert.ok(admin.includes('data-studio-add'));
+          assert.ok(!learning.includes('id="moAcademyVideos"'));
+          assert.ok(home.indexOf('id="moStudioSections"') > home.indexOf('id="contact"'));
+          assert.ok(admin.includes('function renderTeam()'));
+          assert.ok(admin.includes('function saveTeamForm('));
+          assert.ok(admin.includes('data-team-add'));
+          assert.ok(!admin.includes('data-studio-add'));
+          assert.ok(!admin.includes('studioVideoRows'));
+          assert.ok(admin.includes("items:['team']"));
           assert.ok(config.includes('team_enabled:false'));
-          assert.ok(config.includes('site_videos_enabled:false'));
-          assert.ok(config.includes('academy_videos_enabled:false'));
-          assert.ok(sections.includes('youtube-nocookie.com'));
+          assert.ok(!config.includes('site_videos_enabled'));
+          assert.ok(!sections.includes('youtube-nocookie.com'));
+          assert.ok(sections.includes('moTeam'));
+          assert.ok(!sections.includes('moVideos'));
           assert.ok(!/<video[^>]+autoplay/i.test(home));
           console.log('Studio sections smoke tests passed');
           NODE
