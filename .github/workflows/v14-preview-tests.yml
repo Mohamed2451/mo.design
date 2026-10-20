@@ -36,6 +36,10 @@ jobs:
           assert.ok(existsSync('assets/images/mohamed-mahmoud.webp'));
           assert.ok(existsSync('assets/images/mo-logo-white.webp'));
           assert.ok(css.includes('prefers-reduced-motion'));
+          for (const file of ['v14-dashboard.html','v14-academy.html','v14-account.html','assets/v14-platform.js','assets/v14-studio.js','assets/v14-dashboard.js','assets/v14-academy.js']) assert.ok(existsSync(file), 'Missing V14 file: '+file);
+          assert.match(html, /v14PlatformSections/);
+          assert.match(html, /v14-studio.js/);
+          assert.doesNotMatch(readFileSync('v14-account.html','utf8'), /<input[^>]*type="password"(?![^>]*disabled)/);
           console.log('V14 homepage smoke assertions passed.');
           NODE
       - name: Existing regression tests
