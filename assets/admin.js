@@ -1,4 +1,5 @@
 import { seed, readDemo, saveDemo, escapeHTML as esc, safeUrl, ar, en } from './data.js';
+import {STUDIO_KEY,readStudio,safeStudioUrl,isYouTube} from './studio-config.js';
 import { connected, getClient, adminAuthenticated, getAdminContent } from './api.js';
 import {PORTFOLIO_CATEGORIES, categoryFor, formatTools} from './categories.js';
 import {getToolsCatalog,TOOLS_CATALOG_KEY} from './tools-catalog.js';
@@ -28,7 +29,7 @@ window.addEventListener('beforeunload',event=>{
 });
 
 // Dashboard always uses its own neutral dark palette; the public site's theme remains unchanged.
-const labels = {notice:'إشعارات الموقع',overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',appearance:'مظهر الأقسام',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى',tools:'إدارة الأدوات',legal:'الصفحات والروابط'};
+const labels = {notice:'إشعارات الموقع',overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',appearance:'مظهر الأقسام',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى',studio:'الفريق والفيديوهات',tools:'إدارة الأدوات',legal:'الصفحات والروابط'};
 const FONT_CHOICES=[['Alexandria','Alexandria — حديث'],['Cairo','Cairo — واضح'],['Readex Pro','Readex Pro — هادي'],['IBM Plex Sans Arabic','IBM Plex Sans Arabic — احترافي']];
 const EXTRA_CONTENT_KEYS=[...ACADEMY_TEXT_KEYS.map(x=>x[0]),'hero_intro','hero_merged_role','hero_merged_description','hero_point_1','hero_point_2','hero_point_3','about_story_label','about_story_value','about_kicker','about_ribbon','portrait_tag','portrait_pill','hero_side','footer_line','learn_eyebrow','learn_big1','learn_big2','cta_kicker','tool_kicker','tools_eyebrow','ticker_items','project_about_title','project_objective_title','selected_real_sub','reviews_real_sub','featured_real_sub','portrait_copyright','hero_year','footer_copyright'];
 const ALL_COPY_KEYS=()=>[...new Set([...Object.keys(ar),...Object.keys(en),...EXTRA_CONTENT_KEYS])].filter(k=>EXTRA_CONTENT_KEYS.includes(k)||typeof ar[k]==='string'||typeof en[k]==='string');
@@ -101,10 +102,10 @@ function renderLogin(error=''){
 function baseShell(){
  const groups=[
   {title:'المكتب',items:['overview','messages']},
-  {title:'إدارة المحتوى',items:['content','appearance','projects','media','services','tools','legal','testimonials','future','notice']},
+  {title:'إدارة المحتوى',items:['content','appearance','projects','media','services','tools','legal','testimonials','future','studio','notice']},
   {title:'الهوية والإعدادات',items:['settings']}
  ];
- const icons={overview:'◫',messages:'✉',content:'▤',appearance:'◈',projects:'▦',media:'▧',tools:'◈',services:'◇',testimonials:'❞',future:'▷',notice:'♧',legal:'▣',settings:'⚙'};
+ const icons={overview:'◫',messages:'✉',content:'▤',appearance:'◈',projects:'▦',media:'▧',tools:'◈',services:'◇',testimonials:'❞',future:'▷',studio:'▣',notice:'♧',legal:'▣',settings:'⚙'};
  $('#adminApp').innerHTML=`<div class="admin-layout v10-shell"><aside class="admin-sidebar">
  <div class="studio-sidebar-top"><a href="./index.html" class="brand v10-brand"><span class="brand-mark"><img src="./assets/images/mo-logo-white.webp" alt="" data-admin-brand-logo /></span><span><strong>Mo Design</strong><small>مساحة الإدارة الإبداعية</small></span></a><div class="v10-workspace-badge"><span class="v10-online-dot"></span> مساحة الإدارة الخاصة</div></div>
  <nav class="sidebar-nav" id="adminNav" aria-label="أقسام لوحة الإدارة">${groups.map(group=>`<div class="v10-nav-group"><div class="v10-nav-label">${group.title}</div>${group.items.map(key=>`<button type="button" data-tab="${key}" class="${tab===key?'active':''}"><span class="v10-nav-icon" aria-hidden="true">${icons[key]}</span><span>${labels[key]}</span><span class="v10-nav-chevron" aria-hidden="true">‹</span></button>`).join('')}</div>`).join('')}</nav>
@@ -465,10 +466,64 @@ document.addEventListener('click',event=>{
  if(event.target.closest('[data-legal-add-section]')){const list=event.target.closest('[data-legal-row]')?.querySelector('[data-legal-sections]');if(list&&list.children.length<30)list.insertAdjacentHTML('beforeend',legalSectionRow());}
  if(event.target.closest('[data-legal-remove-section]'))event.target.closest('[data-legal-section]')?.remove();
 });
+
+function studioRow(kind,item={},index=0){
+ const v=(key)=>esc(item[key]||'');
+ const row=(id,title)=>'<label>'+title+'<input name="'+id+'" value="'+v(id)+'" placeholder="'+title+'"></label>';
+ return '<div class="mo-studio-edit-row" data-studio-row="'+kind+'" data-id="'+v('id')+'"><div class="mo-studio-row-head"><strong>'+(kind==='team'?'عضو فريق':'فيديو')+' '+(index+1)+'</strong><button type="button" class="admin-btn secondary" data-studio-remove>حذف</button></div><div class="admin-form-grid">'+
+ (kind==='team'?row('name_ar','اسم العضو بالعربي')+row('name_en','Name in English')+row('role_ar','الوظيفة بالعربي')+row('role_en','Role in English')+row('image_url','رابط الصورة HTTPS')+row('link_url','رابط أعمال العضو'):row('title_ar','عنوان الفيديو بالعربي')+row('title_en','Video title in English')+row('video_url','رابط YouTube أو MP4/WebM')+row('poster_url','غلاف الفيديو — رابط صورة HTTPS')+row('description_ar','وصف الفيديو بالعربي')+row('description_en','Description in English'))+
+ '<label>الترتيب<input type="number" name="sort_order" value="'+Number(item.sort_order||index)+'"></label>'+
+ (kind==='team'?'<label>رفع صورة العضو<input type="file" name="team_file" accept="image/png,image/jpeg,image/webp,image/avif" '+(cmsConnected?'':'disabled')+'></label>':'<label>رفع غلاف الفيديو<input type="file" name="poster_file" accept="image/png,image/jpeg,image/webp,image/avif" '+(cmsConnected?'':'disabled')+'></label><label>رفع فيديو (MP4 / WebM حتى 45MB)<input type="file" name="video_file" accept="video/mp4,video/webm" '+(cmsConnected?'':'disabled')+'></label>')+
+ '<label class="form-field checkbox"><input type="checkbox" name="enabled" '+(item.enabled?'checked':'')+'> نشر هذا العنصر</label>'+
+ (kind==='video'?'<label class="form-field checkbox"><input type="checkbox" name="on_site" '+(item.on_site?'checked':'')+'> العرض في الموقع العام</label><label class="form-field checkbox"><input type="checkbox" name="in_academy" '+(item.in_academy?'checked':'')+'> العرض في الأكاديمية</label>':'')+'</div></div>';
+}
+function renderStudio(){
+ const cfg=readStudio(data.settings);
+ return '<section class="admin-panel"><h2>الفريق والفيديوهات العامة</h2><p class="admin-note">تعديل مباشر من لوحة التحكم الأصلية. الأقسام الجديدة مخفية افتراضيًا حتى تنشرها. الفيديوهات لا تعمل تلقائيًا ولا يتم تحميلها قبل الضغط على تشغيل.</p><form id="studioForm"><div class="mo-studio-toggles"><label class="cms-toggle"><input name="team_enabled" type="checkbox" '+(cfg.team_enabled?'checked':'')+'> إظهار قسم الفريق</label><label class="cms-toggle"><input name="site_videos_enabled" type="checkbox" '+(cfg.site_videos_enabled?'checked':'')+'> إظهار فيديوهات الموقع</label><label class="cms-toggle"><input name="academy_videos_enabled" type="checkbox" '+(cfg.academy_videos_enabled?'checked':'')+'> إظهار الفيديوهات العامة في الأكاديمية</label></div><h3>فريق العمل</h3><div id="studioTeamRows">'+cfg.team.map((x,i)=>studioRow('team',x,i)).join('')+'</div><button type="button" class="admin-btn secondary" data-studio-add="team">+ إضافة عضو</button><h3>الفيديوهات</h3><div id="studioVideoRows">'+cfg.videos.map((x,i)=>studioRow('video',x,i)).join('')+'</div><button type="button" class="admin-btn secondary" data-studio-add="video">+ إضافة فيديو</button><div class="admin-actions"><button type="submit" class="admin-btn">حفظ الفريق والفيديوهات</button></div><p id="studioStatus" role="status"></p></form></section>';
+}
+async function saveStudioForm(form){
+ const button=form.querySelector('button[type="submit"]'),status=form.querySelector('#studioStatus');
+ if(button)button.disabled=true;status.textContent='جاري حفظ البيانات...';
+ try{
+  const prev=readStudio(data.settings);
+  const collect=async(kind)=>{
+   const selector=kind==='team'?'#studioTeamRows':'#studioVideoRows',rows=[...form.querySelectorAll(selector+' [data-studio-row]')];
+   if(rows.length>(kind==='team'?30:60))throw Error('عدد العناصر تجاوز الحد المسموح');
+   const items=[];
+   for(const row of rows){
+    const get=name=>row.querySelector('[name="'+name+'"]')?.value?.trim()||'';
+    const item={id:row.dataset.id||crypto.randomUUID(),enabled:!!row.querySelector('[name="enabled"]')?.checked,sort_order:Number(get('sort_order'))||0};
+    for(const key of kind==='team'?['name_ar','name_en','role_ar','role_en','image_url','link_url']:['title_ar','title_en','description_ar','description_en','video_url','poster_url'])item[key]=get(key).slice(0,kind==='video'&&key.startsWith('description')?800:350);
+    if(!item[kind==='team'?'name_ar':'title_ar'])throw Error('اكتب اسم أو عنوان عربي لكل عنصر');
+    if(kind==='team'){
+     const upload=row.querySelector('[name="team_file"]')?.files?.[0];if(upload){if(!cmsConnected)throw Error('رفع الصور متاح بعد تسجيل دخول المدير');item.image_url=await uploadImage(upload,'team');}
+     if(item.image_url&&!safeStudioUrl(item.image_url))throw Error('رابط صورة عضو الفريق غير صحيح');
+     if(item.link_url&&!safeStudioUrl(item.link_url))throw Error('رابط أعمال العضو غير صحيح');
+    } else{
+     const poster=row.querySelector('[name="poster_file"]')?.files?.[0],video=row.querySelector('[name="video_file"]')?.files?.[0];
+     if(poster){if(!cmsConnected)throw Error('رفع الغلاف يحتاج اتصال المدير');item.poster_url=await uploadImage(poster,'studio-videos');}
+     if(video){if(!cmsConnected)throw Error('رفع الفيديو يحتاج اتصال المدير');item.video_url=await uploadLearningVideo(video,'studio-videos');}
+     if(item.poster_url&&!safeStudioUrl(item.poster_url))throw Error('رابط غلاف الفيديو غير صحيح');
+     if(item.video_url&&!safeStudioUrl(item.video_url))throw Error('رابط الفيديو غير صحيح');
+     if(item.video_url&&!isYouTube(item.video_url)&&!/^https:\/\/.+\.(mp4|webm)(?:[?#].*)?$/i.test(item.video_url))throw Error('الفيديو لازم يكون يوتيوب أو رابط MP4/WebM مباشر');
+     item.on_site=!!row.querySelector('[name="on_site"]')?.checked;
+     item.in_academy=!!row.querySelector('[name="in_academy"]')?.checked;
+    }items.push(item);
+   }return items;
+  };
+  const next={...prev,team_enabled:form.team_enabled?.checked===true,site_videos_enabled:form.site_videos_enabled?.checked===true,academy_videos_enabled:form.academy_videos_enabled?.checked===true,team:await collect('team'),videos:await collect('video')};
+  const content_ar={...(data.settings?.content_ar||{}),[STUDIO_KEY]:JSON.stringify(next)};
+  if(cmsConnected){const db=await getClient();const {data:updated,error}=await db.from('site_settings').update({content_ar}).eq('id',1).select().single();if(error)throw error;data.settings=updated;}
+  else {data.settings={...data.settings,content_ar};saveDemo(data);}
+  status.textContent='تم حفظ الفريق والفيديوهات بنجاح.';toast('تم الحفظ');
+ }catch(error){status.textContent='تعذر الحفظ: '+error.message;toast('تعذر الحفظ: '+error.message);}
+ finally{if(button)button.disabled=false;}
+}
+
 function renderPanel(){
   if(!data)return;
   const main=$('#adminMain'); if(!main) return;
-  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,legal:renderLegalPages,services:()=>renderItems('services'),testimonials:()=>renderItems('testimonials'),messages:renderMessages,future:renderFuture,notice:renderNoticeEditor})[tab]();
+  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,legal:renderLegalPages,services:()=>renderItems('services'),testimonials:()=>renderItems('testimonials'),messages:renderMessages,future:renderFuture,studio:renderStudio,notice:renderNoticeEditor})[tab]();
   main.innerHTML=`<header class="admin-heading v10-page-head"><div><span class="v10-page-path">Mo Design <span>/</span> مساحة العمل <span>/</span> ${esc(labels[tab])}</span><h1>${esc(labels[tab])}</h1><p>أدواتك ومحتواك وطلبات الشغل في مكان واحد.</p></div><div class="v10-page-actions"><span class="admin-badge">${cmsConnected?`<span class="v10-online-dot"></span> متصل`:'◌ وضع تجربة محلية'}</span><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">↗ شوف الموقع</a></div></header>${!cmsConnected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
   document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
   if(tab==='media')void loadMedia();
@@ -851,6 +906,8 @@ $('#adminApp').addEventListener('click',async e=>{
     const out=rb.dataset.rich==='bold'?`**${selected}**`:rb.dataset.rich==='italic'?`*${selected}*`:rb.dataset.rich==='heading'?`## ${selected}`:`- ${selected}`;
     area.setRangeText(out,a,b,'select');area.focus();return;
   }
+  const add=e.target.closest('[data-studio-add]');if(add){const kind=add.dataset.studioAdd;const selector=kind==='team'?'#studioTeamRows':'#studioVideoRows';const host=document.querySelector(selector);if(host)host.insertAdjacentHTML('beforeend',studioRow(kind,{},host.children.length));return;}
+  const remove=e.target.closest('[data-studio-remove]');if(remove){remove.closest('[data-studio-row]')?.remove();return;}
   const nav=e.target.closest('button[data-tab]');
   if(nav){
     if(cmsDirty && !confirm('عندك تغييرات غير محفوظة في محرر الموقع. هل تريد مغادرة القسم وفقدان التعديلات؟'))return;
@@ -1009,6 +1066,7 @@ $('#adminApp').addEventListener('click',async e=>{
 $('#adminApp').addEventListener('submit',async e=>{
   e.preventDefault();
   const form=e.target;
+  if(form.id==='studioForm'){await saveStudioForm(form);return;}
   if(form.id==='mediaUploadForm'){
     if(!cmsConnected)return;
     const button=form.querySelector('button[type=submit]');const files=[...(form.querySelector('[name="uploads"]')?.files||[])];
