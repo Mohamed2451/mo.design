@@ -33,9 +33,9 @@ window.addEventListener('beforeunload',event=>{
 // Dashboard always uses its own neutral dark palette; the public site's theme remains unchanged.
 const labels = {notice:'إشعارات الموقع',overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',appearance:'مظهر الأقسام',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى',team:'فريق العمل',tools:'إدارة الأدوات',legal:'الصفحات والروابط'};
 const FONT_CHOICES=[['Alexandria','Alexandria — حديث'],['Cairo','Cairo — واضح'],['Readex Pro','Readex Pro — هادي'],['IBM Plex Sans Arabic','IBM Plex Sans Arabic — احترافي']];
-const EXTRA_CONTENT_KEYS=[...ACADEMY_TEXT_KEYS.map(x=>x[0]),'hero_intro','hero_merged_role','hero_merged_description','hero_point_1','hero_point_2','hero_point_3','about_story_label','about_story_value','about_kicker','about_ribbon','portrait_tag','portrait_pill','hero_side','footer_line','learn_eyebrow','learn_big1','learn_big2','cta_kicker','tool_kicker','tools_eyebrow','ticker_items','project_about_title','project_objective_title','selected_real_sub','reviews_real_sub','featured_real_sub','portrait_copyright','hero_year','footer_copyright'];
+const EXTRA_CONTENT_KEYS=[...ACADEMY_TEXT_KEYS.map(x=>x[0]),'team_eyebrow','team_title','team_description','hero_intro','hero_merged_role','hero_merged_description','hero_point_1','hero_point_2','hero_point_3','about_story_label','about_story_value','about_kicker','about_ribbon','portrait_tag','portrait_pill','hero_side','footer_line','learn_eyebrow','learn_big1','learn_big2','cta_kicker','tool_kicker','tools_eyebrow','ticker_items','project_about_title','project_objective_title','selected_real_sub','reviews_real_sub','featured_real_sub','portrait_copyright','hero_year','footer_copyright'];
 const ALL_COPY_KEYS=()=>[...new Set([...Object.keys(ar),...Object.keys(en),...EXTRA_CONTENT_KEYS])].filter(k=>EXTRA_CONTENT_KEYS.includes(k)||typeof ar[k]==='string'||typeof en[k]==='string');
-const CUSTOM_LABELS={...Object.fromEntries(ACADEMY_TEXT_KEYS.map(x=>[x[0],x[1]])),hero_intro:'تعريف بداية الموقع — أنا محمد محمود وكل فكرة ليها حكاية',hero_merged_role:'المسمى والخدمات في بداية الموقع',hero_merged_description:'النبذة التعريفية المدمجة في بداية الموقع',hero_point_1:'الميزة الأولى في البداية',hero_point_2:'الميزة الثانية في البداية',hero_point_3:'الميزة الثالثة في البداية',about_story_label:'عبارة بطاقة من وراء الشغل',about_story_value:'عنوان بطاقة من وراء الشغل',about_kicker:'عنوان بطاقة وراء الكواليس',about_ribbon:'شريط بطاقة التعريف',portrait_tag:'وسم صورة بداية الموقع',portrait_pill:'عبارة صورة البداية',hero_side:'استوديو مو ديزاين — 2026 | العبارة الجانبية',footer_line:'النص أسفل الموقع',learn_eyebrow:'عنوان المعرفة للجميع المصغر',learn_big1:'كلمة اتعلم',learn_big2:'كلمة ابتكر',cta_kicker:'عبارة شغلك يستحق يبان',tools_eyebrow:'عنوان الأدوات',portrait_copyright:'حقوق التصميم على صورة البداية',hero_year:'السنة في عبارة استوديو مو ديزاين',footer_copyright:'حقوق النشر في الفوتر'};
+const CUSTOM_LABELS={...Object.fromEntries(ACADEMY_TEXT_KEYS.map(x=>[x[0],x[1]])),team_eyebrow:'شريط عنوان قسم الفريق',team_title:'عنوان فريق العمل',team_description:'وصف فريق العمل',hero_intro:'تعريف بداية الموقع — أنا محمد محمود وكل فكرة ليها حكاية',hero_merged_role:'المسمى والخدمات في بداية الموقع',hero_merged_description:'النبذة التعريفية المدمجة في بداية الموقع',hero_point_1:'الميزة الأولى في البداية',hero_point_2:'الميزة الثانية في البداية',hero_point_3:'الميزة الثالثة في البداية',about_story_label:'عبارة بطاقة من وراء الشغل',about_story_value:'عنوان بطاقة من وراء الشغل',about_kicker:'عنوان بطاقة وراء الكواليس',about_ribbon:'شريط بطاقة التعريف',portrait_tag:'وسم صورة بداية الموقع',portrait_pill:'عبارة صورة البداية',hero_side:'استوديو مو ديزاين — 2026 | العبارة الجانبية',footer_line:'النص أسفل الموقع',learn_eyebrow:'عنوان المعرفة للجميع المصغر',learn_big1:'كلمة اتعلم',learn_big2:'كلمة ابتكر',cta_kicker:'عبارة شغلك يستحق يبان',tools_eyebrow:'عنوان الأدوات',portrait_copyright:'حقوق التصميم على صورة البداية',hero_year:'السنة في عبارة استوديو مو ديزاين',footer_copyright:'حقوق النشر في الفوتر'};
 const copyGroup=()=>ALL_COPY_KEYS().filter(k=>!Object.values(CONTENT_GROUPS).flat().some(([key])=>key===k)).map(k=>[k,CUSTOM_LABELS[k]||((typeof ar[k]==='string'&&ar[k].trim()?ar[k].trim().slice(0,70):k)+' ['+k+']')]);
 function richField(name,label,value='',rows=6){return `<div class="cms-rich-wrap full">${field(name,label,value,{type:'textarea',full:true,rows})}<div class="cms-rich-toolbar"><button type="button" data-rich="bold" title="غامق">B</button><button type="button" data-rich="italic" title="مائل"><i>I</i></button><button type="button" data-rich="heading" title="عنوان فرعي">H2</button><button type="button" data-rich="list" title="قائمة">☷</button></div><small class="cms-rich-note">حدد نص واضغط غامق أو مائل. استخدم H2 للعناوين، وكل سطر منفصل هيظهر كما كتبته.</small></div>`;}
 function normalizeMediaCaptions(value){return value&&typeof value==='object'&&!Array.isArray(value)?value:{};}
@@ -74,6 +74,7 @@ const CONTENT_GROUPS={
  'المشاريع والأعمال':[['feature_title','عنوان الأعمال المميزة'],['feature_sub','وصف الأعمال المميزة'],['selected','عنوان معرض الأعمال'],['selected_sub','وصف معرض الأعمال'],['signature_title','عنوان العرض السينمائي'],['signature_desc','وصف العرض السينمائي'],['signature_link','نص زر عرض المشروع']],
  'الخدمات وطريقتي':[['services_eyebrow','عنوان صغير للخدمات'],['services_title','العنوان الرئيسي للخدمات'],['services_sub','وصف الخدمات'],['why_title','عنوان طريقة الشغل'],['why_1','الخطوة الأولى'],['why_1d','شرح الخطوة الأولى'],['why_2','الخطوة الثانية'],['why_2d','شرح الخطوة الثانية'],['why_3','الخطوة الثالثة'],['why_3d','شرح الخطوة الثالثة'],['step1','مرحلة التنفيذ الأولى'],['step1d','شرح المرحلة الأولى'],['step2','مرحلة التنفيذ الثانية'],['step2d','شرح المرحلة الثانية'],['step3','مرحلة التنفيذ الثالثة'],['step3d','شرح المرحلة الثالثة']],
  'عني والعملاء':[['about_title','عنوان قسم عني'],['about_card_1','ميزة أولى'],['about_card_2','ميزة ثانية'],['about_card_3','ميزة ثالثة'],['reviews_title','عنوان قسم التفاصيل اللي بتفرق / آراء العملاء'],['reviews_sub','وصف قسم آراء العملاء']],
+ 'نصوص فريق العمل':[['team_eyebrow','العنوان التعريفي للفريق'],['team_title','عنوان قسم الفريق'],['team_description','الوصف أسفل عنوان الفريق']],
  'التعليم والتواصل':[['learn_title','عنوان قسم التعليم'],['learn_desc','وصف التعليم المستقبلي'],['learn_tag','عبارة قريبًا'],['learn_live_title','عنوان بعد بدء النشر'],['learn_live_desc','الوصف بعد بدء النشر'],['learn_live_tag','شارة المحتوى المنشور'],['contact_title','عنوان التواصل'],['contact_desc','شرح التواصل'],['cta_title','عنوان الدعوة للمشروع'],['cta_sub','وصف الدعوة للمشروع'],['cta_button','نص زر التواصل']],
  'الأسئلة الشائعة':[['faq_title','عنوان الأسئلة الشائعة'],['faq_desc','مقدمة الأسئلة'],['faq_q1','السؤال الأول'],['faq_a1','إجابة السؤال الأول'],['faq_q2','السؤال الثاني'],['faq_a2','إجابة السؤال الثاني'],['faq_q3','السؤال الثالث'],['faq_a3','إجابة السؤال الثالث'],['faq_q4','السؤال الرابع'],['faq_a4','إجابة السؤال الرابع']]
 };
@@ -1093,12 +1094,19 @@ $('#adminApp').addEventListener('submit',async e=>{
   }
   if(form.dataset.entity)await saveForm(form);
 });
+// Never leave the admin on an indefinite initial loading screen if Supabase/CDN is slow.
+const adminTimeout=(promise,ms,label)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label)),ms))]);
 async function init(){
   if(!cmsConnected){baseShell();renderPanel();refreshAdminLogos();return;}
   try{
-    currentUser=await adminAuthenticated();
-    if(currentUser){data=await getAdminContent();baseShell();renderPanel();refreshAdminLogos();}
-    else renderLogin();
-  }catch(e){console.error(e);renderLogin('تأكد من اتصال الإنترنت وإعدادات Supabase. '+(e.message||''));}
+    currentUser=await adminTimeout(adminAuthenticated(),14000,'تأخر الاتصال بخدمة تسجيل الدخول.');
+    if(currentUser){
+      data=await adminTimeout(getAdminContent(),18000,'تأخر تحميل بيانات لوحة التحكم.');
+      baseShell();renderPanel();refreshAdminLogos();
+    }else renderLogin();
+  }catch(e){
+    console.error('Admin startup:',e);
+    renderLogin('تعذر إكمال تحميل لوحة الإدارة: '+(e.message||'خطأ غير معروف')+' يمكنك تحديث الصفحة وإعادة المحاولة. لم تُحذف أي بيانات.');
+  }
 }
 init();

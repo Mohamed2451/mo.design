@@ -41,3 +41,13 @@
 /* Decorative numbering only; preserve genuine statistical values and project titles. */
 .hero-seq,.process-n,.service-number,.project-index,#featureCount,#learningCount{display:none!important}
 .feature-disclaimer,.editorial-caption,.demo-hint,.reviews-note{display:none!important}
+
+/* Hotfix: restore full artwork without cropping and keep original service grid alignment. */
+#signature .editorial-gallery>.editorial-tile{min-height:0!important;height:auto!important;display:flex!important;flex-direction:column!important;justify-content:flex-start!important}
+#signature .editorial-gallery>.editorial-tile img,#signature .editorial-gallery>.editorial-tile img[src$=".webp"],#signature .editorial-gallery>.editorial-tile img[src$=".jpg"],#signature .editorial-gallery>.editorial-tile img[src$=".png"]{display:block!important;width:100%!important;height:auto!important;max-height:none!important;aspect-ratio:auto!important;object-fit:contain!important;padding:0!important;background:transparent!important}
+#signature .editorial-gallery>.editorial-tile span{position:static!important;flex-shrink:0}
+.services-section .service-item{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) 65px!important;column-gap:20px}
+.services-section .service-title{grid-column:1!important;grid-row:1!important}
+.services-section .service-desc{grid-column:2!important;grid-row:1!important}
+.services-section .service-mark{grid-column:3!important;grid-row:1!important}
+@media(max-width:720px){.services-section .service-item{grid-template-columns:minmax(0,1fr) 44px!important}.services-section .service-title{grid-column:1!important;grid-row:1!important}.services-section .service-desc{grid-column:1!important;grid-row:2!important}.services-section .service-mark{grid-column:2!important;grid-row:1/3!important}}

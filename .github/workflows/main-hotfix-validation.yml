@@ -1,0 +1,38 @@
+name: Main hotfix validation
+on:
+  push:
+    branches: [mo-design-main-hotfix-admin-copy-20261020]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: |
+          node --check assets/admin.js
+          node --check assets/app.js
+          node --check assets/studio-sections.js
+      - name: Essential hotfix checks
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const file=p=>fs.readFileSync(p,'utf8');
+          const admin=file('assets/admin.js'),home=file('index.html'),team=file('assets/studio-sections.js'),css=file('assets/studio-sections.css');
+          for(const k of ['team_eyebrow','team_title','team_description'])assert.ok(admin.includes(k)&&team.includes(k));
+          assert.ok(admin.includes('adminTimeout('));
+          assert.ok(home.indexOf('id="moStudioSections"')>home.indexOf('id="contact"'));
+          assert.ok(css.includes('object-fit:contain!important'));
+          assert.ok(css.includes('.services-section .service-item'));
+          assert.ok(home.includes('hotfix2'));
+          console.log('Hotfix assertions passed');
+          NODE
+      - name: Existing regressions
+        run: node --test tests/v13-loading-smoke.mjs tests/v13-regressions.mjs tests/seo-sitemap.mjs tests/prelaunch-audit.mjs
