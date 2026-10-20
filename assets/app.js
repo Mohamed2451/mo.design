@@ -84,6 +84,10 @@ function setBrandContent() {
   const countValues=[settings.stats_projects,settings.stats_years,settings.stats_satisfaction];
   $$('.stats-strip [data-count]').forEach((el,i)=>{ const newCount=Math.max(0,Number(countValues[i]??[100,3,100][i])||0);el.dataset.count=String(newCount);el.textContent=String(newCount); });
   const hasStats = countValues.some(v => Number(v) > 0);
+  // V14 preview uses only already-public settings and verified published statistics.
+  // This event is read-only; there are no writes to the production database.
+  window.MO_V14_PUBLIC_SETTINGS = {content_ar:settings.content_ar||{},content_en:settings.content_en||{},stats_verified:!!settings.stats_verified};
+  window.dispatchEvent(new CustomEvent("mo:v14-public-settings",{detail:window.MO_V14_PUBLIC_SETTINGS}));
   $('.stats-strip').hidden = !settings.stats_verified || !hasStats;
   $('#demoHint').style.display = model.projects.some(p=>String(p.id).startsWith('demo-') && p.is_published) ? 'flex' : 'none';
   const socials = [
@@ -120,7 +124,7 @@ function renderProjects() {
  const items = model.projects.filter(p=>p.is_published&&(activeCategory==='*'||categoryFor(p)?.id===activeCategory)).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
  $('#worksCount').textContent=lang==='ar'?`${number(items.length)} عمل`:`${number(items.length)} projects`;
  $('#projectGrid').setAttribute('aria-live','polite');
- $('#projectGrid').innerHTML=items.length?items.map((p,i)=>`<article class="project-card reveal"><a class="project-cover-button" href="${esc(caseUrl(p))}" style="display:block;width:100%" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">${graphicHTML(p)}</a><div class="project-meta"><div><h3>${esc(field(p,'title'))}</h3><p>${esc((categoryFor(p)||{})[lang]||field(p,'category'))}</p></div><span class="project-index">/${number(i+1)}</span></div></article>`).join(''):`<p class="admin-empty">${esc(txt().no_projects)}</p>`;
+ $('#projectGrid').innerHTML=items.length?items.map((p,i)=>`<article class="project-card reveal" data-v14-video="${esc(safeUrl(p.video_url||''))}" data-v14-youtube="${esc(safeUrl(p.youtube_url||''))}"><a class="project-cover-button" href="${esc(caseUrl(p))}" style="display:block;width:100%" aria-label="${esc(txt().details)}: ${esc(field(p,'title'))}">${graphicHTML(p)}</a><div class="project-meta"><div><h3>${esc(field(p,'title'))}</h3><p>${esc((categoryFor(p)||{})[lang]||field(p,'category'))}</p></div><span class="project-index">/${number(i+1)}</span></div></article>`).join(''):`<p class="admin-empty">${esc(txt().no_projects)}</p>`;
  observeReveal();
  // Project filters rebuild the cards, so attach effects to newly added cards too.
  if(typeof applyInteractiveFX==='function')requestAnimationFrame(applyInteractiveFX);
