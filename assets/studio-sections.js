@@ -28,10 +28,19 @@ export function mountStudio({target,scope='site'}){
  if(!target)return;
  let settings=null;
  const update=()=>render(target,settings,scope);
- if(scope==='site'){
-  import('./public-content-reader.js').then(async({readPublicRows})=>{const data=await readPublicRows('site_settings',{eq:{id:1},limit:1});settings=data?.[0]||null;update();}).catch(err=>console.warn('Studio sections unavailable:',err));
- } else {
-  import('./public-content-reader.js').then(async({readPublicRows})=>{const data=await readPublicRows('site_settings',{eq:{id:1},limit:1});settings=data?.[0]||null;update();}).catch(err=>console.warn('Academy studio media unavailable:',err));
- }
+ const refresh=async()=>{
+  try{
+   if(location.hostname.endsWith('.pages.dev')){
+    const {readDemo}=await import('./data.js');
+    const local=readDemo()?.settings;
+    if(local?.content_ar?.mo_studio_sections_v1){settings=local;update();return;}
+   }
+   const {readPublicRows}=await import('./public-content-reader.js');
+   const rows=await readPublicRows('site_settings',{eq:{id:1},limit:1});
+   settings=rows?.[0]||null;update();
+  }catch(err){console.warn('Studio sections unavailable:',err)}
+ };
+ void refresh();
  document.getElementById(scope==='site'?'langToggle':'learningLang')?.addEventListener('click',()=>setTimeout(update,0));
+ window.addEventListener('storage',event=>{if(event.key?.includes('portfolio_demo'))void refresh()});
 }
