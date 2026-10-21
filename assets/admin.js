@@ -546,10 +546,14 @@ async function saveTeamForm(form){
  finally{if(button)button.disabled=false}
 }
 
+function renderPreviewReviews(){
+ let rows=[];try{rows=JSON.parse(localStorage.getItem('mo_design_preview_submitted_reviews_v1')||'[]')}catch{}
+ return '<section class="admin-panel"><h2>تقييمات الزوار المرسلة للمراجعة</h2><p class="admin-note">دي معاينة محلية على نفس المتصفح فقط؛ لا تغيّر قاعدة بيانات Supabase الرسمية.</p>'+ (rows.length?rows.map(x=>'<div class="admin-row" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center"><div style="flex:1"><strong>'+esc(x.author_ar)+'</strong><small> · '+esc(x.job_ar)+' · '+x.rating+'/5 · '+(x.is_verified?'تمت الموافقة':'ينتظر الموافقة')+'</small><p>'+esc(x.quote_ar)+'</p></div><button type="button" class="admin-btn secondary" data-preview-review-approve="'+esc(x.id)+'">'+(x.is_verified?'إلغاء الموافقة':'موافقة')+'</button><button type="button" class="admin-btn secondary" data-preview-review-delete="'+esc(x.id)+'">حذف</button></div>').join(''):'<p class="admin-empty">مافيش تقييمات جديدة للمراجعة.</p>')+'</section>';
+}
 function renderPanel(){
   if(!data)return;
   const main=$('#adminMain'); if(!main) return;
-  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,legal:renderLegalPages,services:()=>renderItems('services'),testimonials:()=>renderItems('testimonials'),communityBrands:()=>renderBrandManager(data.settings),messages:renderMessages,future:renderFuture,team:renderTeam,notice:renderNoticeEditor})[tab]();
+  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,legal:renderLegalPages,services:()=>renderItems('services'),testimonials:()=> (cmsConnected?renderItems('testimonials'):renderPreviewReviews()),communityBrands:()=>renderBrandManager(data.settings),messages:renderMessages,future:renderFuture,team:renderTeam,notice:renderNoticeEditor})[tab]();
   main.innerHTML=`<header class="admin-heading v10-page-head"><div><span class="v10-page-path">Mo Design <span>/</span> مساحة العمل <span>/</span> ${esc(labels[tab])}</span><h1>${esc(labels[tab])}</h1><p>أدواتك ومحتواك وطلبات الشغل في مكان واحد.</p></div><div class="v10-page-actions"><span class="admin-badge">${cmsConnected?`<span class="v10-online-dot"></span> متصل`:'◌ وضع تجربة محلية'}</span><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">↗ شوف الموقع</a></div></header>${!cmsConnected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
   document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
   if(tab==='media')void loadMedia();
@@ -946,7 +950,18 @@ $('#adminApp').addEventListener('click',async e=>{
   }
   const addTeam=e.target.closest('[data-team-add]');if(addTeam){const host=document.querySelector('#teamRows');if(host)host.insertAdjacentHTML('beforeend',teamRow({},host.children.length));return;}
   const removeTeam=e.target.closest('[data-team-remove]');if(removeTeam){removeTeam.closest('[data-team-row]')?.remove();return;}
-  const brandButton=e.target.closest('[data-public-brand-toggle],[data-public-brand-delete]');
+  const previewReview=e.target.closest('[data-preview-review-approve],[data-preview-review-delete]');
+  if(previewReview&&!cmsConnected){
+    const key='mo_design_preview_submitted_reviews_v1';
+    let rows=[];try{rows=JSON.parse(localStorage.getItem(key)||'[]')}catch{}
+    const id=previewReview.dataset.previewReviewApprove||previewReview.dataset.previewReviewDelete;
+    const index=rows.findIndex(x=>x.id===id);
+    if(index<0)return;
+    if(previewReview.hasAttribute('data-preview-review-delete'))rows.splice(index,1);
+    else {rows[index].is_verified=!rows[index].is_verified;rows[index].is_published=rows[index].is_verified;}
+    localStorage.setItem(key,JSON.stringify(rows));renderPanel();return;
+  }
+    const brandButton=e.target.closest('[data-public-brand-toggle],[data-public-brand-delete]');
   if(brandButton){
     if(!cmsConnected)return;
     const index=Number(brandButton.dataset.publicBrandToggle??brandButton.dataset.publicBrandDelete);
