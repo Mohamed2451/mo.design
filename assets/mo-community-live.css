@@ -1,0 +1,25 @@
+/* Scoped live reviews and brand rails. Existing site sections remain unchanged. */
+.mo-live-brands{padding:65px 0 70px;background:var(--bg,#0b0c13);border-block:1px solid var(--line,#30313d)}
+.mo-live-brands[hidden],.mo-live-reviews[hidden]{display:none!important}
+.mo-live-brands h2{font-size:clamp(28px,4.1vw,56px);line-height:1.4;letter-spacing:-.03em;margin:10px 0 27px;color:var(--text,#fff)}
+.mo-live-brands h2 em{font-style:normal;color:var(--accent,#c6fa8a)}
+.mo-live-kicker{font:800 11px 'DM Sans',sans-serif;letter-spacing:.12em;color:var(--text-soft,#aaa)}
+.mo-live-reviews{margin:25px 0 10px}
+.mo-live-viewport{position:relative;overflow:hidden;isolation:isolate;mask-image:linear-gradient(90deg,transparent,#000 11%,#000 89%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 11%,#000 89%,transparent)}
+.mo-live-track{display:flex;flex-wrap:nowrap;gap:16px;width:max-content;direction:ltr;will-change:transform}
+.mo-live-card{flex:0 0 380px;min-height:290px;box-sizing:border-box;display:flex;flex-direction:column;background:linear-gradient(140deg,#0b291e,#061c15);border:1px solid rgba(139,214,122,.26);border-radius:22px;padding:24px 25px 18px;direction:rtl;color:#fff;position:relative;overflow:hidden}
+.mo-live-card:before{content:'“';position:absolute;top:-50px;right:20px;font:112px Georgia,serif;color:rgba(134,211,116,.1);pointer-events:none}
+.mo-live-person{display:flex;gap:11px;align-items:center;min-height:52px}
+.mo-live-avatar{display:grid;place-items:center;flex:0 0 47px;height:47px;border-radius:13px;background:#bbf49f;color:#102b19;font-weight:800}
+.mo-live-person-text{display:flex;flex:1;flex-direction:column;min-width:0;text-align:right}
+.mo-live-person-text strong{font-size:14px}.mo-live-person-text small{font-size:11px;color:#a8dcbd}
+.mo-live-verified{border:1px solid #648d3f;background:#1a3926;border-radius:30px;color:#d4fb7e;padding:5px 8px;font-size:10px;white-space:nowrap}
+.mo-live-stars{color:#ffd25e;letter-spacing:2px;font-size:19px;margin:20px 0 13px}
+.mo-live-card p{font-size:14px;font-weight:650;line-height:1.95;flex:1;margin:0 0 23px}
+.mo-live-card footer{border-top:1px solid rgba(145,221,159,.15);padding-top:13px;color:#99d2ac;font-size:11px}
+.mo-live-brand{display:flex;flex:0 0 220px;width:220px;box-sizing:border-box;align-items:center;justify-content:center;min-height:105px;background:var(--panel,#141923);border:1px solid var(--line,#30313d);border-radius:18px;padding:20px;direction:rtl;color:var(--text,#fff)}
+.mo-live-brand img{height:65px;width:164px;object-fit:contain}.mo-live-brand strong{text-align:center}
+.mo-live-controls{display:flex;gap:10px;justify-content:flex-start;direction:rtl;margin-top:15px}
+.mo-live-controls button{background:var(--panel,#171923);border:1px solid var(--line,#444);color:var(--text,#fff);border-radius:50%;width:41px;height:41px}
+@media(max-width:600px){.mo-live-card{flex-basis:min(85vw,340px);padding:20px}.mo-live-brand{flex-basis:170px;width:170px}.mo-live-viewport{mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}}
+@media(prefers-reduced-motion:reduce){.mo-live-track{will-change:auto}}
