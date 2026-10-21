@@ -1,0 +1,19 @@
+name: Check dashboard alerts and brands
+on:
+  push:
+    branches: [mo-design-dashboard-alert-brands-20261021]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check assets/admin.js
+          node --check assets/mo-community-live.js
+          node --check assets/app.js
+          node --test tests/v13-loading-smoke.mjs tests/v13-regressions.mjs tests/seo-sitemap.mjs tests/prelaunch-audit.mjs
