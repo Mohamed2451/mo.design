@@ -206,7 +206,7 @@ function renderReviews() {
     return `<article class="review-card reveal ${verified?'verified':''}"><div class="review-person"><div class="review-avatar" aria-hidden="true">${esc(name.trim().slice(0,1).toUpperCase())}</div><div><h3>${esc(name)}</h3><p>${esc(field(r,'job'))}</p></div><span class="review-badge">${esc(verified?txt().review_verified:txt().review_placeholder)}</span></div>
     <div class="review-stars" aria-label="${verified&&Number(r.rating)>0?`${Number(r.rating)}/5`:''}">${Number(r.rating)>0 ? '★'.repeat(Math.min(5,Math.max(1,Number(r.rating)))) : '✦  MO DESIGN  ✦'}</div><p class="review-quote">${esc(field(r,'quote'))}</p><div class="review-bottom"><span>${verified?'✓':'◎'} ${esc(verified?txt().review_verified:txt().review_placeholder)}</span></div></article>`;
   }).join('') || `<p class="admin-empty">${esc(lang==='ar'?'قريبًا: تقييمات العملاء':'Client feedback coming soon')}</p>`;
-  $('#testimonials').hidden = items.length===0;
+  $('#testimonials').hidden = model.settings?.section_visibility?.testimonials===false;
   updateCommunityReviews(items);
   $('#testimonials').classList.toggle('no-reviews',items.length===0);
   $('.reviews-note').hidden = true; // Verified published client reviews need no fictional-placeholder disclaimer.
@@ -300,7 +300,7 @@ function renderSignature() {
 function applySectionVisibility(){
  const visibility=model.settings?.section_visibility||{};
  const sections=['featured','signature','work','services','tools','why','process','testimonials','faq','cta','learn','contact'];
- for(const id of sections){const node=document.getElementById(id);if(node){ const enabled=visibility[id]!==false && (id!=='learn'||model.settings?.education_mode!=='hidden'); node.hidden=!enabled || (['featured','signature'].includes(id) && !model.projects.some(p=>p.is_published && (id==='signature'||p.featured))) || (id==='testimonials' && !model.testimonials.some(r=>r.is_verified && r.is_published)); }}
+ for(const id of sections){const node=document.getElementById(id);if(node){ const enabled=visibility[id]!==false && (id!=='learn'||model.settings?.education_mode!=='hidden'); node.hidden=!enabled || (['featured','signature'].includes(id) && !model.projects.some(p=>p.is_published && (id==='signature'||p.featured))) ; }}
 }
 function youtubeId(value) {
   try {
