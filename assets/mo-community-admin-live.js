@@ -20,3 +20,13 @@ export async function saveBrandList(db,settings,rows){
  if(error)throw error;
  return data;
 }
+
+export async function hydrateBrandAdminImages(root){
+ if(!location.hostname.endsWith('.pages.dev'))return;
+ const {resolveStudioPreviewMedia}=await import('./studio-preview-media.js');
+ for(const img of root.querySelectorAll('[data-preview-logo]')){
+  try{const url=await resolveStudioPreviewMedia(img.dataset.previewLogo);
+   if(url)img.src=url;else img.alt='أعد رفع الشعار';
+  }catch{img.alt='تعذّر تحميل الشعار'}
+ }
+}
