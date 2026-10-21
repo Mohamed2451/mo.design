@@ -1,0 +1,38 @@
+name: Small preview reviews and brands checks
+on:
+  push:
+    branches: [mo-design-small-edits-preview-20261021]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and scope checks
+        run: |
+          node --check assets/admin.js
+          node --check assets/mo-community-store.js
+          node --check assets/mo-community-admin.js
+          node --check assets/mo-reviews-brands.js
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const html=fs.readFileSync('index.html','utf8');
+          const js=fs.readFileSync('assets/mo-reviews-brands.js','utf8');
+          const admin=fs.readFileSync('assets/admin.js','utf8');
+          const manager=fs.readFileSync('assets/mo-community-admin.js','utf8');
+          assert.ok(html.indexOf('id="moBrands"')>html.indexOf('id="process"'));
+          assert.ok(html.indexOf('id="moBrands"')<html.indexOf('id="testimonials"'));
+          for(const x of ['moReviewDialog','moReviewForm','moReviewOpen','moBrandsTrack','moUserReviewList'])assert.ok(html.includes('id="'+x+'"'));
+          for(const x of ['communityReviews','communityBrands'])assert.ok(admin.includes(x));
+          assert.match(js,/status:'pending'/);
+          assert.match(js,/status==='approved'/);
+          assert.match(manager,/data-community-decision="rejected"/);
+          assert.ok(!admin.includes('mcp__GitHub__'));
+          assert.ok(!js.includes('supabase.from('));
+          console.log('Mo small preview smoke tests passed');
+          NODE
