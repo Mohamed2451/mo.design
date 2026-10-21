@@ -1,0 +1,36 @@
+name: Approved community production smoke
+on:
+  push:
+    branches: [mo-design-approved-community-prod-20261021]
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check isolated community scripts and original app
+        run: |
+          node --check assets/mo-infinite-rail.js
+          node --check assets/mo-community-live.js
+          node --check assets/mo-community-admin-live.js
+          node --check assets/app.js
+          node --check assets/admin.js
+          node --test tests/v13-loading-smoke.mjs tests/v13-regressions.mjs tests/seo-sitemap.mjs tests/prelaunch-audit.mjs
+      - name: Validate exact production scope
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const s=fs.readFileSync('index.html','utf8');
+          assert(s.includes('id="moLiveBrandsTrack"'));
+          assert(s.includes('id="moLiveReviewsTrack"'));
+          assert(s.includes('id="moStudioSections"'));
+          assert(s.includes('id="contactForm"'));
+          const app=fs.readFileSync('assets/app.js','utf8');
+          assert(app.includes("updateCommunityReviews(items)"));
+          console.log('Scoped community checks passed');
+          NODE
