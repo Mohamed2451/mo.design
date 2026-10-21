@@ -1,3 +1,4 @@
+import {isPreviewMediaRef,resolveStudioPreviewMedia} from './studio-preview-media.js';
 import {startRail} from './mo-infinite-rail.js';
 const $=id=>document.getElementById(id);
 const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -7,6 +8,7 @@ function card(x){
 }
 function logo(x){
  const name=String(x.name||'');let url='';
+ if(isPreviewMediaRef(x.logo))return '<div class="mo-live-brand"><img data-preview-logo="'+safe(x.logo)+'" alt="'+safe(name||'شعار براند')+'"></div>';
  try{const parsed=new URL(x.logo);if(parsed.protocol==='https:')url=parsed.href}catch{}
  return '<div class="mo-live-brand">'+(url?'<img src="'+safe(url)+'" alt="'+safe(name||'شعار براند')+'" loading="eager">':'<strong>'+safe(name)+'</strong>')+'</div>';
 }
@@ -20,6 +22,7 @@ function render(rail,viewport,data,fn,speed){
  const repeats=Math.max(1,Math.ceil(required/data.length));
  rail.innerHTML=Array(Math.min(40,repeats)).fill(template).join('');
  startRail(rail,viewport,speed);
+ if(fn===logo)rail.querySelectorAll('[data-preview-logo]').forEach(async img=>{try{const url=await resolveStudioPreviewMedia(img.dataset.previewLogo);if(url)img.src=url;else img.replaceWith(document.createTextNode('أعد رفع الشعار'))}catch{img.replaceWith(document.createTextNode('الشعار غير متاح'))}});
 }
 let entries=[],brands=[];
 function paintReviews(){
@@ -47,5 +50,6 @@ export function mountCommunity(){
  $('moLiveReviewsNext')?.addEventListener('click',()=>review.__moRailNudge?.(1));
  let timer=0;window.addEventListener('resize',()=>{clearTimeout(timer);timer=setTimeout(()=>{paintReviews();paintBrands()},220)});
  window.addEventListener('storage',()=>{updateCommunityBrands();updateCommunityReviews(entries)});
+ window.addEventListener('mo-preview-brands-changed',()=>updateCommunityBrands());
  paintReviews();paintBrands();
 }
