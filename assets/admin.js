@@ -118,15 +118,17 @@ function baseShell(){
  <div class="sidebar-footer"><div class="v10-admin-account"><span class="v10-avatar">م</span><div><strong>محمد محمود</strong><small>مدير الموقع</small></div></div><a href="./index.html" target="_blank" rel="noopener">↗ معاينة الموقع</a>${cmsConnected?'<button type="button" data-action="logout">تسجيل الخروج</button>':''}</div></aside>
  <main class="admin-main" id="adminMain"></main></div>`;
 }
+const MO_PREVIEW_REVIEW_KEY='mo_design_preview_submitted_reviews_v1';
+function moPreviewReviewRows(){try{const x=JSON.parse(localStorage.getItem(MO_PREVIEW_REVIEW_KEY)||'[]');return Array.isArray(x)?x:[]}catch{return []}}
+function moPreviewPendingReviews(){return moPreviewReviewRows().filter(x=>!x.is_verified&&!x.is_published).length}
 function renderOverview(){
  const projects=data.projects||[], messages=data.messages||[],lessons=data.learning_items||[];
- const pendingReviews=(data.testimonials||[]).filter(x=>!x.is_verified&&!x.is_published).length;
+ const pendingReviews=cmsConnected?(data.testimonials||[]).filter(x=>!x.is_verified&&!x.is_published).length:moPreviewPendingReviews();
  const metrics=[
  ['المشاريع المنشورة',projects.filter(x=>x.is_published).length,'▧','مشروع ظاهر للزوار'],
  ['المشاريع المسودة',projects.filter(x=>!x.is_published).length,'◷','مستني المراجعة'],
  ['طلبات جديدة',messages.filter(x=>x.status==='new').length,'✉','محتاج متابعة'],
  ['تقييمات تنتظر الموافقة',pendingReviews,'★','مراجعة قبل النشر'],
- ['براندات مضافة',brandRows(data.settings).length,'▣','إدارة الشركات والبراندات'],
  ['محتوى تعليمي منشور',lessons.filter(x=>x.is_published).length,'▷','فيديوهات ومقالات']
  ];
  const mode=data.settings?.education_mode||'coming_soon';
@@ -137,7 +139,7 @@ function renderOverview(){
  '<div style="display:flex;flex-wrap:wrap;gap:10px">'+
  '<button type="button" class="admin-btn" data-action="goto" data-id="testimonials">★ تقييمات تنتظر الموافقة: '+pendingReviews+'</button>'+
  '<button type="button" class="admin-btn secondary" data-action="goto" data-id="messages">✉ طلبات شغل جديدة: '+newLeads+'</button>'+
- '<button type="button" class="admin-btn secondary" data-action="goto" data-id="communityBrands">▣ الشركات والبراندات: '+brandRows(data.settings).length+'</button></div>'+
+ '</div>'+
  '<p class="admin-note">التنبيهات دي بتتحدث تلقائيًا من Supabase وإنت فاتح لوحة التحكم.</p></section>';
  return alerts+`<section class="v10-overview-hero"><div><span class="v10-eyebrow">لوحة إدارة أعمالك</span><h2>شغلك كله،<br><em>تحت السيطرة.</em></h2><p>أهلًا يا محمد! من هنا تدير الموقع، وتنشر أعمالك، وتتابع العملاء، وتجهّز المحتوى التعليمي.</p><div class="v10-hero-actions">${uiButton('◈ افتح محرر الموقع','goto','content','primary')}${uiButton('▷ انشر محتوى تعليمي','goto','future')}</div></div><div class="v10-overview-art" aria-hidden="true"><span>MO</span><span>DESIGN</span><i>◈</i></div></section>
  <div class="v10-metric-grid">${metrics.map(([label,val,icon,desc])=>`<div class="v10-metric-card"><div class="v10-metric-heading"><span>${esc(label)}</span><b>${icon}</b></div><strong>${val}</strong><small>${esc(desc)}</small></div>`).join('')}</div>
@@ -557,9 +559,11 @@ async function saveTeamForm(form){
 }
 
 function renderPreviewReviews(){
- let rows=[];try{rows=JSON.parse(localStorage.getItem('mo_design_preview_submitted_reviews_v1')||'[]')}catch{}
+ const rows=moPreviewReviewRows();
  return '<section class="admin-panel"><h2>تقييمات الزوار المرسلة للمراجعة</h2><p class="admin-note">دي معاينة محلية على نفس المتصفح فقط؛ لا تغيّر قاعدة بيانات Supabase الرسمية.</p>'+ (rows.length?rows.map(x=>'<div class="admin-row" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center"><div style="flex:1"><strong>'+esc(x.author_ar)+'</strong><small> · '+esc(x.job_ar)+' · '+x.rating+'/5 · '+(x.is_verified?'تمت الموافقة':'ينتظر الموافقة')+'</small><p>'+esc(x.quote_ar)+'</p></div><button type="button" class="admin-btn secondary" data-preview-review-approve="'+esc(x.id)+'">'+(x.is_verified?'إلغاء الموافقة':'موافقة')+'</button><button type="button" class="admin-btn secondary" data-preview-review-delete="'+esc(x.id)+'">حذف</button></div>').join(''):'<p class="admin-empty">مافيش تقييمات جديدة للمراجعة.</p>')+'</section>';
 }
+window.addEventListener('storage',event=>{if(!cmsConnected&&event.key===MO_PREVIEW_REVIEW_KEY&&['overview','testimonials'].includes(tab))renderPanel()});
+window.addEventListener('focus',()=>{if(!cmsConnected&&['overview','testimonials'].includes(tab))renderPanel()});
 function renderPanel(){
   if(!data)return;
   const main=$('#adminMain'); if(!main) return;
@@ -567,7 +571,7 @@ function renderPanel(){
   main.innerHTML=`<header class="admin-heading v10-page-head"><div><span class="v10-page-path">Mo Design <span>/</span> مساحة العمل <span>/</span> ${esc(labels[tab])}</span><h1>${esc(labels[tab])}</h1><p>أدواتك ومحتواك وطلبات الشغل في مكان واحد.</p></div><div class="v10-page-actions"><span class="admin-badge">${cmsConnected?`<span class="v10-online-dot"></span> متصل`:'◌ وضع تجربة محلية'}</span><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">↗ شوف الموقع</a></div></header>${!cmsConnected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
   document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
   document.querySelectorAll('[data-tab="testimonials"],[data-tab="messages"]').forEach(el=>{
-    const count=el.dataset.tab==='testimonials'?(data.testimonials||[]).filter(x=>!x.is_verified&&!x.is_published).length:(data.messages||[]).filter(x=>x.status==='new').length;
+    const count=el.dataset.tab==='testimonials'?(cmsConnected?(data.testimonials||[]).filter(x=>!x.is_verified&&!x.is_published).length:moPreviewPendingReviews()):(data.messages||[]).filter(x=>x.status==='new').length;
     let dot=el.querySelector('.mo-admin-notification-count');
     if(!dot){dot=document.createElement('span');dot.className='mo-admin-notification-count';el.append(dot)}
     dot.hidden=!count;dot.textContent=String(count);
