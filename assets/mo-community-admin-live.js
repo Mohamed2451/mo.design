@@ -4,7 +4,7 @@ export function brandRows(settings){
 }
 export function renderBrandManager(settings){
  const rows=brandRows(settings);
- return '<section class="admin-panel" id="moPublicBrandsPanel"><h2>الشركات والبراندات — الشريط المتحرك</h2><p class="admin-note">رفع الشعار هنا ينشره في مكتبة صور الموقع الحقيقية. الاسم اختياري مع الشعار. لا يتم نقل صور المعاينة تلقائيًا. الشريط لا يظهر للزوار إلا بوجود براندات ظاهرة.</p>'+
+ return '<section class="admin-panel" id="moPublicBrandsPanel"><h2>الشركات والبراندات — الشريط المتحرك</h2><p class="admin-note">رفع الشعار هنا ينشره في مكتبة صور الموقع الحقيقية. الاسم اختياري مع الشعار. لا يتم نقل صور المعاينة تلقائيًا. عنوان القسم يظهر دائمًا للزوار، والشعارات تظهر فور إضافة براندات مفعّلة.</p>'+
  '<form id="moPublicBrandForm" class="mo-public-brand-form">'+
  '<label>اسم الشركة (اختياري مع صورة)<input name="brand_name" maxlength="100" placeholder="اسم البراند"></label>'+
  '<label>ملف الشعار PNG / JPG / WebP / AVIF (اختياري مع الاسم)<input type="file" name="brand_file" accept="image/png,image/jpeg,image/webp,image/avif"></label>'+
