@@ -14,6 +14,8 @@ jobs:
           node-version: '22'
       - run: |
           node --check assets/admin.js
+          node --check assets/mo-community-admin-live.js
+          node --check assets/mo-review-submit.js
           node --check assets/mo-community-live.js
           node --check assets/app.js
           node --test tests/v13-loading-smoke.mjs tests/v13-regressions.mjs tests/seo-sitemap.mjs tests/prelaunch-audit.mjs
