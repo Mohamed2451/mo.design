@@ -564,6 +564,7 @@ function renderPreviewReviews(){
  return '<section class="admin-panel"><h2>تقييمات الزوار المرسلة للمراجعة</h2><p class="admin-note">دي معاينة محلية على نفس المتصفح فقط؛ لا تغيّر قاعدة بيانات Supabase الرسمية.</p>'+ (rows.length?rows.map(x=>'<div class="admin-row" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center"><div style="flex:1"><strong>'+esc(x.author_ar)+'</strong><small> · '+esc(x.job_ar)+' · '+x.rating+'/5 · '+(x.is_verified?'تمت الموافقة':'ينتظر الموافقة')+'</small><p>'+esc(x.quote_ar)+'</p></div><button type="button" class="admin-btn secondary" data-preview-review-approve="'+esc(x.id)+'">'+(x.is_verified?'إلغاء الموافقة':'موافقة')+'</button><button type="button" class="admin-btn secondary" data-preview-review-delete="'+esc(x.id)+'">حذف</button></div>').join(''):'<p class="admin-empty">مافيش تقييمات جديدة للمراجعة.</p>')+'</section>';
 }
 window.addEventListener('storage',event=>{if(!cmsConnected&&event.key===MO_PREVIEW_REVIEW_KEY&&['overview','testimonials'].includes(tab))renderPanel()});
+window.addEventListener('mo-preview-reviews-changed',()=>{if(!cmsConnected&&['overview','testimonials'].includes(tab))renderPanel()});
 window.addEventListener('focus',()=>{if(!cmsConnected&&['overview','testimonials'].includes(tab))renderPanel()});
 function renderPanel(){
   if(!data)return;
@@ -1011,7 +1012,7 @@ $('#adminApp').addEventListener('click',async e=>{
     if(index<0)return;
     if(previewReview.hasAttribute('data-preview-review-delete'))rows.splice(index,1);
     else {rows[index].is_verified=!rows[index].is_verified;rows[index].is_published=rows[index].is_verified;}
-    localStorage.setItem(key,JSON.stringify(rows));renderPanel();return;
+    localStorage.setItem(key,JSON.stringify(rows));window.dispatchEvent(new Event('mo-preview-reviews-changed'));renderPanel();return;
   }
     const reject=e.target.closest('[data-reject-review]');
   if(reject&&cmsConnected){
@@ -1047,7 +1048,7 @@ $('#adminApp').addEventListener('click',async e=>{
     if(brandButton.hasAttribute('data-public-brand-delete')){if(!confirm('حذف البراند من الشريط؟'))return;rows.splice(index,1)}
     else rows[index].enabled=rows[index].enabled===false;
     brandButton.disabled=true;
-    try{if(cmsConnected)data.settings=await saveBrandList(await getClient(),data.settings,rows);else localStorage.setItem('mo_design_preview_public_brands_v1',JSON.stringify(rows));renderPanel();toast('تم تحديث الشريط')}
+    try{if(cmsConnected)data.settings=await saveBrandList(await getClient(),data.settings,rows);else (localStorage.setItem('mo_design_preview_public_brands_v1',JSON.stringify(rows)),window.dispatchEvent(new Event('mo-preview-brands-changed')));renderPanel();toast('تم تحديث الشريط')}
     catch(error){brandButton.disabled=false;toast('تعذر حفظ التغيير: '+error.message)}
     return;
   }
@@ -1225,7 +1226,7 @@ $('#adminApp').addEventListener('submit',async e=>{
       if(rows.length>=40)throw new Error('الحد الأقصى 40 براند');
       rows.push({name:name.slice(0,100),logo,enabled:true});
       if(cmsConnected){const db=await getClient();data.settings=await saveBrandList(db,data.settings,rows)}
-      else localStorage.setItem('mo_design_preview_public_brands_v1',JSON.stringify(rows));
+      else {localStorage.setItem('mo_design_preview_public_brands_v1',JSON.stringify(rows));window.dispatchEvent(new Event('mo-preview-brands-changed'))}
       renderPanel();toast('تم نشر البراند في شريط الشركات');
     }catch(error){field.textContent='تعذر حفظ البراند: '+error.message;button.disabled=false}
     return;
