@@ -1256,7 +1256,14 @@ $('#adminApp').addEventListener('submit',async e=>{
 // Never leave the admin on an indefinite initial loading screen if Supabase/CDN is slow.
 const adminTimeout=(promise,ms,label)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label)),ms))]);
 async function init(){
-  if(!cmsConnected){baseShell();renderPanel();refreshAdminLogos();return;}
+  if(!cmsConnected){
+    try{baseShell();renderPanel();refreshAdminLogos();}
+    catch(error){
+      console.error('Preview dashboard initialization failed:',error);
+      document.getElementById('adminApp').innerHTML='<div class="admin-login-wrap" role="alert" style="padding:40px;color:#ffdddd"><h2>تعذّر تشغيل لوحة المعاينة</h2><p>سبب العطل: '+esc(error.message||'خطأ برمجي غير معروف')+'</p><button onclick="location.reload()" class="admin-btn">إعادة المحاولة</button></div>';
+    }
+    return;
+  }
   try{
     currentUser=await adminTimeout(adminAuthenticated(),14000,'تأخر الاتصال بخدمة تسجيل الدخول.');
     if(currentUser){
