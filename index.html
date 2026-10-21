@@ -31,6 +31,7 @@
   <script defer src="./assets/ticker-loop.js?v=2"></script><script type="module" src="./assets/app.js?v=hotfix2"></script><script defer src="./assets/v14-motion.js?v=142"></script><script defer src="./assets/v15-studio.js?v=150"></script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Person","alternateName":["مو ديزاين","Mo Design"],"name":"Mohamed Mahmoud","url":"https://mohamed2451.github.io/mo.design/","jobTitle":"Graphic Designer & Creative Video Editor","sameAs":["https://www.behance.net/mode5","https://www.instagram.com/mo.design.official","https://www.linkedin.com/in/mohamed-mahmoud-97638a211/"]}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"مو ديزاين | Mo Design","alternateName":["مو ديزاين","Mo Design","Mohamed Mahmoud Design"],"url":"https://mohamed2451.github.io/mo.design/","inLanguage":["ar","en"]}</script>
+  <link rel="stylesheet" href="./assets/mo-community-live.css?v=1" />
 </head>
 <body>
   <a class="skip-link" href="#home" data-i18n="skip">انتقل للمحتوى</a>
@@ -145,9 +146,11 @@
         <article class="process-card reveal"><span class="process-icon">↗</span><h3 data-i18n="step3">ننفّذ ونطوّر</h3><p data-i18n="step3d"></p></article>
       </div></div></section>
 
+      <section class="mo-live-brands" id="moLiveBrands" hidden aria-label="الشركات والبراندات"><div class="container"><span class="mo-live-kicker">MO DESIGN / COLLABORATIONS</span><h2>براندات وشركات <em>اشتغلت معاها</em></h2></div><div class="mo-live-viewport" id="moLiveBrandsViewport"><div class="mo-live-track" id="moLiveBrandsTrack"></div></div></section>
       <section class="section testimonials-section" id="testimonials" aria-labelledby="testimonialsTitle"><div class="container">
         <div class="testimonials-heading reveal"><div><div class="eyebrow"><span data-i18n="reviews_eyebrow">CLIENT VOICES</span></div><h2 class="section-title" id="testimonialsTitle" data-i18n="reviews_title">تجارب وآراء.</h2><p class="section-sub" data-i18n="reviews_sub">مساحة مخصصة لتجارب العملاء الحقيقية، بنفس العناية اللي بحطها في كل تفصيلة.</p></div><div class="reviews-decor" aria-hidden="true">“</div></div>
-        <div class="testimonials-grid" id="testimonialsGrid"></div>
+        <div class="mo-live-reviews" id="moLiveReviews" hidden><div class="mo-live-viewport" id="moLiveReviewsViewport"><div class="mo-live-track" id="moLiveReviewsTrack"></div></div><div class="mo-live-controls"><button id="moLiveReviewsPrev" type="button" aria-label="الرأي السابق">→</button><button id="moLiveReviewsNext" type="button" aria-label="الرأي التالي">←</button></div></div>
+        <div class="testimonials-grid" id="testimonialsGrid" hidden aria-hidden="true"></div>
         <p class="reviews-note" hidden aria-hidden="true"></p>
       </div></section>
 
@@ -179,5 +182,5 @@
   <dialog id="learningDialog" class="learning-dialog"><div class="learning-dialog-inner"><button type="button" id="learningClose" class="learning-close" aria-label="إغلاق">×</button><div id="learningDialogBody"></div></div></dialog>
   <dialog id="projectDialog" class="project-dialog"><button class="dialog-close icon-btn" id="dialogClose" aria-label="Close">×</button><div id="dialogContents"></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-<script type="module" src="./assets/legal-dynamic.js?v=legal-verified-20261016"></script><script type="module">import {mountStudio} from "./assets/studio-sections.js";mountStudio({target:document.getElementById("moStudioSections"),scope:"site"});</script></body>
+<script type="module" src="./assets/legal-dynamic.js?v=legal-verified-20261016"></script><script type="module">import {mountStudio} from "./assets/studio-sections.js";mountStudio({target:document.getElementById("moStudioSections"),scope:"site"});</script><script type="module">import {mountCommunity} from "./assets/mo-community-live.js";mountCommunity();</script></body>
 </html>
