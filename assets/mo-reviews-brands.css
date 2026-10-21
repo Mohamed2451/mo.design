@@ -63,3 +63,15 @@
 @media(max-width:920px){.mo-review-slider{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.mo-review-slider{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.mo-review-slider .review-card,.mo-review-slider .mo-review-card{animation:none!important}}
+
+/* Functional horizontal carousel. The source testimonial grid is retained hidden for compatibility. */
+#moReviewSlider{display:block!important;overflow:hidden;min-height:250px}
+#moReviewSlider #testimonialsGrid,#moReviewSlider #moUserReviewList{display:none!important}
+.mo-review-viewport{overflow:hidden;width:100%;border-radius:22px;touch-action:pan-y}
+.mo-review-track{display:flex;gap:16px;transition:transform .65s cubic-bezier(.2,.8,.2,1);will-change:transform}
+.mo-carousel-card{flex:0 0 calc((100% - 32px)/3);min-width:0;box-sizing:border-box;background:var(--card-bg,#191b22);border:1px solid var(--line,rgba(255,255,255,.15));border-radius:22px;min-height:245px;padding:25px;display:flex;flex-direction:column;gap:17px}
+.mo-carousel-top{display:flex;justify-content:space-between;gap:12px;align-items:start}.mo-carousel-top strong{display:block;font-size:16px}.mo-carousel-top small,.mo-carousel-card>small{font-size:12px;opacity:.65}.mo-carousel-stars{color:var(--accent,#c6fa8a);letter-spacing:3px;white-space:nowrap}.mo-carousel-card p{line-height:1.9;font-size:14px;flex:1;margin:0}.mo-carousel-demo{font-size:10px;color:var(--accent,#c6fa8a);border:1px solid currentColor;padding:4px 9px;border-radius:30px;align-self:start}
+.mo-review-demo-note{color:var(--muted,#aaa);font-size:12px;margin:15px 0}
+@media(max-width:900px){.mo-carousel-card{flex-basis:calc((100% - 16px)/2)}}
+@media(max-width:600px){.mo-carousel-card{flex-basis:100%}}
+@media(prefers-reduced-motion:reduce){.mo-review-track{transition:none!important}}
