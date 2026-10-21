@@ -1,5 +1,5 @@
 import { seed, readDemo, saveDemo, escapeHTML as esc, safeUrl, ar, en } from './data.js';
-import {renderBrandManager,brandRows,saveBrandList,hydrateBrandAdminImages} from './mo-community-admin-live.js?v=brand-layout-20261021-2';
+import {renderBrandManager,brandRows,saveBrandList,saveBrandVisibility,hydrateBrandAdminImages} from './mo-brands-reference-panel.js';
 import {STUDIO_KEY,readStudio,safeStudioUrl} from './studio-config.js';
 import {isStudioPreviewHost,isPreviewMediaRef,storeStudioPreviewMedia} from './studio-preview-media.js';
 import { connected, getClient, adminAuthenticated, getAdminContent } from './api.js';
@@ -568,7 +568,7 @@ window.addEventListener('focus',()=>{if(!cmsConnected&&['overview','testimonials
 function renderPanel(){
   if(!data)return;
   const main=$('#adminMain'); if(!main) return;
-  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,legal:renderLegalPages,services:()=>renderItems('services'),testimonials:()=> (cmsConnected?renderItems('testimonials'):renderPreviewReviews()),communityBrands:()=>renderBrandManager(cmsConnected?data.settings:{...data.settings,content_ar:{...data.settings.content_ar,mo_public_brands:localStorage.getItem('mo_design_preview_public_brands_v1')||'[]'}}),messages:renderMessages,future:renderFuture,team:renderTeam,notice:renderNoticeEditor})[tab]();
+  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,legal:renderLegalPages,services:()=>renderItems('services'),testimonials:()=> (cmsConnected?renderItems('testimonials'):renderPreviewReviews()),communityBrands:()=>renderBrandManager(cmsConnected?data.settings:{...data.settings,content_ar:{...data.settings.content_ar,mo_public_brands:localStorage.getItem('mo_design_preview_public_brands_v1')||'[]',mo_public_brands_visible:localStorage.getItem('mo_design_preview_brands_visible_v1')!=='0'}}),messages:renderMessages,future:renderFuture,team:renderTeam,notice:renderNoticeEditor})[tab]();
   main.innerHTML=`<header class="admin-heading v10-page-head"><div><span class="v10-page-path">Mo Design <span>/</span> مساحة العمل <span>/</span> ${esc(labels[tab])}</span><h1>${esc(labels[tab])}</h1><p>أدواتك ومحتواك وطلبات الشغل في مكان واحد.</p></div><div class="v10-page-actions"><span class="admin-badge">${cmsConnected?`<span class="v10-online-dot"></span> متصل`:'◌ وضع تجربة محلية'}</span><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">↗ شوف الموقع</a></div></header>${!cmsConnected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
   document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
   document.querySelectorAll('[data-tab="testimonials"],[data-tab="messages"]').forEach(el=>{
@@ -1210,7 +1210,17 @@ $('#adminApp').addEventListener('submit',async e=>{
   e.preventDefault();
   const form=e.target;
   if(form.id==='teamForm'){await saveTeamForm(form);return;}
-  if(form.id==='moPublicBrandForm'){
+  if(form.id==='moPublicBrandsVisibilityForm'){
+    const visible=form.elements.namedItem('visible').checked;
+    const status=form.querySelector('[data-brand-visible-status]');
+    try{
+      if(cmsConnected){data.settings=await saveBrandVisibility(await getClient(),data.settings,visible)}
+      else {const key='mo_design_preview_brands_visible_v1';localStorage.setItem(key,visible?'1':'0')}
+      status.textContent='تم حفظ حالة الشريط';toast('تم حفظ حالة الشريط');
+    }catch(error){status.textContent='تعذر الحفظ: '+error.message}
+    return;
+  }
+    if(form.id==='moPublicBrandForm'){
     const field=form.querySelector('[data-brand-status]'),button=form.querySelector('[type=submit]');
     const name=String(form.elements.namedItem('brand_name').value||'').trim();
     const link=String(form.elements.namedItem('brand_url').value||'').trim();
