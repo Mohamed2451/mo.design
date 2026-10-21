@@ -1,4 +1,5 @@
 import {readCommunity,writeCommunity,htmlEscape as e,validHttps} from './mo-community-store.js';
+import {startRail} from './mo-infinite-rail.js';
 import {isPreviewMediaRef,resolveStudioPreviewMedia} from './studio-preview-media.js';
 const $=id=>document.getElementById(id);
 const demo=[
@@ -16,17 +17,6 @@ function fallback(img,reason){
  el.title=reason;
  img.replaceWith(el);
 }
-// Each identical group must be wider than the viewport. Animate exactly one group.
-// CSS repeats forever; no timer or per-frame DOM updates to stall or vanish.
-function syncLoop(track,speed){
- if(!track)return;
- const group=track.firstElementChild;
- if(!group)return;
- const width=group.getBoundingClientRect().width;
- if(width<1)return;
- track.style.setProperty('--mo-loop-px',width+'px');
- track.style.setProperty('--mo-loop-seconds',Math.max(4,width/speed).toFixed(3)+'s');
-}
 function brandTile(x){
  const name=e(x.name||''),alt=e(x.name||'شعار براند');
  const logo=validHttps(x.logo);
@@ -40,11 +30,12 @@ function renderBrands(){
  if(!section||!track)return;
  const data=readCommunity(),brands=data.brands.filter(x=>x.enabled&&(x.name||x.logo));
  section.hidden=!(data.brands_visible&&brands.length);
- if(section.hidden){track.replaceChildren();return;}
- const viewport=section.querySelector('.mo-brands-window'),tileWidth=matchMedia('(max-width:600px)').matches?195:251;
- const repeat=Math.max(1,Math.ceil(((viewport.clientWidth||innerWidth)+tileWidth*2)/(tileWidth*brands.length)));
- const tiles=brands.map(brandTile).join(''),full=Array(repeat).fill(tiles).join('');
- track.innerHTML='<div class="mo-brand-loop-group">'+full+'</div><div class="mo-brand-loop-group" aria-hidden="true">'+full+'</div>';
+ if(section.hidden){track.__moStopRail?.();track.replaceChildren();return;}
+ const viewport=section.querySelector('.mo-brands-window'),tileWidth=matchMedia('(max-width:600px)').matches?192:236;
+ const count=Math.max(9,Math.ceil(((viewport.clientWidth||innerWidth)*2+tileWidth*2)/(tileWidth*brands.length)));
+ const tiles=brands.map(brandTile).join(''),full=Array(Math.min(30,count)).fill(tiles).join('');
+ track.innerHTML=full;
+ startRail(track,viewport,165);
  track.querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>fallback(img,'الشعار غير متاح هنا؛ أعد رفعه من لوحة تحكم نفس رابط المعاينة.'),{once:true}));
  track.querySelectorAll('[data-preview-brand]').forEach(async img=>{
   try{
@@ -52,7 +43,7 @@ function renderBrands(){
    if(src)img.src=src;else fallback(img,'الملف محفوظ في متصفح أو رابط معاينة مختلف، أعد رفعه.');
   }catch{fallback(img,'تعذر قراءة ملف المعاينة، أعد رفعه.');}
  });
- requestAnimationFrame(()=>syncLoop(track,165));
+
 }
 function reviewCard(x,isDemo){
  const rating=Math.max(1,Math.min(5,Number(x.rating)||5));
@@ -77,24 +68,14 @@ function renderReviews(){
  $('moReviewCount').textContent=approved.length?approved.length+' تقييم معتمد':'عرض توضيحي';
  if(sign!==signature||!track.firstElementChild){
   signature=sign;
-  const tileWidth=matchMedia('(max-width:600px)').matches?350:397;
-  const repeat=Math.max(1,Math.ceil(((viewport.clientWidth||innerWidth)+tileWidth*2)/(tileWidth*list.length)));
-  const cards=Array(repeat).fill(list.map(x=>reviewCard(x,!approved.length)).join('')).join('');
-  track.innerHTML='<div class="mo-review-loop-group">'+cards+'</div><div class="mo-review-loop-group" aria-hidden="true">'+cards+'</div>';
+  const tileWidth=matchMedia('(max-width:600px)').matches?356:396;
+  const needed=Math.max(8,Math.ceil(((viewport.clientWidth||innerWidth)*2+tileWidth*2)/(tileWidth*list.length)));
+  const cards=Array(Math.min(30,needed)).fill(list.map(x=>reviewCard(x,!approved.length)).join('')).join('');
+  track.innerHTML=cards;
  }
- requestAnimationFrame(()=>syncLoop(track,112));
+ startRail(track,viewport,112);
 }
-function move(direction){
- const track=$('moReviewTrack'),group=track?.firstElementChild,card=group?.firstElementChild;
- if(!track||!group||!card)return;
- const step=card.getBoundingClientRect().width+16;
- const distance=group.getBoundingClientRect().width;
- const current=parseFloat(getComputedStyle(track).getPropertyValue('--mo-loop-shift'))||0;
- const next=(current+direction*step+distance)%distance;
- // A manual nudge is applied only as a phase change using a negative delay.
- const speed=112,duration=distance/speed;
- track.style.animationDelay=(-next/speed)+'s';
-}
+function move(direction){$('moReviewTrack')?.__moRailNudge?.(direction);}
 $('moReviewPrev')?.addEventListener('click',()=>move(-1));
 $('moReviewNext')?.addEventListener('click',()=>move(1));
 const view=$('moReviewViewport');
