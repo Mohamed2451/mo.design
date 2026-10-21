@@ -120,10 +120,12 @@ function baseShell(){
 }
 function renderOverview(){
  const projects=data.projects||[], messages=data.messages||[],lessons=data.learning_items||[];
+ const pendingReviews=(data.testimonials||[]).filter(x=>!x.is_verified&&!x.is_published).length;
  const metrics=[
  ['المشاريع المنشورة',projects.filter(x=>x.is_published).length,'▧','مشروع ظاهر للزوار'],
  ['المشاريع المسودة',projects.filter(x=>!x.is_published).length,'◷','مستني المراجعة'],
  ['طلبات جديدة',messages.filter(x=>x.status==='new').length,'✉','محتاج متابعة'],
+ ['تقييمات تنتظر الموافقة',pendingReviews,'★','مراجعة قبل النشر'],
  ['محتوى تعليمي منشور',lessons.filter(x=>x.is_published).length,'▷','فيديوهات ومقالات']
  ];
  const mode=data.settings?.education_mode||'coming_soon';
@@ -221,7 +223,7 @@ function renderItems(table){
   const isTestimonials=table==='testimonials';
   const arr=data[table]||[];
   const noun=isProjects?'مشروع':isTestimonials?'رأي عميل':'خدمة';
-  const list=`<div class="admin-panel"><div class="admin-heading"><h2>${isProjects?'الأعمال المعروضة':isTestimonials?'آراء العملاء':'الخدمات المعروضة'}</h2>${uiButton(`+ إضافة ${noun}`,'add',table,'')}</div><div class="admin-rows">${arr.length?arr.map(row=>`<div class="admin-row"><div class="admin-row-content">${isProjects && safeUrl(row.image_url)?`<img class="admin-row-thumb" src="${esc(safeUrl(row.image_url))}" loading="lazy" alt=""/>`:''}<div><h3>${esc(isTestimonials?row.author_ar:row.title_ar)}</h3><p>${esc(isTestimonials?row.author_en:row.title_en)} · ${row.is_published?'منشور':'مسودة'} · #${esc(row.sort_order)}</p></div></div><div class="row-actions">${!isTestimonials?uiButton(row.is_published?'إخفاء':'نشر','togglepublish',`${table}|${row.id}`):''}${uiButton('تعديل','edit',`${table}|${row.id}`)}${uiButton('حذف','delete',`${table}|${row.id}`,'danger')}</div></div>`).join(''):`<p class="admin-empty">لا توجد عناصر بعد.</p>`}</div></div>`;
+  const list=`<div class="admin-panel"><div class="admin-heading"><h2>${isProjects?'الأعمال المعروضة':isTestimonials?'آراء العملاء — المراجعة والنشر':'الخدمات المعروضة'}</h2>${uiButton(`+ إضافة ${noun}`,'add',table,'')}</div><div class="admin-rows">${arr.length?arr.map(row=>`<div class="admin-row"><div class="admin-row-content">${isProjects && safeUrl(row.image_url)?`<img class="admin-row-thumb" src="${esc(safeUrl(row.image_url))}" loading="lazy" alt=""/>`:''}<div><h3>${esc(isTestimonials?row.author_ar:row.title_ar)}</h3><p>${esc(isTestimonials?row.author_en:row.title_en)} · ${row.is_published?'منشور':'مسودة'} · #${esc(row.sort_order)}</p></div></div><div class="row-actions">${!isTestimonials?uiButton(row.is_published?'إخفاء':'نشر','togglepublish',`${table}|${row.id}`):''}${isTestimonials&&!row.is_published?`<button class="admin-btn" data-publish-review="${esc(row.id)}">موافقة ونشر</button>`:''}${uiButton('تعديل','edit',`${table}|${row.id}`)}${uiButton('حذف','delete',`${table}|${row.id}`,'danger')}</div></div>`).join(''):`<p class="admin-empty">لا توجد عناصر بعد.</p>`}</div></div>`;
   const servicePages=table==='services'?`<div class="admin-panel"><h3>دليل صفحات الخدمات الفعلية</h3><p class="admin-note">الروابط الأربعة أدناه هي المعاينات المقابلة للخدمات الأساسية الظاهرة على الموقع. الخدمات الفعلية تتعدل من القائمة أسفل هذا الدليل، والمشاريع في كل صفحة تتحدد من تصنيف المشروع المنشور. لإضافة أعمال للصفحة افتح «المشاريع» واختر تصنيفها. عدّل أسماء الخدمات الفعلية من القائمة التالية.</p><div class="admin-rows">${[['social-media','السوشيال ميديا والإعلانات'],['video-motion','الريلز والبودكاست'],['ai-creative','التصميم بالذكاء الاصطناعي'],['branding','الهوية البصرية']].map(([slug,name])=>`<a class="admin-btn secondary" target="_blank" rel="noopener" href="./services/${slug}/">فتح تخصص ${name} ↗</a>`).join('')}</div></div>`:'';
   if(!editing || editing.table!==table)return (table==='services'?servicePageEditor(): '')+servicePages+list;
   const item=arr.find(a=>a.id===editing.id) || {};
@@ -556,6 +558,12 @@ function renderPanel(){
   const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,legal:renderLegalPages,services:()=>renderItems('services'),testimonials:()=> (cmsConnected?renderItems('testimonials'):renderPreviewReviews()),communityBrands:()=>renderBrandManager(cmsConnected?data.settings:{...data.settings,content_ar:{...data.settings.content_ar,mo_public_brands:localStorage.getItem('mo_design_preview_public_brands_v1')||'[]'}}),messages:renderMessages,future:renderFuture,team:renderTeam,notice:renderNoticeEditor})[tab]();
   main.innerHTML=`<header class="admin-heading v10-page-head"><div><span class="v10-page-path">Mo Design <span>/</span> مساحة العمل <span>/</span> ${esc(labels[tab])}</span><h1>${esc(labels[tab])}</h1><p>أدواتك ومحتواك وطلبات الشغل في مكان واحد.</p></div><div class="v10-page-actions"><span class="admin-badge">${cmsConnected?`<span class="v10-online-dot"></span> متصل`:'◌ وضع تجربة محلية'}</span><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">↗ شوف الموقع</a></div></header>${!cmsConnected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
   document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
+  document.querySelectorAll('[data-tab="testimonials"],[data-tab="messages"]').forEach(el=>{
+    const count=el.dataset.tab==='testimonials'?(data.testimonials||[]).filter(x=>!x.is_verified&&!x.is_published).length:(data.messages||[]).filter(x=>x.status==='new').length;
+    let dot=el.querySelector('.mo-admin-notification-count');
+    if(!dot){dot=document.createElement('span');dot.className='mo-admin-notification-count';el.append(dot)}
+    dot.hidden=!count;dot.textContent=String(count);
+  });
   if(tab==='media')void loadMedia();
   if(tab==='content' && openingTeamCopyFromLink){
     const group=document.getElementById('teamCopyGroup');
@@ -960,6 +968,19 @@ $('#adminApp').addEventListener('click',async e=>{
     if(previewReview.hasAttribute('data-preview-review-delete'))rows.splice(index,1);
     else {rows[index].is_verified=!rows[index].is_verified;rows[index].is_published=rows[index].is_verified;}
     localStorage.setItem(key,JSON.stringify(rows));renderPanel();return;
+  }
+    const pending=e.target.closest('[data-publish-review]');
+  if(pending&&cmsConnected){
+    const id=pending.dataset.publishReview,review=(data.testimonials||[]).find(x=>x.id===id);
+    if(!review)return;
+    pending.disabled=true;
+    try{
+      const db=await getClient();
+      const {error}=await db.from('testimonials').update({is_verified:true,is_published:true}).eq('id',id);
+      if(error)throw error;
+      review.is_verified=true;review.is_published=true;renderPanel();toast('تمت الموافقة ونشر التقييم');
+    }catch(error){pending.disabled=false;toast('تعذر النشر: '+error.message)}
+    return;
   }
     const brandButton=e.target.closest('[data-public-brand-toggle],[data-public-brand-delete]');
   if(brandButton){
