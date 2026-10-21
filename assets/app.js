@@ -525,7 +525,18 @@ $('#contactForm').addEventListener('submit',async e=>{
   button.disabled=true; button.querySelector('span').textContent=txt().submitting;
   $('#formMessage').textContent='';
   try {
-    const result=await sendInquiry(vals);
+    // On Cloudflare preview, keep lead testing inside the same browser only.
+    const preview=location.hostname.endsWith('.pages.dev');
+    let result;
+    if(preview){
+      const key='mo_design_preview_inquiries_v1';
+      const existing=JSON.parse(localStorage.getItem(key)||'[]');
+      if(existing.length>=100)throw new Error('Preview inbox full');
+      existing.unshift({id:crypto.randomUUID(),sender_name:vals.name,sender_email:vals.email,sender_phone:vals.phone,service_type:vals.service,message:vals.message,company:vals.company,budget:vals.budget,desired_timeline:vals.timeline,reference_url:vals.reference_url,status:'new',created_at:new Date().toISOString()});
+      localStorage.setItem(key,JSON.stringify(existing));
+      window.dispatchEvent(new Event('mo-preview-inquiry-change'));
+      result={mode:'preview'};
+    }else result=await sendInquiry(vals);
     if(result.mode==='email'){
       const phone = (model.settings.whatsapp_url || 'https://wa.me/201097865616').split('?')[0];
       const info = lang==='ar' ? `طلب مشروع من موقع Mo Design\nالاسم: ${vals.name}\nالبريد: ${vals.email}\nالهاتف: ${vals.phone||'—'}\nالخدمة: ${vals.service}\nالشركة: ${vals.company || "—"}\nالميزانية: ${vals.budget || "—"}\nالمدة: ${vals.timeline || "—"}\nمرجع: ${vals.reference_url || "—"}\nالتفاصيل: ${vals.message}` : `Project enquiry from Mo Design\nName: ${vals.name}\nEmail: ${vals.email}\nPhone: ${vals.phone||'—'}\nService: ${vals.service}\nCompany: ${vals.company || "—"}\nBudget: ${vals.budget || "—"}\nTimeline: ${vals.timeline || "—"}\nReference: ${vals.reference_url || "—"}\nBrief: ${vals.message}`;
@@ -534,7 +545,7 @@ $('#contactForm').addEventListener('submit',async e=>{
       const opened=window.open(url,'_blank','noopener,noreferrer');
       if(!opened) window.location.href=url;
       $('#formMessage').textContent=txt().email_open;
-    } else {form.reset();renderSubjects();$('#formMessage').textContent=txt().sent;}
+    } else {form.reset();renderSubjects();$('#formMessage').textContent=result.mode==='preview'?'تم حفظ طلب تجريبي في لوحة تحكم نفس المتصفح فقط؛ لم يُرسل إلى الإدارة الحقيقية.':txt().sent;}
   } catch(error) { console.error(error);$('#formMessage').textContent=txt().send_error; }
   finally {button.disabled=false;button.querySelector('span').textContent=txt().submit;}
 });
