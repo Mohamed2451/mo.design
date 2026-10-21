@@ -84,3 +84,13 @@
 #moReviewSlider .mo-review-loop-group .mo-carousel-card{flex:0 0 clamp(240px,30vw,380px);width:clamp(240px,30vw,380px)}
 @media(max-width:600px){#moReviewSlider .mo-review-loop-group .mo-carousel-card{flex-basis:min(85vw,340px);width:min(85vw,340px)}}
 #moBrandsTrack .mo-brand-tile span{font-size:12px;color:var(--muted,#aaa);text-align:center}
+
+/* Polished edge fade and seamless loop */
+#moReviewViewport{border-radius:0;position:relative;-webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.35) 5%,#000 13%,#000 87%,rgba(0,0,0,.35) 95%,transparent 100%);mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.35) 5%,#000 13%,#000 87%,rgba(0,0,0,.35) 95%,transparent 100%)}
+#moReviewSlider .mo-review-track{transform:none;will-change:transform}
+#moBrandsTrack{animation-duration:var(--mo-brands-duration,12s);gap:0}
+#moBrandsTrack .mo-brand-loop-group{display:flex;gap:16px;padding-inline-end:16px;flex:none;align-items:center}
+#moBrandsTrack .mo-brand-fallback{font-size:13px;line-height:1.7;max-width:160px;text-align:center;color:var(--muted,#aaa)}
+.mo-brand-replace-form{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0;padding:10px 14px;border:1px solid var(--line,#444);border-radius:12px}
+.mo-brand-replace-form input[type=file]{flex:1;min-width:180px}
+@media(max-width:600px){#moReviewViewport{-webkit-mask-image:linear-gradient(to right,transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(to right,transparent,#000 9%,#000 91%,transparent)}}
