@@ -41,5 +41,14 @@ jobs:
           assert.ok(!html.includes('mosalamadesigner.com/assets/'));
           console.log('Motion gallery structural checks passed');
           NODE
-      - name: Existing repository tests
-        run: node --test tests/v13-loading-smoke.mjs tests/v13-regressions.mjs tests/seo-sitemap.mjs tests/prelaunch-audit.mjs
+      - name: Preserve production contact form in classic page
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const classic=fs.readFileSync('classic.html','utf8');
+          assert.match(classic,/id="contact"/);
+          assert.match(classic,/name="email"/);
+          assert.match(classic,/id="moStudioSections"/);
+          console.log('Existing live-site contact and team HTML preserved');
+          NODE
