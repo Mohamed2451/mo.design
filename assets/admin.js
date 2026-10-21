@@ -1,6 +1,7 @@
 import { seed, readDemo, saveDemo, escapeHTML as esc, safeUrl, ar, en } from './data.js';
 import {STUDIO_KEY,readStudio,safeStudioUrl} from './studio-config.js';
 import {renderCommunityAdmin,communityAdminClick,communityAdminSubmit} from './mo-community-admin.js';
+import {readCommunity} from './mo-community-store.js';
 import {isStudioPreviewHost,isPreviewMediaRef,storeStudioPreviewMedia} from './studio-preview-media.js';
 import { connected, getClient, adminAuthenticated, getAdminContent } from './api.js';
 import {PORTFOLIO_CATEGORIES, categoryFor, formatTools} from './categories.js';
@@ -15,6 +16,19 @@ const $ = s => document.querySelector(s);
 const cmsConnected=connected && new URLSearchParams(location.search).get('demo')!=='1' && !location.hostname.endsWith('.pages.dev');
 let data = cmsConnected ? null : readDemo();
 let currentUser = null;
+const PREVIEW_INQUIRIES_KEY='mo_design_preview_inquiries_v1';
+function previewInquiries(){try{const x=JSON.parse(localStorage.getItem(PREVIEW_INQUIRIES_KEY)||'[]');return Array.isArray(x)?x:[]}catch{return []}}
+function previewCounts(){return {reviews:readCommunity().reviews.filter(x=>x.status==='pending').length,leads:cmsConnected?(data?.messages||[]).filter(x=>x.status==='new').length:previewInquiries().filter(x=>x.status==='new').length}}
+function refreshPreviewBadges(){
+ const counts=previewCounts();
+ document.querySelectorAll('[data-tab]').forEach(b=>{
+  const count=b.dataset.tab==='communityReviews'?counts.reviews:b.dataset.tab==='messages'?counts.leads:0;
+  let badge=b.querySelector('.mo-admin-notification-count');
+  if(!badge){badge=document.createElement('span');badge.className='mo-admin-notification-count';b.append(badge)}
+  badge.hidden=!count;badge.textContent=count>99?'99+':String(count);
+ });
+}
+
 const openingTeamCopyFromLink = new URLSearchParams(location.search).get('editor') === 'team';
 let tab = openingTeamCopyFromLink ? 'content' : 'overview';
 let editing = null; // {table,id}
@@ -261,9 +275,9 @@ function renderItems(table){
   return `<div class="admin-panel" id="editorPanel"><h2>${isNew?`إضافة ${noun}`:`تعديل ${noun}`}</h2><form data-entity="${table}" data-edit-id="${esc(item.id || '')}" novalidate><div class="admin-form-grid">${main}</div>${preview}<div class="admin-actions"><div data-save-status role="status" aria-live="polite" hidden style="width:100%;padding:12px;border:1px solid #79b943;border-radius:10px;white-space:normal"></div>${uiButton('إلغاء','cancel')}<button class="admin-btn" type="button" data-direct-save>حفظ ${noun}</button></div></form></div>`+list;
 }
 function renderMessages(){
- if(!cmsConnected)return `<div class="admin-panel"><h2>رسائل العملاء</h2><p class="admin-note">الرسائل تحتاج توصيل Supabase. على النسخة غير المتصلة، الطلبات تفتح واتساب ومش بتتحفظ هنا.</p></div>`;
- const messages=data.messages||[];
- return `<div class="admin-panel"><div class="admin-heading"><div><h2>صندوق طلبات العملاء</h2><p class="admin-note">افتح وسيلة التواصل المناسبة، سجل المتابعة، وحدّث حالة كل مشروع.</p></div><span class="admin-badge">${messages.length} طلب</span></div><div class="inbox-toolbar"><input id="inboxSearch" type="search" placeholder="دوّر باسم العميل أو نوع الخدمة" aria-label="بحث في الطلبات"><select id="inboxFilter" aria-label="فلترة الطلبات"><option value="">كل الحالات</option><option value="new">جديد</option><option value="reviewing">قيد المراجعة</option><option value="contacted">تم التواصل</option><option value="proposal_sent">تم إرسال عرض</option><option value="accepted">تم الاتفاق</option><option value="completed">مكتمل</option><option value="archived">مؤرشف</option></select></div><div id="inboxRows">${messages.map(m=>{
+ 
+ const messages=cmsConnected?(data.messages||[]):previewInquiries();
+ return `<div class="admin-panel"><div class="admin-heading"><div><h2>صندوق طلبات العملاء</h2><p class="admin-note">${cmsConnected?'الطلبات متصلة بقاعدة البيانات.':'طلبات تجريبية محفوظة في نفس المتصفح فقط وليست رسائل حقيقية من الزوار.'}</p><p class="admin-note">افتح وسيلة التواصل المناسبة، سجل المتابعة، وحدّث حالة كل مشروع.</p></div><span class="admin-badge">${messages.length} طلب</span></div><div class="inbox-toolbar"><input id="inboxSearch" type="search" placeholder="دوّر باسم العميل أو نوع الخدمة" aria-label="بحث في الطلبات"><select id="inboxFilter" aria-label="فلترة الطلبات"><option value="">كل الحالات</option><option value="new">جديد</option><option value="reviewing">قيد المراجعة</option><option value="contacted">تم التواصل</option><option value="proposal_sent">تم إرسال عرض</option><option value="accepted">تم الاتفاق</option><option value="completed">مكتمل</option><option value="archived">مؤرشف</option></select></div><div id="inboxRows">${messages.map(m=>{
  const number=String(m.sender_phone||'').replace(/[^0-9]/g,'').replace(/^0(?=1[0125][0-9]{8}$)/,'20');
  const validPhone=number.length>=9&&number.length<=15;
  const safeEmail=encodeURIComponent(m.sender_email||'');
@@ -558,7 +572,7 @@ function renderPanel(){
     if(group){group.open=true;requestAnimationFrame(()=>group.scrollIntoView({block:'center'}));}
   }
   setupToolTags(main);
-  refreshAdminLogos();
+  refreshAdminLogos();refreshPreviewBadges();
 }
 function setupToolTags(root){
  root.querySelectorAll('[data-tools-box]').forEach(box=>{
@@ -924,7 +938,7 @@ $('#adminApp').addEventListener('input',e=>{
   }
 });
 $('#adminApp').addEventListener('click',e=>{
-  if(communityAdminClick(e.target.closest('button')||e.target)){if(!e.target.closest('[data-community-brand-replace]'))renderPanel();return;}
+  if(communityAdminClick(e.target.closest('button')||e.target)){if(!e.target.closest('[data-community-brand-replace]'))renderPanel();refreshPreviewBadges();return;}
   const teamShortcut=e.target.closest('[data-open-team-copy]');
   if(teamShortcut){
     const search=document.querySelector('#cmsCopySearch');
@@ -1130,6 +1144,8 @@ $('#adminApp').addEventListener('submit',async e=>{
   }
   if(form.dataset.entity)await saveForm(form);
 });
+window.addEventListener('storage',ev=>{if([PREVIEW_INQUIRIES_KEY,'mo_design_community_preview_v1'].includes(ev.key)){if(tab==='messages'||tab==='communityReviews'||tab==='overview')renderPanel();refreshPreviewBadges()}});
+window.addEventListener('focus',()=>{if(tab==='messages'||tab==='communityReviews'||tab==='overview')renderPanel();refreshPreviewBadges()});
 // Never leave the admin on an indefinite initial loading screen if Supabase/CDN is slow.
 const adminTimeout=(promise,ms,label)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label)),ms))]);
 async function init(){
