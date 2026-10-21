@@ -1,3 +1,4 @@
+import {isPreviewMediaRef,resolveStudioPreviewMedia} from './studio-preview-media.js';
 import {startRail} from './mo-infinite-rail.js';
 const $=id=>document.getElementById(id);
 const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -7,6 +8,7 @@ function card(x){
 }
 function logo(x){
  const name=String(x.name||'');let url='';
+ if(isPreviewMediaRef(x.logo))return '<div class="mo-live-brand"><img data-preview-logo="'+safe(x.logo)+'" alt="'+safe(name||'شعار براند')+'"></div>';
  try{const parsed=new URL(x.logo);if(parsed.protocol==='https:')url=parsed.href}catch{}
  return '<div class="mo-live-brand">'+(url?'<img src="'+safe(url)+'" alt="'+safe(name||'شعار براند')+'" loading="eager">':'<strong>'+safe(name)+'</strong>')+'</div>';
 }
@@ -20,8 +22,9 @@ function render(rail,viewport,data,fn,speed){
  const repeats=Math.max(1,Math.ceil(required/data.length));
  rail.innerHTML=Array(Math.min(40,repeats)).fill(template).join('');
  startRail(rail,viewport,speed);
+ if(fn===logo)rail.querySelectorAll('[data-preview-logo]').forEach(async img=>{try{const url=await resolveStudioPreviewMedia(img.dataset.previewLogo);if(url)img.src=url;else img.replaceWith(document.createTextNode('أعد رفع الشعار'))}catch{img.replaceWith(document.createTextNode('الشعار غير متاح'))}});
 }
-let entries=[],brands=[];
+let entries=[],brands=[],brandsVisible=true;
 function paintReviews(){
  const viewport=$('moLiveReviewsViewport'),rail=$('moLiveReviewsTrack'),shell=$('moLiveReviews');
  if(!viewport||!rail||!shell)return;
@@ -31,14 +34,16 @@ function paintReviews(){
 function paintBrands(){
  const viewport=$('moLiveBrandsViewport'),rail=$('moLiveBrandsTrack'),shell=$('moLiveBrands');
  if(!viewport||!rail||!shell)return;
- shell.hidden=false;
+ shell.hidden=!brandsVisible;
+ if(!brandsVisible){rail.__moStopRail?.();rail.replaceChildren();return}
  if(brands.length)render(rail,viewport,brands,logo,165);
+ else {rail.__moStopRail?.();rail.innerHTML='<div class="mo-live-empty-brands">هنا هتظهر شعارات الشركات والبراندات بعد إضافتها من لوحة التحكم ← الشركات والبراندات.</div>';}
 }
 function parseBrands(raw){
  try{return JSON.parse(raw||'[]').filter(x=>x&&typeof x==='object'&&(x.name||x.logo)&&x.enabled!==false).slice(0,40)}catch{return []}
 }
 export function updateCommunityReviews(rows){entries=Array.isArray(rows)?rows.filter(x=>x.is_published&&x.is_verified):[];if(location.hostname.endsWith('.pages.dev')){try{const demo=JSON.parse(localStorage.getItem('mo_design_preview_submitted_reviews_v1')||'[]');entries=entries.concat(demo.filter(x=>x.is_published&&x.is_verified))}catch{}}paintReviews()}
-export function updateCommunityBrands(settings){brands=parseBrands(settings?.content_ar?.mo_public_brands);if(location.hostname.endsWith('.pages.dev'))brands=parseBrands(localStorage.getItem('mo_design_preview_public_brands_v1'));paintBrands()}
+export function updateCommunityBrands(settings){brands=parseBrands(settings?.content_ar?.mo_public_brands);brandsVisible=settings?.content_ar?.mo_public_brands_visible!==false;if(location.hostname.endsWith('.pages.dev')){brands=parseBrands(localStorage.getItem('mo_design_preview_public_brands_v1'));brandsVisible=localStorage.getItem('mo_design_preview_brands_visible_v1')!=='0'}paintBrands()}
 export function mountCommunity(){
  const review=$('moLiveReviewsTrack');
  if(!review)return;
@@ -46,5 +51,6 @@ export function mountCommunity(){
  $('moLiveReviewsNext')?.addEventListener('click',()=>review.__moRailNudge?.(1));
  let timer=0;window.addEventListener('resize',()=>{clearTimeout(timer);timer=setTimeout(()=>{paintReviews();paintBrands()},220)});
  window.addEventListener('storage',()=>{updateCommunityBrands();updateCommunityReviews(entries)});
+ window.addEventListener('mo-preview-brands-changed',()=>updateCommunityBrands());
  paintReviews();paintBrands();
 }

@@ -1,5 +1,5 @@
 import { seed, readDemo, saveDemo, escapeHTML as esc, safeUrl, ar, en } from './data.js';
-import {renderBrandManager,brandRows,saveBrandList} from './mo-community-admin-live.js';
+import {renderBrandManager,brandRows,saveBrandList,saveBrandVisibility,hydrateBrandAdminImages} from './mo-brands-reference-panel.js';
 import {STUDIO_KEY,readStudio,safeStudioUrl} from './studio-config.js';
 import {isStudioPreviewHost,isPreviewMediaRef,storeStudioPreviewMedia} from './studio-preview-media.js';
 import { connected, getClient, adminAuthenticated, getAdminContent } from './api.js';
@@ -118,9 +118,12 @@ function baseShell(){
  <div class="sidebar-footer"><div class="v10-admin-account"><span class="v10-avatar">م</span><div><strong>محمد محمود</strong><small>مدير الموقع</small></div></div><a href="./index.html" target="_blank" rel="noopener">↗ معاينة الموقع</a>${cmsConnected?'<button type="button" data-action="logout">تسجيل الخروج</button>':''}</div></aside>
  <main class="admin-main" id="adminMain"></main></div>`;
 }
+const MO_PREVIEW_REVIEW_KEY='mo_design_preview_submitted_reviews_v1';
+function moPreviewReviewRows(){try{const x=JSON.parse(localStorage.getItem(MO_PREVIEW_REVIEW_KEY)||'[]');return Array.isArray(x)?x:[]}catch{return []}}
+function moPreviewPendingReviews(){return moPreviewReviewRows().filter(x=>!x.is_verified&&!x.is_published).length}
 function renderOverview(){
  const projects=data.projects||[], messages=data.messages||[],lessons=data.learning_items||[];
- const pendingReviews=(data.testimonials||[]).filter(x=>!x.is_verified&&!x.is_published).length;
+ const pendingReviews=cmsConnected?(data.testimonials||[]).filter(x=>!x.is_verified&&!x.is_published).length:moPreviewPendingReviews();
  const metrics=[
  ['المشاريع المنشورة',projects.filter(x=>x.is_published).length,'▧','مشروع ظاهر للزوار'],
  ['المشاريع المسودة',projects.filter(x=>!x.is_published).length,'◷','مستني المراجعة'],
@@ -131,7 +134,14 @@ function renderOverview(){
  const mode=data.settings?.education_mode||'coming_soon';
  const educationNames={hidden:'القسم مخفي',coming_soon:'قريبًا',live:'بننشر دلوقتي'};
  const recent=messages.filter(m=>m.status!=='archived').slice(0,4);
- return `<section class="v10-overview-hero"><div><span class="v10-eyebrow">لوحة إدارة أعمالك</span><h2>شغلك كله،<br><em>تحت السيطرة.</em></h2><p>أهلًا يا محمد! من هنا تدير الموقع، وتنشر أعمالك، وتتابع العملاء، وتجهّز المحتوى التعليمي.</p><div class="v10-hero-actions">${uiButton('◈ افتح محرر الموقع','goto','content','primary')}${uiButton('▷ انشر محتوى تعليمي','goto','future')}</div></div><div class="v10-overview-art" aria-hidden="true"><span>MO</span><span>DESIGN</span><i>◈</i></div></section>
+ const newLeads=messages.filter(x=>x.status==='new').length;
+ const alerts='<section class="admin-panel" style="border:1px solid rgba(194,244,158,.55);margin-bottom:18px" aria-live="polite"><div class="admin-heading"><h2>🔔 مركز التنبيهات</h2><span class="admin-badge">'+(pendingReviews+newLeads)+' جديد</span></div>'+
+ '<div style="display:flex;flex-wrap:wrap;gap:10px">'+
+ '<button type="button" class="admin-btn" data-action="goto" data-id="testimonials">★ تقييمات تنتظر الموافقة: '+pendingReviews+'</button>'+
+ '<button type="button" class="admin-btn secondary" data-action="goto" data-id="messages">✉ طلبات شغل جديدة: '+newLeads+'</button>'+
+ '</div>'+
+ '<p class="admin-note">التنبيهات دي بتتحدث تلقائيًا من Supabase وإنت فاتح لوحة التحكم.</p></section>';
+ return alerts+`<section class="v10-overview-hero"><div><span class="v10-eyebrow">لوحة إدارة أعمالك</span><h2>شغلك كله،<br><em>تحت السيطرة.</em></h2><p>أهلًا يا محمد! من هنا تدير الموقع، وتنشر أعمالك، وتتابع العملاء، وتجهّز المحتوى التعليمي.</p><div class="v10-hero-actions">${uiButton('◈ افتح محرر الموقع','goto','content','primary')}${uiButton('▷ انشر محتوى تعليمي','goto','future')}</div></div><div class="v10-overview-art" aria-hidden="true"><span>MO</span><span>DESIGN</span><i>◈</i></div></section>
  <div class="v10-metric-grid">${metrics.map(([label,val,icon,desc])=>`<div class="v10-metric-card"><div class="v10-metric-heading"><span>${esc(label)}</span><b>${icon}</b></div><strong>${val}</strong><small>${esc(desc)}</small></div>`).join('')}</div>
  <div class="v10-overview-columns"><section class="admin-panel v10-overview-section"><div class="admin-heading"><h2>إجراءات سريعة</h2><span class="v10-note-pill">ابدأ من هنا</span></div><div class="v10-action-list">${[['تعديل الصفحة الرئيسية','غير النصوص والعناوين وحالة الأقسام','content','▤'],['إضافة مشروع جديد','الصور والفيديوهات وأعمالك الحقيقية','projects','▧'],['مكتبة الصور','كل صورك في مكان واحد','media','▦'],['الأكاديمية والمحتوى','الحالة الحالية: '+(educationNames[mode]||'قريبًا'),'future','▷']].map(([title,desc,id,icon])=>`<button type="button" class="v10-action-row" data-action="goto" data-id="${id}"><span class="v10-action-icon">${icon}</span><span><strong>${title}</strong><small>${desc}</small></span><span class="v10-action-arrow">↗</span></button>`).join('')}</div></section>
  <section class="admin-panel v10-overview-section"><div class="admin-heading"><h2>آخر طلبات العملاء</h2>${uiButton('عرض الكل','goto','messages')}</div>${recent.length?recent.map(m=>`<div class="v10-recent-lead"><span class="v10-lead-avatar">${esc(m.sender_name?.slice(0,1)||'؟')}</span><div><strong>${esc(m.sender_name||'عميل')}</strong><small>${esc(m.service_type||'طلب مشروع')}</small></div><span class="v10-lead-state">${m.status==='new'?'جديد':'قيد المتابعة'}</span><div class="inbox-management-actions">${uiButton('أرشفة','archiveInquiry',m.id)}${uiButton('حذف','deleteInquiry',m.id)}</div></div>`).join(''):'<div class="v10-empty-leads">مفيش طلبات جديدة دلوقتي. لما حد يراسلّك من الموقع، هتلاقي طلبه هنا.</div>'}</section></div>`;
@@ -223,7 +233,7 @@ function renderItems(table){
   const isTestimonials=table==='testimonials';
   const arr=data[table]||[];
   const noun=isProjects?'مشروع':isTestimonials?'رأي عميل':'خدمة';
-  const list=`<div class="admin-panel"><div class="admin-heading"><h2>${isProjects?'الأعمال المعروضة':isTestimonials?'آراء العملاء — المراجعة والنشر':'الخدمات المعروضة'}</h2>${uiButton(`+ إضافة ${noun}`,'add',table,'')}</div><div class="admin-rows">${arr.length?arr.map(row=>`<div class="admin-row"><div class="admin-row-content">${isProjects && safeUrl(row.image_url)?`<img class="admin-row-thumb" src="${esc(safeUrl(row.image_url))}" loading="lazy" alt=""/>`:''}<div><h3>${esc(isTestimonials?row.author_ar:row.title_ar)}</h3><p>${esc(isTestimonials?row.author_en:row.title_en)} · ${row.is_published?'منشور':'مسودة'} · #${esc(row.sort_order)}</p></div></div><div class="row-actions">${!isTestimonials?uiButton(row.is_published?'إخفاء':'نشر','togglepublish',`${table}|${row.id}`):''}${isTestimonials&&!row.is_published?`<button class="admin-btn" data-publish-review="${esc(row.id)}">موافقة ونشر</button>`:''}${uiButton('تعديل','edit',`${table}|${row.id}`)}${uiButton('حذف','delete',`${table}|${row.id}`,'danger')}</div></div>`).join(''):`<p class="admin-empty">لا توجد عناصر بعد.</p>`}</div></div>`;
+  const list=`<div class="admin-panel"><div class="admin-heading"><h2>${isProjects?'الأعمال المعروضة':isTestimonials?'آراء العملاء — المراجعة والنشر':'الخدمات المعروضة'}</h2>${uiButton(`+ إضافة ${noun}`,'add',table,'')}</div><div class="admin-rows">${arr.length?arr.map(row=>`<div class="admin-row"><div class="admin-row-content">${isProjects && safeUrl(row.image_url)?`<img class="admin-row-thumb" src="${esc(safeUrl(row.image_url))}" loading="lazy" alt=""/>`:''}<div><h3>${esc(isTestimonials?row.author_ar:row.title_ar)}</h3><p>${esc(isTestimonials?row.author_en:row.title_en)} · ${row.is_published?'منشور':'مسودة'} · #${esc(row.sort_order)}</p></div></div><div class="row-actions">${!isTestimonials?uiButton(row.is_published?'إخفاء':'نشر','togglepublish',`${table}|${row.id}`):''}${isTestimonials&&!row.is_published&&!row.is_verified?`<button class="admin-btn" data-publish-review="${esc(row.id)}">موافقة ونشر</button><button class="admin-btn secondary" data-reject-review="${esc(row.id)}">رفض التقييم</button>`:''}${uiButton('تعديل','edit',`${table}|${row.id}`)}${uiButton('حذف','delete',`${table}|${row.id}`,'danger')}</div></div>`).join(''):`<p class="admin-empty">لا توجد عناصر بعد.</p>`}</div></div>`;
   const servicePages=table==='services'?`<div class="admin-panel"><h3>دليل صفحات الخدمات الفعلية</h3><p class="admin-note">الروابط الأربعة أدناه هي المعاينات المقابلة للخدمات الأساسية الظاهرة على الموقع. الخدمات الفعلية تتعدل من القائمة أسفل هذا الدليل، والمشاريع في كل صفحة تتحدد من تصنيف المشروع المنشور. لإضافة أعمال للصفحة افتح «المشاريع» واختر تصنيفها. عدّل أسماء الخدمات الفعلية من القائمة التالية.</p><div class="admin-rows">${[['social-media','السوشيال ميديا والإعلانات'],['video-motion','الريلز والبودكاست'],['ai-creative','التصميم بالذكاء الاصطناعي'],['branding','الهوية البصرية']].map(([slug,name])=>`<a class="admin-btn secondary" target="_blank" rel="noopener" href="./services/${slug}/">فتح تخصص ${name} ↗</a>`).join('')}</div></div>`:'';
   if(!editing || editing.table!==table)return (table==='services'?servicePageEditor(): '')+servicePages+list;
   const item=arr.find(a=>a.id===editing.id) || {};
@@ -549,17 +559,20 @@ async function saveTeamForm(form){
 }
 
 function renderPreviewReviews(){
- let rows=[];try{rows=JSON.parse(localStorage.getItem('mo_design_preview_submitted_reviews_v1')||'[]')}catch{}
+ const rows=moPreviewReviewRows();
  return '<section class="admin-panel"><h2>تقييمات الزوار المرسلة للمراجعة</h2><p class="admin-note">دي معاينة محلية على نفس المتصفح فقط؛ لا تغيّر قاعدة بيانات Supabase الرسمية.</p>'+ (rows.length?rows.map(x=>'<div class="admin-row" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center"><div style="flex:1"><strong>'+esc(x.author_ar)+'</strong><small> · '+esc(x.job_ar)+' · '+x.rating+'/5 · '+(x.is_verified?'تمت الموافقة':'ينتظر الموافقة')+'</small><p>'+esc(x.quote_ar)+'</p></div><button type="button" class="admin-btn secondary" data-preview-review-approve="'+esc(x.id)+'">'+(x.is_verified?'إلغاء الموافقة':'موافقة')+'</button><button type="button" class="admin-btn secondary" data-preview-review-delete="'+esc(x.id)+'">حذف</button></div>').join(''):'<p class="admin-empty">مافيش تقييمات جديدة للمراجعة.</p>')+'</section>';
 }
+window.addEventListener('storage',event=>{if(!cmsConnected&&event.key===MO_PREVIEW_REVIEW_KEY&&['overview','testimonials'].includes(tab))renderPanel()});
+window.addEventListener('mo-preview-reviews-changed',()=>{if(!cmsConnected&&['overview','testimonials'].includes(tab))renderPanel()});
+window.addEventListener('focus',()=>{if(!cmsConnected&&['overview','testimonials'].includes(tab))renderPanel()});
 function renderPanel(){
   if(!data)return;
   const main=$('#adminMain'); if(!main) return;
-  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,legal:renderLegalPages,services:()=>renderItems('services'),testimonials:()=> (cmsConnected?renderItems('testimonials'):renderPreviewReviews()),communityBrands:()=>renderBrandManager(cmsConnected?data.settings:{...data.settings,content_ar:{...data.settings.content_ar,mo_public_brands:localStorage.getItem('mo_design_preview_public_brands_v1')||'[]'}}),messages:renderMessages,future:renderFuture,team:renderTeam,notice:renderNoticeEditor})[tab]();
+  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,legal:renderLegalPages,services:()=>renderItems('services'),testimonials:()=> (cmsConnected?renderItems('testimonials'):renderPreviewReviews()),communityBrands:()=>renderBrandManager(cmsConnected?data.settings:{...data.settings,content_ar:{...data.settings.content_ar,mo_public_brands:localStorage.getItem('mo_design_preview_public_brands_v1')||'[]',mo_public_brands_visible:localStorage.getItem('mo_design_preview_brands_visible_v1')!=='0'}}),messages:renderMessages,future:renderFuture,team:renderTeam,notice:renderNoticeEditor})[tab]();
   main.innerHTML=`<header class="admin-heading v10-page-head"><div><span class="v10-page-path">Mo Design <span>/</span> مساحة العمل <span>/</span> ${esc(labels[tab])}</span><h1>${esc(labels[tab])}</h1><p>أدواتك ومحتواك وطلبات الشغل في مكان واحد.</p></div><div class="v10-page-actions"><span class="admin-badge">${cmsConnected?`<span class="v10-online-dot"></span> متصل`:'◌ وضع تجربة محلية'}</span><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">↗ شوف الموقع</a></div></header>${!cmsConnected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
   document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
   document.querySelectorAll('[data-tab="testimonials"],[data-tab="messages"]').forEach(el=>{
-    const count=el.dataset.tab==='testimonials'?(data.testimonials||[]).filter(x=>!x.is_verified&&!x.is_published).length:(data.messages||[]).filter(x=>x.status==='new').length;
+    const count=el.dataset.tab==='testimonials'?(cmsConnected?(data.testimonials||[]).filter(x=>!x.is_verified&&!x.is_published).length:moPreviewPendingReviews()):(data.messages||[]).filter(x=>x.status==='new').length;
     let dot=el.querySelector('.mo-admin-notification-count');
     if(!dot){dot=document.createElement('span');dot.className='mo-admin-notification-count';el.append(dot)}
     dot.hidden=!count;dot.textContent=String(count);
@@ -571,6 +584,37 @@ function renderPanel(){
   }
   setupToolTags(main);
   refreshAdminLogos();
+  if(tab==='communityBrands')void hydrateBrandAdminImages(main);
+}
+let moNotificationsRunning=false;
+function startMoNotificationRefresh(){
+ if(moNotificationsRunning||!cmsConnected)return;
+ moNotificationsRunning=true;
+ setInterval(async()=>{
+  if(document.hidden||!currentUser||busy||cmsDirty)return;
+  try{
+   const db=await getClient();
+   const [reviews,leads]=await Promise.all([
+    db.from('testimonials').select('*').order('created_at',{ascending:false}).limit(100),
+    db.from('inquiries').select('*').order('created_at',{ascending:false}).limit(100)
+   ]);
+   if(reviews.error||leads.error)return;
+   const oldReviews=(data.testimonials||[]).filter(x=>!x.is_published&&!x.is_verified).length;
+   const oldLeads=(data.messages||[]).filter(x=>x.status==='new').length;
+   data.testimonials=reviews.data||[];
+   data.messages=leads.data||[];
+   const nowReviews=data.testimonials.filter(x=>!x.is_published&&!x.is_verified).length;
+   const nowLeads=data.messages.filter(x=>x.status==='new').length;
+   if(tab==='overview'||(tab==='testimonials'&&oldReviews!==nowReviews)||(tab==='messages'&&oldLeads!==nowLeads))renderPanel();
+   else document.querySelectorAll('[data-tab="testimonials"],[data-tab="messages"]').forEach(el=>{
+    const count=el.dataset.tab==='testimonials'?nowReviews:nowLeads;
+    let badge=el.querySelector('.mo-admin-notification-count');
+    if(!badge){badge=document.createElement('span');badge.className='mo-admin-notification-count';el.append(badge)}
+    badge.hidden=!count;badge.textContent=String(count);
+   });
+   if(nowReviews>oldReviews||nowLeads>oldLeads)toast('🔔 وصلك '+(nowReviews>oldReviews?'تقييم جديد للمراجعة':'طلب شغل جديد'));
+  }catch(error){console.warn('Mo admin notification refresh:',error)}
+ },15000);
 }
 function setupToolTags(root){
  root.querySelectorAll('[data-tools-box]').forEach(box=>{
@@ -967,7 +1011,20 @@ $('#adminApp').addEventListener('click',async e=>{
     if(index<0)return;
     if(previewReview.hasAttribute('data-preview-review-delete'))rows.splice(index,1);
     else {rows[index].is_verified=!rows[index].is_verified;rows[index].is_published=rows[index].is_verified;}
-    localStorage.setItem(key,JSON.stringify(rows));renderPanel();return;
+    localStorage.setItem(key,JSON.stringify(rows));window.dispatchEvent(new Event('mo-preview-reviews-changed'));renderPanel();return;
+  }
+    const reject=e.target.closest('[data-reject-review]');
+  if(reject&&cmsConnected){
+    const id=reject.dataset.rejectReview,review=(data.testimonials||[]).find(x=>x.id===id);
+    if(!review||!confirm('رفض التقييم وحذفه نهائيًا من قائمة المراجعة؟'))return;
+    reject.disabled=true;
+    try{
+      const {error}=await (await getClient()).from('testimonials').delete().eq('id',id);
+      if(error)throw error;
+      data.testimonials=data.testimonials.filter(x=>x.id!==id);
+      renderPanel();toast('تم رفض وحذف التقييم');
+    }catch(error){reject.disabled=false;toast('تعذر رفض التقييم: '+error.message)}
+    return;
   }
     const pending=e.target.closest('[data-publish-review]');
   if(pending&&cmsConnected){
@@ -990,7 +1047,7 @@ $('#adminApp').addEventListener('click',async e=>{
     if(brandButton.hasAttribute('data-public-brand-delete')){if(!confirm('حذف البراند من الشريط؟'))return;rows.splice(index,1)}
     else rows[index].enabled=rows[index].enabled===false;
     brandButton.disabled=true;
-    try{if(cmsConnected)data.settings=await saveBrandList(await getClient(),data.settings,rows);else localStorage.setItem('mo_design_preview_public_brands_v1',JSON.stringify(rows));renderPanel();toast('تم تحديث الشريط')}
+    try{if(cmsConnected)data.settings=await saveBrandList(await getClient(),data.settings,rows);else (localStorage.setItem('mo_design_preview_public_brands_v1',JSON.stringify(rows)),window.dispatchEvent(new Event('mo-preview-brands-changed')));renderPanel();toast('تم تحديث الشريط')}
     catch(error){brandButton.disabled=false;toast('تعذر حفظ التغيير: '+error.message)}
     return;
   }
@@ -1153,7 +1210,17 @@ $('#adminApp').addEventListener('submit',async e=>{
   e.preventDefault();
   const form=e.target;
   if(form.id==='teamForm'){await saveTeamForm(form);return;}
-  if(form.id==='moPublicBrandForm'){
+  if(form.id==='moPublicBrandsVisibilityForm'){
+    const visible=form.elements.namedItem('visible').checked;
+    const status=form.querySelector('[data-brand-visible-status]');
+    try{
+      if(cmsConnected){data.settings=await saveBrandVisibility(await getClient(),data.settings,visible)}
+      else {const key='mo_design_preview_brands_visible_v1';localStorage.setItem(key,visible?'1':'0')}
+      status.textContent='تم حفظ حالة الشريط';toast('تم حفظ حالة الشريط');
+    }catch(error){status.textContent='تعذر الحفظ: '+error.message}
+    return;
+  }
+    if(form.id==='moPublicBrandForm'){
     const field=form.querySelector('[data-brand-status]'),button=form.querySelector('[type=submit]');
     const name=String(form.elements.namedItem('brand_name').value||'').trim();
     const link=String(form.elements.namedItem('brand_url').value||'').trim();
@@ -1163,12 +1230,12 @@ $('#adminApp').addEventListener('submit',async e=>{
     try{
       let logo=link;
       if(link&&new URL(link).protocol!=='https:')throw new Error('رابط الشعار لازم HTTPS');
-      if(file){if(!cmsConnected)throw new Error('في المعاينة استخدم رابط HTTPS للشعار، رفع الملفات الحقيقي متاح بعد الاعتماد على الموقع الرسمي.');logo=await uploadImage(file,'brands')}
+      if(file)logo=cmsConnected?await uploadImage(file,'brands'):await storeStudioPreviewMedia(file,'image')
       const rows=brandRows(cmsConnected?data.settings:{content_ar:{mo_public_brands:localStorage.getItem('mo_design_preview_public_brands_v1')||'[]'}});
       if(rows.length>=40)throw new Error('الحد الأقصى 40 براند');
       rows.push({name:name.slice(0,100),logo,enabled:true});
       if(cmsConnected){const db=await getClient();data.settings=await saveBrandList(db,data.settings,rows)}
-      else localStorage.setItem('mo_design_preview_public_brands_v1',JSON.stringify(rows));
+      else {localStorage.setItem('mo_design_preview_public_brands_v1',JSON.stringify(rows));window.dispatchEvent(new Event('mo-preview-brands-changed'))}
       renderPanel();toast('تم نشر البراند في شريط الشركات');
     }catch(error){field.textContent='تعذر حفظ البراند: '+error.message;button.disabled=false}
     return;
@@ -1190,7 +1257,7 @@ $('#adminApp').addEventListener('submit',async e=>{
       if(error)throw error;
       currentUser=await adminAuthenticated();
       if(!currentUser){await db.auth.signOut();throw new Error('هذا الحساب غير مصرح له بإدارة الموقع.');}
-      data=await getAdminContent();baseShell();renderPanel();
+      data=await getAdminContent();baseShell();renderPanel();startMoNotificationRefresh();
     }catch(e){renderLogin(e.message||'فشل تسجيل الدخول');}
     return;
   }
@@ -1199,12 +1266,19 @@ $('#adminApp').addEventListener('submit',async e=>{
 // Never leave the admin on an indefinite initial loading screen if Supabase/CDN is slow.
 const adminTimeout=(promise,ms,label)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label)),ms))]);
 async function init(){
-  if(!cmsConnected){baseShell();renderPanel();refreshAdminLogos();return;}
+  if(!cmsConnected){
+    try{baseShell();renderPanel();refreshAdminLogos();}
+    catch(error){
+      console.error('Preview dashboard initialization failed:',error);
+      document.getElementById('adminApp').innerHTML='<div class="admin-login-wrap" role="alert" style="padding:40px;color:#ffdddd"><h2>تعذّر تشغيل لوحة المعاينة</h2><p>سبب العطل: '+esc(error.message||'خطأ برمجي غير معروف')+'</p><button onclick="location.reload()" class="admin-btn">إعادة المحاولة</button></div>';
+    }
+    return;
+  }
   try{
     currentUser=await adminTimeout(adminAuthenticated(),14000,'تأخر الاتصال بخدمة تسجيل الدخول.');
     if(currentUser){
       data=await adminTimeout(getAdminContent(),18000,'تأخر تحميل بيانات لوحة التحكم.');
-      baseShell();renderPanel();refreshAdminLogos();
+      baseShell();renderPanel();refreshAdminLogos();startMoNotificationRefresh();
     }else renderLogin();
   }catch(e){
     console.error('Admin startup:',e);
