@@ -33,6 +33,7 @@ function paintBrands(){
  if(!viewport||!rail||!shell)return;
  shell.hidden=false;
  if(brands.length)render(rail,viewport,brands,logo,165);
+ else {rail.__moStopRail?.();rail.innerHTML='<div class="mo-live-empty-brands">هنا هتظهر شعارات الشركات والبراندات بعد إضافتها من لوحة التحكم ← الشركات والبراندات.</div>';}
 }
 function parseBrands(raw){
  try{return JSON.parse(raw||'[]').filter(x=>x&&typeof x==='object'&&(x.name||x.logo)&&x.enabled!==false).slice(0,40)}catch{return []}
