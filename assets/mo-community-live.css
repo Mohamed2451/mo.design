@@ -23,3 +23,19 @@
 .mo-live-controls button{background:var(--panel,#171923);border:1px solid var(--line,#444);color:var(--text,#fff);border-radius:50%;width:41px;height:41px}
 @media(max-width:600px){.mo-live-card{flex-basis:min(85vw,340px);padding:20px}.mo-live-brand{flex-basis:170px;width:170px}.mo-live-viewport{mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}}
 @media(prefers-reduced-motion:reduce){.mo-live-track{will-change:auto}}
+
+/* Review submission controls, limited to the community section */
+.mo-live-review-action{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:24px 0 16px}
+.mo-live-review-action span{font-size:12px;color:#a8caba}
+.mo-review-submit-dialog{border:1px solid rgba(169,233,148,.35);border-radius:22px;background:#101e18;color:#fff;padding:0;width:min(92vw,530px);max-height:90vh}
+.mo-review-submit-dialog::backdrop{background:rgba(0,0,0,.75);backdrop-filter:blur(5px)}
+.mo-review-submit-form{padding:24px;display:grid;gap:13px;direction:rtl}
+.mo-review-submit-form p{font-size:13px;line-height:1.8;color:#b5d1be;margin:0}
+.mo-review-submit-header{display:flex;justify-content:space-between;align-items:center}
+.mo-review-submit-header h2{font-size:25px;margin:0}
+.mo-review-submit-header button{background:transparent;border:1px solid #48634e;border-radius:50%;color:#fff;width:36px;height:36px}
+.mo-review-submit-form label{display:grid;gap:5px;font-size:13px}
+.mo-review-submit-form input:not([type=checkbox]),.mo-review-submit-form select,.mo-review-submit-form textarea{width:100%;padding:11px 12px;border-radius:9px;border:1px solid #41604a;background:#0b1812;color:#fff}
+.mo-review-submit-form .mo-review-submit-consent{display:flex;gap:9px;align-items:center}
+.mo-review-submit-trap{position:absolute!important;left:-10000px!important;width:1px;height:1px;overflow:hidden}
+.mo-live-brands:not([hidden]){min-height:205px}
