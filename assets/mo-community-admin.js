@@ -8,20 +8,32 @@ export function renderCommunityAdmin(tab){
 }
 export function communityAdminClick(button){
  const review=button.closest('[data-community-review]'),dropReview=button.closest('[data-community-delete-review]');
- const edit=button.closest('[data-community-brand-edit]'),toggle=button.closest('[data-community-brand-toggle]'),drop=button.closest('[data-community-brand-delete]');
- if(!review&&!dropReview&&!edit&&!toggle&&!drop)return false;
+ const replace=button.closest('[data-community-brand-replace]'),edit=button.closest('[data-community-brand-edit]'),toggle=button.closest('[data-community-brand-toggle]'),drop=button.closest('[data-community-brand-delete]');
+ if(!review&&!dropReview&&!edit&&!replace&&!toggle&&!drop)return false;
  const data=readCommunity();
  if(review){const x=data.reviews.find(v=>v.id===review.dataset.communityReview);if(x)x.status=review.dataset.communityDecision;}
  if(dropReview)data.reviews=data.reviews.filter(v=>v.id!==dropReview.dataset.communityDeleteReview);
  if(toggle){const x=data.brands.find(v=>v.id===toggle.dataset.communityBrandToggle);if(x)x.enabled=!x.enabled;}
+ if(replace){
+  const existing=document.getElementById('communityBrandReplaceForm');if(existing)existing.remove();
+  const form=document.createElement('form');form.id='communityBrandReplaceForm';form.className='mo-brand-replace-form';
+  form.innerHTML='<strong>اختار صورة جديدة للشعار</strong><input type="hidden" name="brand_id"><input type="file" name="brand_file" accept="image/png,image/jpeg,image/webp,image/avif" required><button type="submit" class="admin-btn">حفظ الشعار</button>';
+  form.elements.namedItem('brand_id').value=replace.dataset.communityBrandReplace;
+  replace.closest('.mo-community-row').after(form);return true;
+ }
  if(edit){const x=data.brands.find(v=>v.id===edit.dataset.communityBrandEdit);if(x){const name=prompt('اسم البراند',x.name);if(name===null)return true;const logo=prompt('رابط الشعار HTTPS — اتركه فارغًا بدون شعار',x.logo||'');if(logo===null)return true;if((!name.trim()&&!logo.trim())||(logo.trim()&&!validHttps(logo.trim())&&!isPreviewMediaRef(logo.trim()))){alert('راجع الاسم ورابط الصورة');return true}x.name=name.trim().slice(0,100);x.logo=isPreviewMediaRef(logo.trim())?logo.trim():validHttps(logo.trim());}}
  if(drop)data.brands=data.brands.filter(v=>v.id!==drop.dataset.communityBrandDelete);
  writeCommunity(data);return true;
 }
 export async function communityAdminSubmit(form){
- if(!['communityBrandVisibilityForm','communityBrandForm'].includes(form.id))return false;
+ if(!['communityBrandVisibilityForm','communityBrandForm','communityBrandReplaceForm'].includes(form.id))return false;
  const data=readCommunity();
  if(form.id==='communityBrandVisibilityForm')data.brands_visible=form.elements.namedItem('visible').checked;
+ else if(form.id==='communityBrandReplaceForm'){
+  const item=data.brands.find(x=>x.id===form.elements.namedItem('brand_id').value),file=form.elements.namedItem('brand_file').files?.[0];
+  if(!item||!file){alert('اختار صورة شعار جديدة');return true}
+  try{item.logo=await storeStudioPreviewMedia(file,'image')}catch(error){alert(error.message);return true}
+ }
  else {
   const f=new FormData(form),name=String(f.get('name')||'').trim(),link=String(f.get('logo')||'').trim(),file=form.querySelector('[name="brand_file"]')?.files?.[0];
   if(data.brands.length>=50||(!name&&!link&&!file)||(link&&!validHttps(link))){alert('لازم اسم أو صورة شعار صحيحة، أو وصلت للحد الأقصى');return true}
