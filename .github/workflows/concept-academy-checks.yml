@@ -1,0 +1,29 @@
+name: Mo Design concept academy preview checks
+on:
+  push:
+    branches: [mo-design-concept-academy-preview-20261021]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate demo application and isolation
+        run: |
+          node --check assets/concept-experience.js
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          const html=fs.readFileSync('index.html','utf8'),old=fs.readFileSync('classic.html','utf8'),js=fs.readFileSync('assets/concept-experience.js','utf8');
+          assert.match(html,/MO ACADEMY/);
+          for(const id of ['homeView','academyView','productView','accountView','adminView','authDialog','purchaseDialog','lessonDialog','academyCourseClone'])assert.ok(html.includes('id="'+id+'"'),id);
+          for(const id of ['reels','ai','brand'])assert.ok(js.includes("id:'"+id+"'"),id);
+          assert.ok(js.includes('get(\x27academyCourseClone\x27).innerHTML'));
+          assert.ok(!js.includes('supabase.from('));
+          assert.ok(old.includes('moStudioSections'));
+          console.log('Preview UI and production isolation smoke checks passed');
+          NODE
