@@ -1,5 +1,5 @@
 import { seed, readDemo, saveDemo, escapeHTML as esc, safeUrl, ar, en } from './data.js';
-import {renderBrandManager,brandRows,saveBrandList,hydrateBrandAdminImages} from './mo-community-admin-live.js';
+import {renderBrandManager,brandRows,saveBrandList,hydrateBrandAdminImages} from './mo-community-admin-live.js?v=brand-layout-20261021-2';
 import {STUDIO_KEY,readStudio,safeStudioUrl} from './studio-config.js';
 import {isStudioPreviewHost,isPreviewMediaRef,storeStudioPreviewMedia} from './studio-preview-media.js';
 import { connected, getClient, adminAuthenticated, getAdminContent } from './api.js';
