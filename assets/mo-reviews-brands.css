@@ -202,3 +202,17 @@
 @media(prefers-reduced-motion:reduce){
  #moReviewSlider .mo-review-track,#moBrands #moBrandsTrack{animation:none!important;transform:none!important;will-change:auto}
 }
+
+/* Final rail engine: actual cards are recycled; no CSS keyframe may override JS transform. */
+#moReviewSlider #moReviewTrack,#moBrands #moBrandsTrack {
+ display:flex!important;flex-wrap:nowrap!important;gap:16px!important;
+ width:max-content!important;max-width:none!important;
+ animation:none!important;transition:none!important;
+ direction:ltr!important;will-change:transform;
+}
+#moReviewSlider #moReviewTrack>.mo-carousel-card{flex:0 0 380px!important;width:380px!important}
+#moBrands #moBrandsTrack>.mo-brand-tile{flex:0 0 220px!important;width:220px!important}
+@media(max-width:600px){
+ #moReviewSlider #moReviewTrack>.mo-carousel-card{flex-basis:min(85vw,340px)!important;width:min(85vw,340px)!important}
+ #moBrands #moBrandsTrack>.mo-brand-tile{flex-basis:170px!important;width:170px!important}
+}
