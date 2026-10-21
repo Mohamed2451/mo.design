@@ -58,5 +58,24 @@ el('brandsForm')?.addEventListener('submit',ev=>{
  save();ev.target.reset();renderBrands();
 });
 renderBrands();renderReviews();renderStudentShowcase();
+window.addEventListener('mo-demo-review-updated',renderStudentShowcase);
+
+/* Reveal and heading motion: observer updates style only; no hidden content if JS fails. */
+if('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+ const io=new IntersectionObserver(entries=>entries.forEach(entry=>{
+  if(entry.isIntersecting){entry.target.classList.add('is-inview');io.unobserve(entry.target)}
+ }),{threshold:.12,rootMargin:'0px 0px -4% 0px'});
+ document.querySelectorAll('.section-head,.hero h1,.service-card,.runway-title,.partners-intro,.catalog-card,.academy-promo').forEach(el=>{
+  el.classList.add('scroll-reveal');io.observe(el);
+ });
+}
+/* Keyboard-accessible project detail cards remain real anchors without scripts. */
+document.addEventListener('keydown',ev=>{
+ if(ev.key==='Escape')document.querySelectorAll('.nav-group.menu-open').forEach(g=>{
+  g.classList.remove('menu-open');
+  g.querySelector('.nav-trigger')?.setAttribute('aria-expanded','false');
+ });
+});
+
 window.addEventListener('storage',()=>{renderStudentShowcase();renderBrands();renderReviews()});
 })();
