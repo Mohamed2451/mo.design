@@ -924,7 +924,7 @@ $('#adminApp').addEventListener('input',e=>{
   }
 });
 $('#adminApp').addEventListener('click',e=>{
-  if(communityAdminClick(e.target.closest('button')||e.target)){renderPanel();return;}
+  if(communityAdminClick(e.target.closest('button')||e.target)){if(!e.target.closest('[data-community-brand-replace]'))renderPanel();return;}
   const teamShortcut=e.target.closest('[data-open-team-copy]');
   if(teamShortcut){
     const search=document.querySelector('#cmsCopySearch');
