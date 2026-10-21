@@ -13,7 +13,7 @@ function render(){
  $('moUserReviewList').innerHTML=reviews.map(x=>'<article class="mo-review-card"><div><strong>'+e(x.name)+'</strong><span>'+e(x.type==='client'?'عميل':'متدرب')+'</span></div><div class="mo-review-stars-display">'+ '★'.repeat(Math.min(5,Math.max(1,Number(x.rating)||5)))+'</div><p>'+e(x.text)+'</p><small>'+e(x.subject||'MO DESIGN')+'</small></article>').join('');
  const all=[...$('testimonialsGrid').children,...$('moUserReviewList').children];
  cursor=Math.max(0,Math.min(cursor,Math.max(0,all.length-1)));
- all.forEach((node,i)=>node.style.display=i===cursor?'':'none');
+ all.forEach((node,i)=>{const distance=(i-cursor+all.length)%Math.max(1,all.length);node.style.display=distance<Math.min(3,all.length)?'':'none';node.style.order=String(distance)});
  $('moReviewCount').textContent=all.length?String(cursor+1)+' / '+String(all.length):'';
  $('testimonials').hidden=false;
  $('moReviewSlider').classList.toggle('mo-empty-reviews',!all.length);
@@ -34,4 +34,5 @@ $('moReviewForm')?.addEventListener('submit',ev=>{
 window.addEventListener('mo-community-change',render);
 window.addEventListener('storage',ev=>{if(ev.key==='mo_design_community_preview_v1')render()});
 const moObserver=new MutationObserver(()=>{if($('testimonialsGrid').children.length){moObserver.disconnect();render()}});
-moObserver.observe($('testimonialsGrid'),{childList:true});render();
+moObserver.observe($('testimonialsGrid'),{childList:true});
+const visibilityObserver=new MutationObserver(()=>{if($('testimonials').hidden)$('testimonials').hidden=false});visibilityObserver.observe($('testimonials'),{attributes:true,attributeFilter:['hidden']});render();
