@@ -1,7 +1,7 @@
 import {readCommunity,writeCommunity,htmlEscape as e,validHttps} from './mo-community-store.js';
 import {isPreviewMediaRef,resolveStudioPreviewMedia} from './studio-preview-media.js';
 const $=id=>document.getElementById(id);
-let startX=null,signature='',reviewAnimation=null;
+let startX=null,signature='',reviewAnimation=null,brandAnimation=null,brandResizeTimer=null;
 const demo=[{name:'نموذج توضيحي',type:'client',rating:5,text:'ده مكان عرض تقييم عميل بعد موافقتك عليه من لوحة التحكم.',subject:'عرض تجريبي'},{name:'نموذج متدرب',type:'trainee',rating:5,text:'هنا يظهر رأي المتدرب بعد المراجعة والموافقة.',subject:'عرض تجريبي'},{name:'تقييم توضيحي',type:'client',rating:4,text:'تصميم البطاقة والحركة للمعاينة فقط، مش شهادة حقيقية.',subject:'عرض تجريبي'}];
 function brandFallback(img,reason){
  const tile=img.closest('.mo-brand-tile');
@@ -12,17 +12,37 @@ function brandFallback(img,reason){
  fallback.title=reason||'من لوحة التحكم اختر تغيير الشعار وارفع الصورة مرة تانية على نفس رابط المعاينة.';
  img.replaceWith(fallback);
 }
+function restartBrandMotion(){
+ const track=$('moBrandsTrack'),viewport=$('moBrands')?.querySelector('.mo-brands-window');
+ brandAnimation?.cancel();brandAnimation=null;
+ const group=track?.firstElementChild;
+ if(!group||!viewport||!viewport.clientWidth)return;
+ const width=group.getBoundingClientRect().width;
+ if(!width||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ // Animate by measured distance, not percentages, so the two groups loop seamlessly.
+ // Fixed pixels/second keeps logos consistently fast on every screen.
+ brandAnimation=track.animate(
+  [{transform:'translate3d(0,0,0)'},{transform:'translate3d(-'+width+'px,0,0)'}],
+  {duration:Math.max(2600,width/165*1000),iterations:Infinity,easing:'linear'}
+ );
+ if(document.hidden||viewport.matches(':hover'))brandAnimation.pause();
+}
 function renderBrands(){
  const data=readCommunity(),brands=data.brands.filter(x=>x.enabled&&(x.name||x.logo)),section=$('moBrands');
  section.hidden=!(data.brands_visible&&brands.length);
- if(section.hidden)return;
+ if(section.hidden){brandAnimation?.cancel();brandAnimation=null;return}
  const tiles=brands.map(x=>{
   const name=e(x.name||''),alt=e(x.name||'شعار الشركة'),https=validHttps(x.logo),preview=isPreviewMediaRef(x.logo);
   const contents=https?'<img loading="eager" decoding="async" src="'+e(https)+'" alt="'+alt+'">':preview?'<img loading="eager" decoding="async" data-preview-brand="'+e(x.logo)+'" alt="'+alt+'">':'<strong>'+name+'</strong>';
   return '<div class="mo-brand-tile" data-brand-name="'+name+'">'+contents+'</div>';
  }).join('');
+ // A single logo must still fill the full viewport, otherwise a loop leaves blank space.
+ const viewport=section.querySelector('.mo-brands-window');
+ const approximateTile=matchMedia('(max-width:600px)').matches?185:235;
+ const repeats=Math.max(1,Math.ceil(((viewport?.clientWidth||window.innerWidth)+approximateTile*2)/(approximateTile*brands.length)));
+ const group=Array(repeats).fill(tiles).join('');
  const track=$('moBrandsTrack');
- track.innerHTML='<div class="mo-brand-loop-group">'+tiles+'</div><div class="mo-brand-loop-group" aria-hidden="true">'+tiles+'</div>';
+ track.innerHTML='<div class="mo-brand-loop-group">'+group+'</div><div class="mo-brand-loop-group" aria-hidden="true">'+group+'</div>';
  track.querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>brandFallback(img,'رابط الشعار غير صالح أو الملف غير موجود. ارفع صورة الشعار مرة تانية من لوحة التحكم.'),{once:true}));
  track.querySelectorAll('[data-preview-brand]').forEach(async img=>{
   try{
@@ -31,12 +51,7 @@ function renderBrands(){
    else brandFallback(img,'ملف الشعار موجود في معاينة أو متصفح مختلف. افتح لوحة التحكم على نفس الرابط واضغط تغيير الشعار.');
   }catch{brandFallback(img,'تعذر قراءة الشعار من التخزين المحلي. أعد رفعه من لوحة التحكم على نفس الرابط.')}
  });
- requestAnimationFrame(()=>{
-  const first=track.firstElementChild;
-  if(!first)return;
-  const width=first.getBoundingClientRect().width;
-  if(width)track.style.setProperty('--mo-brands-duration',Math.max(5,width/95).toFixed(2)+'s');
- });
+ requestAnimationFrame(restartBrandMotion);
 }
 function card(x,isDemo){return '<article class="mo-carousel-card" aria-label="'+e(x.name)+'"><div class="mo-carousel-top"><div><strong>'+e(x.name)+'</strong><small>'+e(isDemo?'نموذج توضيحي':x.type==='trainee'?'متدرب':'عميل')+'</small></div><span class="mo-carousel-stars">'+ '★'.repeat(Math.max(1,Math.min(5,Number(x.rating)||5)))+'</span></div><p>'+e(x.text)+'</p><small>'+e(x.subject||'MO DESIGN')+'</small>'+(isDemo?'<span class="mo-carousel-demo">للمعاينة فقط</span>':'')+'</article>'}
 // Seamless marquee: two identical, sufficiently long groups; translate exactly one group.
@@ -88,8 +103,14 @@ viewport.addEventListener('focusin',pauseReviews);
 viewport.addEventListener('focusout',()=>{if(!viewport.contains(document.activeElement))resumeReviews()});
 viewport.addEventListener('pointerdown',ev=>{startX=ev.clientX});
 viewport.addEventListener('pointerup',ev=>{if(startX===null)return;const d=ev.clientX-startX;startX=null;if(Math.abs(d)>45)next(d<0?1:-1)});
-window.addEventListener('resize',()=>{signature='';renderReviews()});
-document.addEventListener('visibilitychange',()=>{if(reviewAnimation){if(document.hidden||viewport.matches(':hover'))reviewAnimation.pause();else reviewAnimation.play()}});
+window.addEventListener('resize',()=>{clearTimeout(brandResizeTimer);brandResizeTimer=setTimeout(()=>{renderBrands();signature='';renderReviews()},180)});
+const brandsWindow=$('moBrands')?.querySelector('.mo-brands-window');
+brandsWindow?.addEventListener('pointerenter',ev=>{if(ev.pointerType==='mouse')brandAnimation?.pause()});
+brandsWindow?.addEventListener('pointerleave',()=>{if(!document.hidden)brandAnimation?.play()});
+document.addEventListener('visibilitychange',()=>{
+ if(reviewAnimation){if(document.hidden||viewport.matches(':hover'))reviewAnimation.pause();else reviewAnimation.play()}
+ if(brandAnimation){if(document.hidden||brandsWindow?.matches(':hover'))brandAnimation.pause();else brandAnimation.play()}
+});
 $('moReviewOpen').addEventListener('click',()=>$('moReviewDialog').showModal());
 $('moReviewClose').addEventListener('click',()=>$('moReviewDialog').close());
 $('moReviewForm').addEventListener('submit',ev=>{
