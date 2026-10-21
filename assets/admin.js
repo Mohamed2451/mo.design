@@ -1,4 +1,5 @@
 import { seed, readDemo, saveDemo, escapeHTML as esc, safeUrl, ar, en } from './data.js';
+import {renderBrandManager,brandRows,saveBrandList} from './mo-community-admin-live.js';
 import {STUDIO_KEY,readStudio,safeStudioUrl} from './studio-config.js';
 import {isStudioPreviewHost,isPreviewMediaRef,storeStudioPreviewMedia} from './studio-preview-media.js';
 import { connected, getClient, adminAuthenticated, getAdminContent } from './api.js';
@@ -188,7 +189,7 @@ function renderSettings(){
   ${field('availability','إظهار «متاح لمشاريع جديدة»',s.availability,{type:'checkbox',full:true})}
   ${field('stats_projects','عدد المشاريع الفعلي (يظهر بعد توثيق الأرقام)',s.stats_projects??100,{type:'number'})}${field('stats_years','سنوات الخبرة الفعلية',s.stats_years??3,{type:'number'})}${field('stats_satisfaction','نسبة رضا العملاء الفعلية (0–100)',s.stats_satisfaction??100,{type:'number'})}
   ${field('stats_verified','أؤكد صحة الأرقام (+100 مشروع، +3 سنوات خبرة، 100% رضا عملاء) وأوافق على إظهارها علنًا',s.stats_verified,{type:'checkbox',full:true})}
-  </div><div class="admin-actions"><button class="admin-btn" type="submit">حفظ التعديلات</button></div></form></div>`;
+  </div><div class="admin-actions"><button class="admin-btn" type="submit">حفظ التعديلات</button></div></form></div>${renderBrandManager(s)}`;
 }
 function serviceCategoryRow(c={}){
  return `<div class="admin-row" data-simple-category data-category-id="${esc(c.id||'')}" style="margin:7px 0;gap:10px;flex-wrap:wrap">
@@ -945,6 +946,19 @@ $('#adminApp').addEventListener('click',async e=>{
   }
   const addTeam=e.target.closest('[data-team-add]');if(addTeam){const host=document.querySelector('#teamRows');if(host)host.insertAdjacentHTML('beforeend',teamRow({},host.children.length));return;}
   const removeTeam=e.target.closest('[data-team-remove]');if(removeTeam){removeTeam.closest('[data-team-row]')?.remove();return;}
+  const brandButton=e.target.closest('[data-public-brand-toggle],[data-public-brand-delete]');
+  if(brandButton){
+    if(!cmsConnected)return;
+    const index=Number(brandButton.dataset.publicBrandToggle??brandButton.dataset.publicBrandDelete);
+    const rows=brandRows(data.settings);
+    if(!Number.isInteger(index)||!rows[index])return;
+    if(brandButton.hasAttribute('data-public-brand-delete')){if(!confirm('حذف البراند من الشريط؟'))return;rows.splice(index,1)}
+    else rows[index].enabled=rows[index].enabled===false;
+    brandButton.disabled=true;
+    try{data.settings=await saveBrandList(await getClient(),data.settings,rows);renderPanel();toast('تم تحديث الشريط')}
+    catch(error){brandButton.disabled=false;toast('تعذر حفظ التغيير: '+error.message)}
+    return;
+  }
   const nav=e.target.closest('button[data-tab]');
   if(nav){
     if(cmsDirty && !confirm('عندك تغييرات غير محفوظة في محرر الموقع. هل تريد مغادرة القسم وفقدان التعديلات؟'))return;
@@ -1104,6 +1118,27 @@ $('#adminApp').addEventListener('submit',async e=>{
   e.preventDefault();
   const form=e.target;
   if(form.id==='teamForm'){await saveTeamForm(form);return;}
+  if(form.id==='moPublicBrandForm'){
+    if(!cmsConnected)return;
+    const field=form.querySelector('[data-brand-status]'),button=form.querySelector('[type=submit]');
+    const name=String(form.elements.namedItem('brand_name').value||'').trim();
+    const link=String(form.elements.namedItem('brand_url').value||'').trim();
+    const file=form.elements.namedItem('brand_file').files?.[0];
+    if(!name&&!link&&!file){field.textContent='اكتب اسم البراند أو اختار صورة';return}
+    button.disabled=true;field.textContent='جارٍ حفظ البراند...';
+    try{
+      let logo=link;
+      if(link&&new URL(link).protocol!=='https:')throw new Error('رابط الشعار لازم HTTPS');
+      if(file)logo=await uploadImage(file,'brands');
+      const rows=brandRows(data.settings);
+      if(rows.length>=40)throw new Error('الحد الأقصى 40 براند');
+      rows.push({name:name.slice(0,100),logo,enabled:true});
+      const db=await getClient();
+      data.settings=await saveBrandList(db,data.settings,rows);
+      renderPanel();toast('تم نشر البراند في شريط الشركات');
+    }catch(error){field.textContent='تعذر حفظ البراند: '+error.message;button.disabled=false}
+    return;
+  }
   if(form.id==='mediaUploadForm'){
     if(!cmsConnected)return;
     const button=form.querySelector('button[type=submit]');const files=[...(form.querySelector('[name="uploads"]')?.files||[])];
