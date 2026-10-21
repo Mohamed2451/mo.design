@@ -1106,7 +1106,7 @@ $('#adminApp').addEventListener('submit',async e=>{
   e.preventDefault();
   const form=e.target;
   if(form.id==='teamForm'){await saveTeamForm(form);return;}
-  if(communityAdminSubmit(form)){renderPanel();return;}
+  if(['communityBrandForm','communityBrandVisibilityForm'].includes(form.id)){await communityAdminSubmit(form);renderPanel();return;}
   if(form.id==='mediaUploadForm'){
     if(!cmsConnected)return;
     const button=form.querySelector('button[type=submit]');const files=[...(form.querySelector('[name="uploads"]')?.files||[])];
