@@ -1,4 +1,5 @@
 import { seed, readDemo, escapeHTML as esc, safeUrl, tField, ar, en } from './data.js';
+import {updateCommunityReviews,updateCommunityBrands} from './mo-community-live.js';
 import { connected, getPublicContent, sendInquiry } from './api.js';
 import {PORTFOLIO_CATEGORIES, categoryFor} from './categories.js';
 import {getToolsCatalog} from './tools-catalog.js';
@@ -206,6 +207,7 @@ function renderReviews() {
     <div class="review-stars" aria-label="${verified&&Number(r.rating)>0?`${Number(r.rating)}/5`:''}">${Number(r.rating)>0 ? '★'.repeat(Math.min(5,Math.max(1,Number(r.rating)))) : '✦  MO DESIGN  ✦'}</div><p class="review-quote">${esc(field(r,'quote'))}</p><div class="review-bottom"><span>${verified?'✓':'◎'} ${esc(verified?txt().review_verified:txt().review_placeholder)}</span></div></article>`;
   }).join('') || `<p class="admin-empty">${esc(lang==='ar'?'قريبًا: تقييمات العملاء':'Client feedback coming soon')}</p>`;
   $('#testimonials').hidden = items.length===0;
+  updateCommunityReviews(items);
   $('#testimonials').classList.toggle('no-reviews',items.length===0);
   $('.reviews-note').hidden = true; // Verified published client reviews need no fictional-placeholder disclaimer.
   observeReveal();
@@ -436,6 +438,7 @@ function applySectionDesign(){
  }
 }
 function render() {
+  updateCommunityBrands(model.settings);
   // Independent sections: an error in one widget must never blank the whole site.
   const stages = [
     ['document',updateDocument],
@@ -585,6 +588,7 @@ if(connected){
     if(key==='settings') {
       if(!rows[0])return;
       model={...model,settings:rows[0]};
+      updateCommunityBrands(model.settings);
     } else {
       model={...model,[key]:rows.slice().sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0))};
     }
