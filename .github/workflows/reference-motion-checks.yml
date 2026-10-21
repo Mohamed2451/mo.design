@@ -1,0 +1,45 @@
+name: Reference-informed Mo Motion preview checks
+on:
+  push:
+    branches: [mo-design-reference-motion-preview-20261021]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: |
+          node --check assets/concept-experience.js
+          node --check assets/concept-upgrade.js
+          node --check assets/concept-studio-manager.js
+          node --check assets/mo-motion-system.js
+      - name: Structural and accessibility smoke
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const html=fs.readFileSync('index.html','utf8');
+          const js=fs.readFileSync('assets/mo-motion-system.js','utf8');
+          const css=fs.readFileSync('assets/mo-motion-system.css','utf8');
+          for(const id of ['moGalleryExperience','moGalleryCards','moGalleryStage','moGalleryRail','artworkDialog','workFilters','academyView','accountView','adminView','studentShowcase']){
+            assert.ok(html.includes('id="'+id+'"'),id);
+          }
+          assert.match(js,/data-fan-index/);
+          assert.match(js,/pointerup/);
+          assert.match(js,/ArrowLeft/);
+          assert.match(js,/data-gallery-layout/);
+          assert.match(css,/perspective:1300px/);
+          assert.match(css,/prefers-reduced-motion/);
+          assert.match(html,/mo-motion-system\.js/);
+          assert.ok(!html.includes('mosalamadesigner.com/assets/'));
+          console.log('Motion gallery structural checks passed');
+          NODE
+      - name: Existing repository tests
+        run: node --test tests/v13-loading-smoke.mjs tests/v13-regressions.mjs tests/seo-sitemap.mjs tests/prelaunch-audit.mjs
