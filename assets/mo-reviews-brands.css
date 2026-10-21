@@ -77,3 +77,10 @@
 @media(prefers-reduced-motion:reduce){.mo-review-track{transition:none!important}}
 
 .mo-review-track{direction:ltr}.mo-carousel-card{direction:rtl}
+
+/* Continuous, gapless testimonials marquee; no hover pause. */
+#moReviewSlider .mo-review-track{display:flex!important;gap:0!important;width:max-content;max-width:none;transition:none!important;transform:none;direction:ltr}
+#moReviewSlider .mo-review-loop-group{display:flex;flex:0 0 auto;gap:16px;padding-right:16px;box-sizing:border-box}
+#moReviewSlider .mo-review-loop-group .mo-carousel-card{flex:0 0 clamp(240px,30vw,380px);width:clamp(240px,30vw,380px)}
+@media(max-width:600px){#moReviewSlider .mo-review-loop-group .mo-carousel-card{flex-basis:min(85vw,340px);width:min(85vw,340px)}}
+#moBrandsTrack .mo-brand-tile span{font-size:12px;color:var(--muted,#aaa);text-align:center}
