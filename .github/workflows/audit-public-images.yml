@@ -1,0 +1,19 @@
+name: Audit public image sizes
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/audit-public-image-sizes.mjs'
+      - '.github/workflows/audit-public-images.yml'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/audit-public-image-sizes.mjs
