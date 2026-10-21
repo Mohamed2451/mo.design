@@ -26,6 +26,11 @@ function renderReviews(){
  if(part)container.insertAdjacentHTML('beforeend',part.replaceAll('class="catalog-card"','class="catalog-card" data-addon-review'));
  const admin=el('adminReviews');if(admin){admin.querySelectorAll('[data-addon-moderation]').forEach(n=>n.remove());data.reviews.forEach(x=>{const item=document.createElement('div');item.className='order';item.dataset.addonModeration=x.id;item.innerHTML='<div><strong>'+esc(x.name)+' — '+('★'.repeat(x.rating))+'</strong><br><small class="muted">'+esc(x.role==='client'?'عميل (Demo)':'متدرب (Demo)')+' • '+esc(x.text)+' • '+esc(x.status)+'</small></div>'+(x.status==='pending'?'<div><button class="btn sm" data-moderate-review="'+esc(x.id)+'" data-decision="approved">موافقة</button> <button class="btn sm outline" data-moderate-review="'+esc(x.id)+'" data-decision="rejected">رفض</button></div>':'');admin.append(item)})}
 }
+function renderStudentShowcase(){
+ const host=el('studentWorkShowcase');if(!host)return;
+ let works=[];try{const s=JSON.parse(localStorage.getItem('mo_concept_experience_20261021')||'null');works=Array.isArray(s?.works)?s.works.filter(x=>x.approved):[]}catch{}
+ host.innerHTML=works.length?works.map(x=>'<article class="catalog-card"><div class="catalog-info"><small>APPROVED • DEMO STUDENT</small><h4>'+esc(x.title)+'</h4><p>'+esc(x.desc)+'</p><small>'+esc(x.user)+'</small></div></article>').join(''):'<p class="muted">لحد دلوقتي مفيش مشاريع متدربين معتمدة. جرّب إرسال مشروع من حساب المتدرب واعتماده من إدارة المعاينة.</p>';
+}
 function showArtwork(card){
  const d=el('artworkDialog');if(!d)return;const img=card.querySelector('img');el('artworkImage').src=img?.getAttribute('src')||'';el('artworkImage').alt=img?.alt||'';el('artworkTitle').textContent=card.querySelector('h3')?.textContent||'Project';d.showModal();
 }
@@ -35,7 +40,7 @@ document.addEventListener('click',event=>{
  const expand=event.target.closest('[data-expand-word]');if(expand){const on=expand.getAttribute('aria-pressed')==='true';expand.setAttribute('aria-pressed',String(!on));const target=expand.querySelector('[data-stretch-word]');if(target)target.textContent=expand.dataset[on?'wordShort':'wordLong'];}
  const card=event.target.closest('#workGrid .work-card');if(card){event.preventDefault();showArtwork(card);}
  if(event.target.closest('[data-open-public-review]'))el('publicReviewDialog')?.showModal();
- const admin=event.target.closest('[data-demo-admin]');if(admin)setTimeout(()=>{renderBrands();renderReviews()},80);
+ const admin=event.target.closest('[data-demo-admin]');if(admin)setTimeout(()=>{renderBrands();renderReviews();renderStudentShowcase()},80);
  const del=event.target.closest('[data-remove-brand]');if(del){data.brands=data.brands.filter(x=>x.id!==del.dataset.removeBrand);save();renderBrands();}
  const moderate=event.target.closest('[data-moderate-review]');if(moderate){const x=data.reviews.find(x=>x.id===moderate.dataset.moderateReview);if(x){x.status=moderate.dataset.decision;save();renderReviews();}}
 });
@@ -52,5 +57,6 @@ el('brandsForm')?.addEventListener('submit',ev=>{
  data.brands.push({id:crypto.randomUUID(),name:name.slice(0,80),logo:validatedUrl(logo)});
  save();ev.target.reset();renderBrands();
 });
-renderBrands();renderReviews();
+renderBrands();renderReviews();renderStudentShowcase();
+window.addEventListener('storage',()=>{renderStudentShowcase();renderBrands();renderReviews()});
 })();
