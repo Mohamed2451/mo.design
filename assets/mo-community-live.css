@@ -39,3 +39,7 @@
 .mo-review-submit-form .mo-review-submit-consent{display:flex;gap:9px;align-items:center}
 .mo-review-submit-trap{position:absolute!important;left:-10000px!important;width:1px;height:1px;overflow:hidden}
 .mo-live-brands:not([hidden]){min-height:205px}
+
+.mo-live-empty-brands{width:min(100%,850px);margin:12px auto;padding:24px;text-align:center;direction:rtl;color:var(--text-soft,#a9b7b0);border:1px dashed var(--line,#455249);border-radius:18px;font-size:14px;white-space:normal}
+.mo-admin-notification-count{display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:21px;padding:0 5px;background:#c6fa8a;color:#152315;border-radius:99px;font:800 12px sans-serif;margin-inline:8px}
+.mo-admin-notification-count[hidden]{display:none!important}
