@@ -75,3 +75,5 @@
 @media(max-width:900px){.mo-carousel-card{flex-basis:calc((100% - 16px)/2)}}
 @media(max-width:600px){.mo-carousel-card{flex-basis:100%}}
 @media(prefers-reduced-motion:reduce){.mo-review-track{transition:none!important}}
+
+.mo-review-track{direction:ltr}.mo-carousel-card{direction:rtl}
