@@ -1,0 +1,36 @@
+name: Mo Design kinetic experience preview
+on:
+  push:
+    branches: [mo-design-concept-academy-preview-20261021]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JS syntax and feature checks
+        run: |
+          node --check assets/concept-experience.js
+          node --check assets/concept-upgrade.js
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          const html=fs.readFileSync('index.html','utf8'),js=fs.readFileSync('assets/concept-upgrade.js','utf8'),css=fs.readFileSync('assets/concept-upgrade.css','utf8');
+          for (const id of ['workDropdown','academyDropdown','moTools','brandsTrack','publicReviewDialog','publicReviewForm','brandsForm','adminReviews','artworkDialog','studentWorkShowcase']){
+            assert.ok(html.includes('id="'+id+'"'),id);
+          }
+          assert.match(html,/data-expand-word/);
+          assert.match(js,/status:'pending'/);
+          assert.match(js,/data-moderate-review/);
+          assert.match(js,/validatedUrl/);
+          assert.match(css,/prefers-reduced-motion/);
+          assert.match(css,/moMarquee/);
+          assert.match(css,/orbitTurn/);
+          assert.doesNotMatch(js, /supabase|service_role|fetch\(/i);
+          assert.match(html,/classic\.html/);
+          console.log('Mo kinetic experience checks passed');
+          NODE
