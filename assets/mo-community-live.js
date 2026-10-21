@@ -31,7 +31,7 @@ function paintReviews(){
 function paintBrands(){
  const viewport=$('moLiveBrandsViewport'),rail=$('moLiveBrandsTrack'),shell=$('moLiveBrands');
  if(!viewport||!rail||!shell)return;
- shell.hidden=!brands.length;
+ shell.hidden=false;
  if(brands.length)render(rail,viewport,brands,logo,165);
 }
 function parseBrands(raw){
