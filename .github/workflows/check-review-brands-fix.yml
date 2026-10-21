@@ -1,0 +1,35 @@
+name: Review and brands preview checks
+on:
+  push:
+    branches: [mo-design-review-brands-fix-20261021]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: |
+          node --check assets/app.js
+          node --check assets/admin.js
+          node --check assets/mo-community-live.js
+          node --check assets/mo-review-submit.js
+          node --check assets/mo-community-admin-live.js
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const site=fs.readFileSync('index.html','utf8');
+          const admin=fs.readFileSync('assets/admin.js','utf8');
+          const app=fs.readFileSync('assets/app.js','utf8');
+          assert(site.includes('id="moWriteReview"'));
+          assert(site.includes('id="moLiveReviewForm"'));
+          assert(site.includes('id="moLiveBrands"'));
+          assert(admin.includes("communityBrands:()=>renderBrandManager("));
+          assert(admin.includes('renderPreviewReviews'));
+          assert(app.includes("model.settings?.section_visibility?.testimonials===false"));
+          assert(fs.readFileSync('assets/mo-review-submit.js','utf8').includes("db.from('testimonials').insert(row)"));
+          console.log('Scoped review/brands validation passed');
+          NODE
+          node --test tests/v13-loading-smoke.mjs tests/v13-regressions.mjs tests/seo-sitemap.mjs tests/prelaunch-audit.mjs
