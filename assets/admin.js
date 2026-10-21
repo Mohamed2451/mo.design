@@ -33,7 +33,7 @@ window.addEventListener('beforeunload',event=>{
 });
 
 // Dashboard always uses its own neutral dark palette; the public site's theme remains unchanged.
-const labels = {notice:'إشعارات الموقع',overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',appearance:'مظهر الأقسام',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى',team:'فريق العمل',tools:'إدارة الأدوات',legal:'الصفحات والروابط'};
+const labels = {notice:'إشعارات الموقع',overview:'الرئيسية',content:'محرر الموقع',settings:'إعدادات الهوية',projects:'المشاريع',appearance:'مظهر الأقسام',media:'مكتبة الصور',services:'الخدمات',testimonials:'آراء العملاء',messages:'طلبات العملاء',future:'الأكاديمية والمحتوى',team:'فريق العمل',tools:'إدارة الأدوات',legal:'الصفحات والروابط',communityBrands:'الشركات والبراندات'};
 const FONT_CHOICES=[['Alexandria','Alexandria — حديث'],['Cairo','Cairo — واضح'],['Readex Pro','Readex Pro — هادي'],['IBM Plex Sans Arabic','IBM Plex Sans Arabic — احترافي']];
 const EXTRA_CONTENT_KEYS=[...ACADEMY_TEXT_KEYS.map(x=>x[0]),'team_eyebrow','team_title','team_description','hero_intro','hero_merged_role','hero_merged_description','hero_point_1','hero_point_2','hero_point_3','about_story_label','about_story_value','about_kicker','about_ribbon','portrait_tag','portrait_pill','hero_side','footer_line','learn_eyebrow','learn_big1','learn_big2','cta_kicker','tool_kicker','tools_eyebrow','ticker_items','project_about_title','project_objective_title','selected_real_sub','reviews_real_sub','featured_real_sub','portrait_copyright','hero_year','footer_copyright'];
 const ALL_COPY_KEYS=()=>[...new Set([...Object.keys(ar),...Object.keys(en),...EXTRA_CONTENT_KEYS])].filter(k=>EXTRA_CONTENT_KEYS.includes(k)||typeof ar[k]==='string'||typeof en[k]==='string');
@@ -107,11 +107,11 @@ function renderLogin(error=''){
 function baseShell(){
  const groups=[
   {title:'المكتب',items:['overview','messages']},
-  {title:'إدارة المحتوى',items:['content','appearance','projects','media','services','tools','legal','testimonials','future','notice']},
+  {title:'إدارة المحتوى',items:['content','appearance','projects','media','services','tools','legal','testimonials','communityBrands','future','notice']},
   {title:'الهوية والإعدادات',items:['settings']},
   {title:'فريق العمل',items:['team']}
  ];
- const icons={overview:'◫',messages:'✉',content:'▤',appearance:'◈',projects:'▦',media:'▧',tools:'◈',services:'◇',testimonials:'❞',future:'▷',team:'♧',notice:'♧',legal:'▣',settings:'⚙'};
+ const icons={overview:'◫',messages:'✉',content:'▤',appearance:'◈',projects:'▦',media:'▧',tools:'◈',services:'◇',testimonials:'❞',future:'▷',team:'♧',notice:'♧',legal:'▣',settings:'⚙',communityBrands:'▤'};
  $('#adminApp').innerHTML=`<div class="admin-layout v10-shell"><aside class="admin-sidebar">
  <div class="studio-sidebar-top"><a href="./index.html" class="brand v10-brand"><span class="brand-mark"><img src="./assets/images/mo-logo-white.webp" alt="" data-admin-brand-logo /></span><span><strong>Mo Design</strong><small>مساحة الإدارة الإبداعية</small></span></a><div class="v10-workspace-badge"><span class="v10-online-dot"></span> مساحة الإدارة الخاصة</div></div>
  <nav class="sidebar-nav" id="adminNav" aria-label="أقسام لوحة الإدارة">${groups.map(group=>`<div class="v10-nav-group"><div class="v10-nav-label">${group.title}</div>${group.items.map(key=>`<button type="button" data-tab="${key}" class="${tab===key?'active':''}"><span class="v10-nav-icon" aria-hidden="true">${icons[key]}</span><span>${labels[key]}</span><span class="v10-nav-chevron" aria-hidden="true">‹</span></button>`).join('')}</div>`).join('')}</nav>
@@ -120,10 +120,12 @@ function baseShell(){
 }
 function renderOverview(){
  const projects=data.projects||[], messages=data.messages||[],lessons=data.learning_items||[];
+ const pendingReviews=(data.testimonials||[]).filter(x=>!x.is_verified&&!x.is_published).length;
  const metrics=[
  ['المشاريع المنشورة',projects.filter(x=>x.is_published).length,'▧','مشروع ظاهر للزوار'],
  ['المشاريع المسودة',projects.filter(x=>!x.is_published).length,'◷','مستني المراجعة'],
  ['طلبات جديدة',messages.filter(x=>x.status==='new').length,'✉','محتاج متابعة'],
+ ['تقييمات تنتظر الموافقة',pendingReviews,'★','مراجعة قبل النشر'],
  ['محتوى تعليمي منشور',lessons.filter(x=>x.is_published).length,'▷','فيديوهات ومقالات']
  ];
  const mode=data.settings?.education_mode||'coming_soon';
@@ -189,7 +191,7 @@ function renderSettings(){
   ${field('availability','إظهار «متاح لمشاريع جديدة»',s.availability,{type:'checkbox',full:true})}
   ${field('stats_projects','عدد المشاريع الفعلي (يظهر بعد توثيق الأرقام)',s.stats_projects??100,{type:'number'})}${field('stats_years','سنوات الخبرة الفعلية',s.stats_years??3,{type:'number'})}${field('stats_satisfaction','نسبة رضا العملاء الفعلية (0–100)',s.stats_satisfaction??100,{type:'number'})}
   ${field('stats_verified','أؤكد صحة الأرقام (+100 مشروع، +3 سنوات خبرة، 100% رضا عملاء) وأوافق على إظهارها علنًا',s.stats_verified,{type:'checkbox',full:true})}
-  </div><div class="admin-actions"><button class="admin-btn" type="submit">حفظ التعديلات</button></div></form></div>${renderBrandManager(s)}`;
+  </div><div class="admin-actions"><button class="admin-btn" type="submit">حفظ التعديلات</button></div></form></div>`;
 }
 function serviceCategoryRow(c={}){
  return `<div class="admin-row" data-simple-category data-category-id="${esc(c.id||'')}" style="margin:7px 0;gap:10px;flex-wrap:wrap">
@@ -221,7 +223,7 @@ function renderItems(table){
   const isTestimonials=table==='testimonials';
   const arr=data[table]||[];
   const noun=isProjects?'مشروع':isTestimonials?'رأي عميل':'خدمة';
-  const list=`<div class="admin-panel"><div class="admin-heading"><h2>${isProjects?'الأعمال المعروضة':isTestimonials?'آراء العملاء':'الخدمات المعروضة'}</h2>${uiButton(`+ إضافة ${noun}`,'add',table,'')}</div><div class="admin-rows">${arr.length?arr.map(row=>`<div class="admin-row"><div class="admin-row-content">${isProjects && safeUrl(row.image_url)?`<img class="admin-row-thumb" src="${esc(safeUrl(row.image_url))}" loading="lazy" alt=""/>`:''}<div><h3>${esc(isTestimonials?row.author_ar:row.title_ar)}</h3><p>${esc(isTestimonials?row.author_en:row.title_en)} · ${row.is_published?'منشور':'مسودة'} · #${esc(row.sort_order)}</p></div></div><div class="row-actions">${!isTestimonials?uiButton(row.is_published?'إخفاء':'نشر','togglepublish',`${table}|${row.id}`):''}${uiButton('تعديل','edit',`${table}|${row.id}`)}${uiButton('حذف','delete',`${table}|${row.id}`,'danger')}</div></div>`).join(''):`<p class="admin-empty">لا توجد عناصر بعد.</p>`}</div></div>`;
+  const list=`<div class="admin-panel"><div class="admin-heading"><h2>${isProjects?'الأعمال المعروضة':isTestimonials?'آراء العملاء — المراجعة والنشر':'الخدمات المعروضة'}</h2>${uiButton(`+ إضافة ${noun}`,'add',table,'')}</div><div class="admin-rows">${arr.length?arr.map(row=>`<div class="admin-row"><div class="admin-row-content">${isProjects && safeUrl(row.image_url)?`<img class="admin-row-thumb" src="${esc(safeUrl(row.image_url))}" loading="lazy" alt=""/>`:''}<div><h3>${esc(isTestimonials?row.author_ar:row.title_ar)}</h3><p>${esc(isTestimonials?row.author_en:row.title_en)} · ${row.is_published?'منشور':'مسودة'} · #${esc(row.sort_order)}</p></div></div><div class="row-actions">${!isTestimonials?uiButton(row.is_published?'إخفاء':'نشر','togglepublish',`${table}|${row.id}`):''}${isTestimonials&&!row.is_published?`<button class="admin-btn" data-publish-review="${esc(row.id)}">موافقة ونشر</button>`:''}${uiButton('تعديل','edit',`${table}|${row.id}`)}${uiButton('حذف','delete',`${table}|${row.id}`,'danger')}</div></div>`).join(''):`<p class="admin-empty">لا توجد عناصر بعد.</p>`}</div></div>`;
   const servicePages=table==='services'?`<div class="admin-panel"><h3>دليل صفحات الخدمات الفعلية</h3><p class="admin-note">الروابط الأربعة أدناه هي المعاينات المقابلة للخدمات الأساسية الظاهرة على الموقع. الخدمات الفعلية تتعدل من القائمة أسفل هذا الدليل، والمشاريع في كل صفحة تتحدد من تصنيف المشروع المنشور. لإضافة أعمال للصفحة افتح «المشاريع» واختر تصنيفها. عدّل أسماء الخدمات الفعلية من القائمة التالية.</p><div class="admin-rows">${[['social-media','السوشيال ميديا والإعلانات'],['video-motion','الريلز والبودكاست'],['ai-creative','التصميم بالذكاء الاصطناعي'],['branding','الهوية البصرية']].map(([slug,name])=>`<a class="admin-btn secondary" target="_blank" rel="noopener" href="./services/${slug}/">فتح تخصص ${name} ↗</a>`).join('')}</div></div>`:'';
   if(!editing || editing.table!==table)return (table==='services'?servicePageEditor(): '')+servicePages+list;
   const item=arr.find(a=>a.id===editing.id) || {};
@@ -546,12 +548,22 @@ async function saveTeamForm(form){
  finally{if(button)button.disabled=false}
 }
 
+function renderPreviewReviews(){
+ let rows=[];try{rows=JSON.parse(localStorage.getItem('mo_design_preview_submitted_reviews_v1')||'[]')}catch{}
+ return '<section class="admin-panel"><h2>تقييمات الزوار المرسلة للمراجعة</h2><p class="admin-note">دي معاينة محلية على نفس المتصفح فقط؛ لا تغيّر قاعدة بيانات Supabase الرسمية.</p>'+ (rows.length?rows.map(x=>'<div class="admin-row" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center"><div style="flex:1"><strong>'+esc(x.author_ar)+'</strong><small> · '+esc(x.job_ar)+' · '+x.rating+'/5 · '+(x.is_verified?'تمت الموافقة':'ينتظر الموافقة')+'</small><p>'+esc(x.quote_ar)+'</p></div><button type="button" class="admin-btn secondary" data-preview-review-approve="'+esc(x.id)+'">'+(x.is_verified?'إلغاء الموافقة':'موافقة')+'</button><button type="button" class="admin-btn secondary" data-preview-review-delete="'+esc(x.id)+'">حذف</button></div>').join(''):'<p class="admin-empty">مافيش تقييمات جديدة للمراجعة.</p>')+'</section>';
+}
 function renderPanel(){
   if(!data)return;
   const main=$('#adminMain'); if(!main) return;
-  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,legal:renderLegalPages,services:()=>renderItems('services'),testimonials:()=>renderItems('testimonials'),messages:renderMessages,future:renderFuture,team:renderTeam,notice:renderNoticeEditor})[tab]();
+  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,legal:renderLegalPages,services:()=>renderItems('services'),testimonials:()=> (cmsConnected?renderItems('testimonials'):renderPreviewReviews()),communityBrands:()=>renderBrandManager(cmsConnected?data.settings:{...data.settings,content_ar:{...data.settings.content_ar,mo_public_brands:localStorage.getItem('mo_design_preview_public_brands_v1')||'[]'}}),messages:renderMessages,future:renderFuture,team:renderTeam,notice:renderNoticeEditor})[tab]();
   main.innerHTML=`<header class="admin-heading v10-page-head"><div><span class="v10-page-path">Mo Design <span>/</span> مساحة العمل <span>/</span> ${esc(labels[tab])}</span><h1>${esc(labels[tab])}</h1><p>أدواتك ومحتواك وطلبات الشغل في مكان واحد.</p></div><div class="v10-page-actions"><span class="admin-badge">${cmsConnected?`<span class="v10-online-dot"></span> متصل`:'◌ وضع تجربة محلية'}</span><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">↗ شوف الموقع</a></div></header>${!cmsConnected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
   document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
+  document.querySelectorAll('[data-tab="testimonials"],[data-tab="messages"]').forEach(el=>{
+    const count=el.dataset.tab==='testimonials'?(data.testimonials||[]).filter(x=>!x.is_verified&&!x.is_published).length:(data.messages||[]).filter(x=>x.status==='new').length;
+    let dot=el.querySelector('.mo-admin-notification-count');
+    if(!dot){dot=document.createElement('span');dot.className='mo-admin-notification-count';el.append(dot)}
+    dot.hidden=!count;dot.textContent=String(count);
+  });
   if(tab==='media')void loadMedia();
   if(tab==='content' && openingTeamCopyFromLink){
     const group=document.getElementById('teamCopyGroup');
@@ -946,16 +958,39 @@ $('#adminApp').addEventListener('click',async e=>{
   }
   const addTeam=e.target.closest('[data-team-add]');if(addTeam){const host=document.querySelector('#teamRows');if(host)host.insertAdjacentHTML('beforeend',teamRow({},host.children.length));return;}
   const removeTeam=e.target.closest('[data-team-remove]');if(removeTeam){removeTeam.closest('[data-team-row]')?.remove();return;}
-  const brandButton=e.target.closest('[data-public-brand-toggle],[data-public-brand-delete]');
+  const previewReview=e.target.closest('[data-preview-review-approve],[data-preview-review-delete]');
+  if(previewReview&&!cmsConnected){
+    const key='mo_design_preview_submitted_reviews_v1';
+    let rows=[];try{rows=JSON.parse(localStorage.getItem(key)||'[]')}catch{}
+    const id=previewReview.dataset.previewReviewApprove||previewReview.dataset.previewReviewDelete;
+    const index=rows.findIndex(x=>x.id===id);
+    if(index<0)return;
+    if(previewReview.hasAttribute('data-preview-review-delete'))rows.splice(index,1);
+    else {rows[index].is_verified=!rows[index].is_verified;rows[index].is_published=rows[index].is_verified;}
+    localStorage.setItem(key,JSON.stringify(rows));renderPanel();return;
+  }
+    const pending=e.target.closest('[data-publish-review]');
+  if(pending&&cmsConnected){
+    const id=pending.dataset.publishReview,review=(data.testimonials||[]).find(x=>x.id===id);
+    if(!review)return;
+    pending.disabled=true;
+    try{
+      const db=await getClient();
+      const {error}=await db.from('testimonials').update({is_verified:true,is_published:true}).eq('id',id);
+      if(error)throw error;
+      review.is_verified=true;review.is_published=true;renderPanel();toast('تمت الموافقة ونشر التقييم');
+    }catch(error){pending.disabled=false;toast('تعذر النشر: '+error.message)}
+    return;
+  }
+    const brandButton=e.target.closest('[data-public-brand-toggle],[data-public-brand-delete]');
   if(brandButton){
-    if(!cmsConnected)return;
     const index=Number(brandButton.dataset.publicBrandToggle??brandButton.dataset.publicBrandDelete);
-    const rows=brandRows(data.settings);
+    const rows=brandRows(cmsConnected?data.settings:{content_ar:{mo_public_brands:localStorage.getItem('mo_design_preview_public_brands_v1')||'[]'}});
     if(!Number.isInteger(index)||!rows[index])return;
     if(brandButton.hasAttribute('data-public-brand-delete')){if(!confirm('حذف البراند من الشريط؟'))return;rows.splice(index,1)}
     else rows[index].enabled=rows[index].enabled===false;
     brandButton.disabled=true;
-    try{data.settings=await saveBrandList(await getClient(),data.settings,rows);renderPanel();toast('تم تحديث الشريط')}
+    try{if(cmsConnected)data.settings=await saveBrandList(await getClient(),data.settings,rows);else localStorage.setItem('mo_design_preview_public_brands_v1',JSON.stringify(rows));renderPanel();toast('تم تحديث الشريط')}
     catch(error){brandButton.disabled=false;toast('تعذر حفظ التغيير: '+error.message)}
     return;
   }
@@ -1119,7 +1154,6 @@ $('#adminApp').addEventListener('submit',async e=>{
   const form=e.target;
   if(form.id==='teamForm'){await saveTeamForm(form);return;}
   if(form.id==='moPublicBrandForm'){
-    if(!cmsConnected)return;
     const field=form.querySelector('[data-brand-status]'),button=form.querySelector('[type=submit]');
     const name=String(form.elements.namedItem('brand_name').value||'').trim();
     const link=String(form.elements.namedItem('brand_url').value||'').trim();
@@ -1129,12 +1163,12 @@ $('#adminApp').addEventListener('submit',async e=>{
     try{
       let logo=link;
       if(link&&new URL(link).protocol!=='https:')throw new Error('رابط الشعار لازم HTTPS');
-      if(file)logo=await uploadImage(file,'brands');
-      const rows=brandRows(data.settings);
+      if(file){if(!cmsConnected)throw new Error('في المعاينة استخدم رابط HTTPS للشعار، رفع الملفات الحقيقي متاح بعد الاعتماد على الموقع الرسمي.');logo=await uploadImage(file,'brands')}
+      const rows=brandRows(cmsConnected?data.settings:{content_ar:{mo_public_brands:localStorage.getItem('mo_design_preview_public_brands_v1')||'[]'}});
       if(rows.length>=40)throw new Error('الحد الأقصى 40 براند');
       rows.push({name:name.slice(0,100),logo,enabled:true});
-      const db=await getClient();
-      data.settings=await saveBrandList(db,data.settings,rows);
+      if(cmsConnected){const db=await getClient();data.settings=await saveBrandList(db,data.settings,rows)}
+      else localStorage.setItem('mo_design_preview_public_brands_v1',JSON.stringify(rows));
       renderPanel();toast('تم نشر البراند في شريط الشركات');
     }catch(error){field.textContent='تعذر حفظ البراند: '+error.message;button.disabled=false}
     return;

@@ -31,19 +31,20 @@ function paintReviews(){
 function paintBrands(){
  const viewport=$('moLiveBrandsViewport'),rail=$('moLiveBrandsTrack'),shell=$('moLiveBrands');
  if(!viewport||!rail||!shell)return;
- shell.hidden=!brands.length;
+ shell.hidden=false;
  if(brands.length)render(rail,viewport,brands,logo,165);
 }
 function parseBrands(raw){
  try{return JSON.parse(raw||'[]').filter(x=>x&&typeof x==='object'&&(x.name||x.logo)&&x.enabled!==false).slice(0,40)}catch{return []}
 }
-export function updateCommunityReviews(rows){entries=Array.isArray(rows)?rows.filter(x=>x.is_published&&x.is_verified):[];paintReviews()}
-export function updateCommunityBrands(settings){brands=parseBrands(settings?.content_ar?.mo_public_brands);paintBrands()}
+export function updateCommunityReviews(rows){entries=Array.isArray(rows)?rows.filter(x=>x.is_published&&x.is_verified):[];if(location.hostname.endsWith('.pages.dev')){try{const demo=JSON.parse(localStorage.getItem('mo_design_preview_submitted_reviews_v1')||'[]');entries=entries.concat(demo.filter(x=>x.is_published&&x.is_verified))}catch{}}paintReviews()}
+export function updateCommunityBrands(settings){brands=parseBrands(settings?.content_ar?.mo_public_brands);if(location.hostname.endsWith('.pages.dev'))brands=parseBrands(localStorage.getItem('mo_design_preview_public_brands_v1'));paintBrands()}
 export function mountCommunity(){
  const review=$('moLiveReviewsTrack');
  if(!review)return;
  $('moLiveReviewsPrev')?.addEventListener('click',()=>review.__moRailNudge?.(-1));
  $('moLiveReviewsNext')?.addEventListener('click',()=>review.__moRailNudge?.(1));
  let timer=0;window.addEventListener('resize',()=>{clearTimeout(timer);timer=setTimeout(()=>{paintReviews();paintBrands()},220)});
+ window.addEventListener('storage',()=>{updateCommunityBrands();updateCommunityReviews(entries)});
  paintReviews();paintBrands();
 }
