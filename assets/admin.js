@@ -553,7 +553,7 @@ function renderPreviewReviews(){
 function renderPanel(){
   if(!data)return;
   const main=$('#adminMain'); if(!main) return;
-  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,legal:renderLegalPages,services:()=>renderItems('services'),testimonials:()=> (cmsConnected?renderItems('testimonials'):renderPreviewReviews()),communityBrands:()=>renderBrandManager(data.settings),messages:renderMessages,future:renderFuture,team:renderTeam,notice:renderNoticeEditor})[tab]();
+  const body=({overview:renderOverview,content:renderContent,appearance:renderAppearance,settings:renderSettings,projects:()=>renderItems('projects'),media:renderMedia,tools:renderToolManager,legal:renderLegalPages,services:()=>renderItems('services'),testimonials:()=> (cmsConnected?renderItems('testimonials'):renderPreviewReviews()),communityBrands:()=>renderBrandManager(cmsConnected?data.settings:{...data.settings,content_ar:{...data.settings.content_ar,mo_public_brands:localStorage.getItem('mo_design_preview_public_brands_v1')||'[]'}}),messages:renderMessages,future:renderFuture,team:renderTeam,notice:renderNoticeEditor})[tab]();
   main.innerHTML=`<header class="admin-heading v10-page-head"><div><span class="v10-page-path">Mo Design <span>/</span> مساحة العمل <span>/</span> ${esc(labels[tab])}</span><h1>${esc(labels[tab])}</h1><p>أدواتك ومحتواك وطلبات الشغل في مكان واحد.</p></div><div class="v10-page-actions"><span class="admin-badge">${cmsConnected?`<span class="v10-online-dot"></span> متصل`:'◌ وضع تجربة محلية'}</span><a href="./index.html" target="_blank" rel="noopener" class="admin-btn secondary">↗ شوف الموقع</a></div></header>${!cmsConnected?`<div class="admin-banner"><strong>وضع المعاينة المحلي:</strong> التعديلات تُحفظ على هذا المتصفح فقط، ويمكن لأي شخص فتح لوحة المعاينة. ليست لوحة إنتاج آمنة ولا قاعدة بيانات عامة. لبدء الإدارة الحقيقية فعّل Supabase واتبع ملف التعليمات.</div>`:''}${body}`;
   document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
   if(tab==='media')void loadMedia();
@@ -963,14 +963,13 @@ $('#adminApp').addEventListener('click',async e=>{
   }
     const brandButton=e.target.closest('[data-public-brand-toggle],[data-public-brand-delete]');
   if(brandButton){
-    if(!cmsConnected)return;
     const index=Number(brandButton.dataset.publicBrandToggle??brandButton.dataset.publicBrandDelete);
-    const rows=brandRows(data.settings);
+    const rows=brandRows(cmsConnected?data.settings:{content_ar:{mo_public_brands:localStorage.getItem('mo_design_preview_public_brands_v1')||'[]'}});
     if(!Number.isInteger(index)||!rows[index])return;
     if(brandButton.hasAttribute('data-public-brand-delete')){if(!confirm('حذف البراند من الشريط؟'))return;rows.splice(index,1)}
     else rows[index].enabled=rows[index].enabled===false;
     brandButton.disabled=true;
-    try{data.settings=await saveBrandList(await getClient(),data.settings,rows);renderPanel();toast('تم تحديث الشريط')}
+    try{if(cmsConnected)data.settings=await saveBrandList(await getClient(),data.settings,rows);else localStorage.setItem('mo_design_preview_public_brands_v1',JSON.stringify(rows));renderPanel();toast('تم تحديث الشريط')}
     catch(error){brandButton.disabled=false;toast('تعذر حفظ التغيير: '+error.message)}
     return;
   }
@@ -1134,7 +1133,6 @@ $('#adminApp').addEventListener('submit',async e=>{
   const form=e.target;
   if(form.id==='teamForm'){await saveTeamForm(form);return;}
   if(form.id==='moPublicBrandForm'){
-    if(!cmsConnected)return;
     const field=form.querySelector('[data-brand-status]'),button=form.querySelector('[type=submit]');
     const name=String(form.elements.namedItem('brand_name').value||'').trim();
     const link=String(form.elements.namedItem('brand_url').value||'').trim();
@@ -1144,12 +1142,12 @@ $('#adminApp').addEventListener('submit',async e=>{
     try{
       let logo=link;
       if(link&&new URL(link).protocol!=='https:')throw new Error('رابط الشعار لازم HTTPS');
-      if(file)logo=await uploadImage(file,'brands');
-      const rows=brandRows(data.settings);
+      if(file){if(!cmsConnected)throw new Error('في المعاينة استخدم رابط HTTPS للشعار، رفع الملفات الحقيقي متاح بعد الاعتماد على الموقع الرسمي.');logo=await uploadImage(file,'brands')}
+      const rows=brandRows(cmsConnected?data.settings:{content_ar:{mo_public_brands:localStorage.getItem('mo_design_preview_public_brands_v1')||'[]'}});
       if(rows.length>=40)throw new Error('الحد الأقصى 40 براند');
       rows.push({name:name.slice(0,100),logo,enabled:true});
-      const db=await getClient();
-      data.settings=await saveBrandList(db,data.settings,rows);
+      if(cmsConnected){const db=await getClient();data.settings=await saveBrandList(db,data.settings,rows)}
+      else localStorage.setItem('mo_design_preview_public_brands_v1',JSON.stringify(rows));
       renderPanel();toast('تم نشر البراند في شريط الشركات');
     }catch(error){field.textContent='تعذر حفظ البراند: '+error.message;button.disabled=false}
     return;
