@@ -1,5 +1,6 @@
 import { seed, readDemo, saveDemo, escapeHTML as esc, safeUrl, ar, en } from './data.js';
-import {renderBrandManager,brandRows,saveBrandList} from './mo-community-admin-live.js';
+import {renderBrandManager,brandRows,saveBrandList,hydrateBrandAdminImages} from './mo-community-admin-live.js';
+import {storeStudioPreviewMedia} from './studio-preview-media.js';
 import {STUDIO_KEY,readStudio,safeStudioUrl} from './studio-config.js';
 import {isStudioPreviewHost,isPreviewMediaRef,storeStudioPreviewMedia} from './studio-preview-media.js';
 import { connected, getClient, adminAuthenticated, getAdminContent } from './api.js';
@@ -583,6 +584,7 @@ function renderPanel(){
   }
   setupToolTags(main);
   refreshAdminLogos();
+  if(tab==='communityBrands')void hydrateBrandAdminImages(main);
 }
 let moNotificationsRunning=false;
 function startMoNotificationRefresh(){
@@ -1218,7 +1220,7 @@ $('#adminApp').addEventListener('submit',async e=>{
     try{
       let logo=link;
       if(link&&new URL(link).protocol!=='https:')throw new Error('رابط الشعار لازم HTTPS');
-      if(file){if(!cmsConnected)throw new Error('في المعاينة استخدم رابط HTTPS للشعار، رفع الملفات الحقيقي متاح بعد الاعتماد على الموقع الرسمي.');logo=await uploadImage(file,'brands')}
+      if(file)logo=cmsConnected?await uploadImage(file,'brands'):await storeStudioPreviewMedia(file,'image')
       const rows=brandRows(cmsConnected?data.settings:{content_ar:{mo_public_brands:localStorage.getItem('mo_design_preview_public_brands_v1')||'[]'}});
       if(rows.length>=40)throw new Error('الحد الأقصى 40 براند');
       rows.push({name:name.slice(0,100),logo,enabled:true});
